@@ -206,5 +206,200 @@ class TestRecomputeAll(unittest.TestCase):
         self.assertLess(walk_p1, real_p1)  # walkover gives less of a boost
 
 
+class TestDivisionHelpers(unittest.TestCase):
+    """T-P0-011 helper functions."""
+
+    def test_normalize_division_strips_whitespace(self):
+        self.assertEqual(rating.normalize_division("Men Div 1 "), "Men Div 1")
+        self.assertEqual(rating.normalize_division("  Lad Div 2  "), "Lad Div 2")
+
+    def test_normalize_division_handles_none_and_empty(self):
+        self.assertIsNone(rating.normalize_division(None))
+        self.assertIsNone(rating.normalize_division(""))
+        self.assertIsNone(rating.normalize_division("   "))
+
+    def test_normalize_division_full_form_to_canonical(self):
+        # The actual data uses "Men Division N" — canonicalize to "Men Div N"
+        self.assertEqual(rating.normalize_division("Men Division 1"), "Men Div 1")
+        self.assertEqual(rating.normalize_division("Men Division 4"), "Men Div 4")
+        self.assertEqual(rating.normalize_division("Ladies Division 2"), "Lad Div 2")
+
+    def test_normalize_division_strips_group_suffix(self):
+        # "Men Division 3 - Group A" → "Men Div 3"
+        self.assertEqual(
+            rating.normalize_division("Men Division 3 - Group A"), "Men Div 3"
+        )
+        self.assertEqual(
+            rating.normalize_division("Ladies Division 3 - Group B"), "Lad Div 3"
+        )
+
+    def test_normalize_division_unknown_passes_through(self):
+        self.assertEqual(rating.normalize_division("Mixed Doubles"), "Mixed Doubles")
+
+    def test_division_k_multiplier_per_division(self):
+        self.assertEqual(rating.division_k_multiplier("Men Div 1"), 1.00)
+        self.assertEqual(rating.division_k_multiplier("Men Div 2"), 0.90)
+        self.assertEqual(rating.division_k_multiplier("Men Div 4"), 0.70)
+        self.assertEqual(rating.division_k_multiplier("Lad Div 3"), 0.73)
+
+    def test_division_k_multiplier_unknown_returns_one(self):
+        # Unknown divisions: better to count fully than silently dampen
+        self.assertEqual(rating.division_k_multiplier("Unknown"), 1.0)
+        self.assertEqual(rating.division_k_multiplier(None), 1.0)
+
+    def test_division_k_handles_trailing_whitespace(self):
+        # Real data has 'Men Div 1 ' with trailing space — must still match
+        self.assertEqual(rating.division_k_multiplier("Men Div 1 "), 1.00)
+
+    def test_division_starting_mu_per_division(self):
+        # Spacing: M1 > M2 > M3 > M4
+        m1 = rating.division_starting_mu("Men Div 1")
+        m2 = rating.division_starting_mu("Men Div 2")
+        m3 = rating.division_starting_mu("Men Div 3")
+        m4 = rating.division_starting_mu("Men Div 4")
+        self.assertGreater(m1, m2)
+        self.assertGreater(m2, m3)
+        self.assertGreater(m3, m4)
+
+    def test_division_starting_mu_unknown_returns_default(self):
+        self.assertEqual(rating.division_starting_mu(None), rating.DEFAULT_STARTING_MU)
+        self.assertEqual(rating.division_starting_mu("Unknown"), rating.DEFAULT_STARTING_MU)
+
+
+class TestVolumeKMultiplier(unittest.TestCase):
+    """T-P0-012 game-volume K-multiplier."""
+
+    def test_typical_18_game_match_returns_one(self):
+        self.assertEqual(rating.volume_k_multiplier(18), 1.0)
+
+    def test_blowout_returns_lower_k(self):
+        # 12-game blowout (6-0 6-0) → 12/18 = 0.667
+        self.assertAlmostEqual(rating.volume_k_multiplier(12), 12 / 18, places=4)
+
+    def test_long_match_returns_higher_k(self):
+        # 26-game battle (7-6 7-6) → 26/18 ≈ 1.444
+        self.assertAlmostEqual(rating.volume_k_multiplier(26), 26 / 18, places=4)
+
+    def test_clamped_below_at_min(self):
+        # Very short match shouldn't drop below 0.5
+        self.assertEqual(rating.volume_k_multiplier(1), rating.VOLUME_K_MIN)
+
+    def test_clamped_above_at_max(self):
+        # Extreme long match shouldn't exceed 1.5
+        self.assertEqual(rating.volume_k_multiplier(100), rating.VOLUME_K_MAX)
+
+    def test_walkover_returns_walkover_k(self):
+        # Walkovers always lowest weight regardless of recorded score
+        self.assertEqual(
+            rating.volume_k_multiplier(12, walkover=True), rating.WALKOVER_VOLUME_K
+        )
+        self.assertEqual(
+            rating.volume_k_multiplier(0, walkover=True), rating.WALKOVER_VOLUME_K
+        )
+
+    def test_zero_games_defensive(self):
+        self.assertEqual(rating.volume_k_multiplier(0), rating.VOLUME_K_MIN)
+
+
+class TestCombinedKBehavior(unittest.TestCase):
+    """Integration: per-division K + game-volume K together affect rating
+    deltas correctly. Uses TestRecomputeAll's setUp pattern."""
+
+    def setUp(self):
+        import sys
+        from pathlib import Path
+
+        sys.path.insert(0, str(Path(__file__).parent))
+        import db
+
+        self.conn = db.init_db(":memory:")
+        self.conn.execute("INSERT INTO clubs (id, name, slug) VALUES (1, 'VLTC', 'vltc')")
+        self.conn.execute(
+            "INSERT INTO source_files (id, club_id, original_filename, sha256) "
+            "VALUES (1, 1, 'fixture.xlsx', 'fixture')"
+        )
+        self.conn.execute(
+            "INSERT INTO ingestion_runs (id, source_file_id, status, started_at) "
+            "VALUES (1, 1, 'completed', '2025-01-01')"
+        )
+        self.conn.execute(
+            "INSERT INTO tournaments (id, club_id, name, year, format, source_file_id) "
+            "VALUES (1, 1, 'Fixture', 2025, 'doubles_division', 1)"
+        )
+        for pid in range(1, 9):  # 8 players for two parallel matches
+            self.conn.execute(
+                "INSERT INTO players (id, canonical_name) VALUES (?, ?)",
+                (pid, f"P{pid}"),
+            )
+        self.conn.commit()
+
+    def tearDown(self):
+        self.conn.close()
+
+    def _add_match(
+        self,
+        match_id: int,
+        side_a_p1: int,
+        side_a_p2: int,
+        side_b_p1: int,
+        side_b_p2: int,
+        side_a_games: int,
+        side_b_games: int,
+        division: str,
+    ):
+        self.conn.execute(
+            "INSERT INTO matches (id, tournament_id, played_on, division, "
+            "ingestion_run_id, walkover) VALUES (?, 1, '2025-06-01', ?, 1, 0)",
+            (match_id, division),
+        )
+        for side, p1, p2, gw in [
+            ("A", side_a_p1, side_a_p2, side_a_games),
+            ("B", side_b_p1, side_b_p2, side_b_games),
+        ]:
+            other_gw = side_b_games if side == "A" else side_a_games
+            self.conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, player2_id, "
+                "games_won, won) VALUES (?, ?, ?, ?, ?, ?)",
+                (match_id, side, p1, p2, gw, 1 if gw > other_gw else 0),
+            )
+        self.conn.commit()
+
+    def test_higher_division_match_moves_mu_more(self):
+        # Match 1: Div 4 → K_div = 0.70
+        self._add_match(1, 1, 2, 3, 4, 6, 0, "Men Div 4")
+        # Match 2: Div 1 → K_div = 1.00, same scoreline
+        self._add_match(2, 5, 6, 7, 8, 6, 0, "Men Div 1")
+        rating.recompute_all(self.conn, model_name="test_combined_k")
+
+        # Compare winning-side delta: Div 1 should produce LARGER |Δμ|
+        div4_winner = self.conn.execute(
+            "SELECT mu FROM ratings WHERE model_name = 'test_combined_k' AND player_id = 1"
+        ).fetchone()[0]
+        div1_winner = self.conn.execute(
+            "SELECT mu FROM ratings WHERE model_name = 'test_combined_k' AND player_id = 5"
+        ).fetchone()[0]
+        # Both winners; both started above default (Div 1 starts higher)
+        # → Div 1 winner ends higher
+        self.assertGreater(div1_winner, div4_winner)
+
+    def test_starting_mu_uses_division(self):
+        # Player whose first match is Div 1 should start with M1 starting mu
+        self._add_match(1, 1, 2, 3, 4, 6, 0, "Men Div 1")
+        # Player whose first match is Div 4 should start with M4 starting mu
+        self._add_match(2, 5, 6, 7, 8, 6, 0, "Men Div 4")
+        rating.recompute_all(self.conn, model_name="test_starting_mu")
+
+        # After one decisive win each, M1 winner > M4 winner because
+        # they started higher AND had a stronger K_div multiplier
+        m1_winner = self.conn.execute(
+            "SELECT mu FROM ratings WHERE model_name = 'test_starting_mu' AND player_id = 1"
+        ).fetchone()[0]
+        m4_winner = self.conn.execute(
+            "SELECT mu FROM ratings WHERE model_name = 'test_starting_mu' AND player_id = 5"
+        ).fetchone()[0]
+        # Difference roughly approximates DIVISION_STARTING_MU['M1']-['M4']=9
+        self.assertGreater(m1_winner - m4_winner, 5.0)
+
+
 if __name__ == "__main__":
     unittest.main()

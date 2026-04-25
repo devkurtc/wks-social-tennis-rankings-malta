@@ -22,6 +22,7 @@ loaded matches.
 from __future__ import annotations
 
 import math
+import re
 import sqlite3
 from datetime import date
 from typing import Iterator, NamedTuple
@@ -38,8 +39,170 @@ DEFAULT_TAU = 0.0833
 # Rating period length in days. Monthly is the PLAN.md §5.2 default.
 DEFAULT_RATING_PERIOD_DAYS = 30
 
+# OpenSkill's default starting μ. Used as a fallback when a player's
+# division can't be determined.
+DEFAULT_STARTING_MU = 25.0
+
+# Per-division starting μ — encodes external knowledge that Div 1 players
+# enter with stronger priors than Div 4 players. Spacing roughly mirrors
+# the friend's research doc (Glicko 250-pt inter-division gap → ~3
+# OpenSkill units). Values tunable; keys must match parser-emitted
+# `matches.division` strings (after normalization via _normalize_division).
+# Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §2.2
+DIVISION_STARTING_MU: dict[str, float] = {
+    "Men Div 1": 35.0,
+    "Men Div 2": 30.0,
+    "Men Div 3": 25.0,
+    "Men Div 4": 20.0,
+    "Lad Div 1": 33.0,
+    "Lad Div 2": 28.0,
+    "Lad Div 3": 23.0,
+}
+
+# Per-division μ ceilings — a player CANNOT rise above their division's
+# ceiling, regardless of how dominant their wins are. This is the friend's
+# research doc §8.1, §8.2 approach: Div 2 player capped below where Div 1
+# starts. Strictly enforces cross-division ordering. None = no ceiling.
+DIVISION_MU_CEILING: dict[str, float | None] = {
+    "Men Div 1": None,    # top division — can rise indefinitely
+    "Men Div 2": 34.0,    # below M1 starting (35)
+    "Men Div 3": 29.0,    # below M2 starting (30)
+    "Men Div 4": 24.0,    # below M3 starting (25)
+    "Lad Div 1": None,
+    "Lad Div 2": 32.0,
+    "Lad Div 3": 27.0,
+}
+
+# Per-division μ floors — a player CANNOT drop below their division's
+# floor. Prevents a slumping Div 1 player from numerically appearing
+# below a top Div 2 player.
+DIVISION_MU_FLOOR: dict[str, float | None] = {
+    "Men Div 1": 30.0,    # ≥ M2 ceiling (34) is too tight; use M2 starting
+    "Men Div 2": 25.0,    # ≥ M3 starting
+    "Men Div 3": 20.0,    # ≥ M4 starting
+    "Men Div 4": None,    # bottom division — no floor
+    "Lad Div 1": 28.0,
+    "Lad Div 2": 23.0,
+    "Lad Div 3": None,
+}
+
+# Per-division K-multiplier — scales how much a single match moves a
+# player's rating. Higher-division matches count more (encoding "harder
+# competition = more meaningful rating change").
+# Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §8.1, §8.2
+DIVISION_K: dict[str, float] = {
+    "Men Div 1": 1.00,
+    "Men Div 2": 0.90,
+    "Men Div 3": 0.80,
+    "Men Div 4": 0.70,
+    "Lad Div 1": 1.00,
+    "Lad Div 2": 0.87,
+    "Lad Div 3": 0.73,
+}
+
+# Game-volume K-multiplier baseline: a "typical" 2-set match has ~18
+# games. Scaled K = total_games / 18 (clamped to [0.5, 1.5]).
+# Source: T-P0-012, Kurt's T-P0-009 feedback Q2A
+VOLUME_K_BASELINE = 18
+VOLUME_K_MIN = 0.5
+VOLUME_K_MAX = 1.5
+WALKOVER_VOLUME_K = 0.5  # walkovers carry minimal signal regardless of recorded score
+
 
 # ---- Pure helpers (no DB / no OpenSkill dependency — testable now) ----
+
+
+# Canonicalize many division-name variants to one form.
+# Real data observed includes:
+#   "Men Division 1", "Men Division 1 " (trailing space)
+#   "Men Division 3 - Group A", "Men Division 3 - Group B", "Men Division 3"
+#   "Ladies Division 1", "Lad Div 2"
+# Canonical form: "Men Div N" or "Lad Div N" (matches DIVISION_K /
+# DIVISION_STARTING_MU keys).
+_DIV_PATTERN = re.compile(
+    r"^(?P<gender>Men|Ladies|Lad)\s+(?:Division|Div)\s+(?P<n>\d+)",
+    re.IGNORECASE,
+)
+
+
+def normalize_division(raw: str | None) -> str | None:
+    """Canonicalize a division label so DIVISION_K / DIVISION_STARTING_MU
+    lookups work for any variant produced by the parser.
+
+    Returns `"Men Div N"` or `"Lad Div N"` when the input matches the
+    expected pattern. Unrecognized inputs pass through stripped (so
+    unknown divisions still get the fallback K=1.0 / μ=25 behavior).
+    None / empty inputs return None.
+    """
+    if raw is None:
+        return None
+    s = raw.strip()
+    if not s:
+        return None
+    m = _DIV_PATTERN.match(s)
+    if not m:
+        return s
+    gender = "Men" if m.group("gender").lower() == "men" else "Lad"
+    return f"{gender} Div {m.group('n')}"
+
+
+def division_k_multiplier(division: str | None) -> float:
+    """K-multiplier for a match's division. Unknown divisions fall back to
+    1.0 (no penalty) — better to count fully than to silently dampen.
+    """
+    norm = normalize_division(division)
+    if norm is None:
+        return 1.0
+    return DIVISION_K.get(norm, 1.0)
+
+
+def division_starting_mu(division: str | None) -> float:
+    """Starting μ for a player whose first match was in this division.
+    Falls back to DEFAULT_STARTING_MU if division is unknown."""
+    norm = normalize_division(division)
+    if norm is None:
+        return DEFAULT_STARTING_MU
+    return DIVISION_STARTING_MU.get(norm, DEFAULT_STARTING_MU)
+
+
+def clip_mu_to_division(mu: float, division: str | None) -> float:
+    """Clamp μ within the player's division floor/ceiling. Strictly
+    enforces cross-division ordering: a Div 2 player cannot exceed M1's
+    starting μ; a Div 1 player cannot drop below M2's starting μ.
+
+    Friend's research doc §8.1, §8.2 approach. None means no constraint
+    on that side.
+    """
+    norm = normalize_division(division)
+    if norm is None:
+        return mu
+    ceiling = DIVISION_MU_CEILING.get(norm)
+    floor = DIVISION_MU_FLOOR.get(norm)
+    if ceiling is not None and mu > ceiling:
+        return ceiling
+    if floor is not None and mu < floor:
+        return floor
+    return mu
+
+
+def volume_k_multiplier(total_games: int, walkover: bool = False) -> float:
+    """K-multiplier from total games played in a match.
+
+    More rallies = more signal: a 26-game match (close 7-6 7-6) reveals
+    more about each player's skill than a 12-game blowout (6-0 6-0).
+
+    Walkovers always return WALKOVER_VOLUME_K — the recorded score is
+    artificial and shouldn't drive a strong update.
+
+    Otherwise: K = total_games / VOLUME_K_BASELINE, clamped to
+    [VOLUME_K_MIN, VOLUME_K_MAX].
+    """
+    if walkover:
+        return WALKOVER_VOLUME_K
+    if total_games <= 0:
+        return VOLUME_K_MIN  # defensive — shouldn't happen
+    raw = total_games / VOLUME_K_BASELINE
+    return max(VOLUME_K_MIN, min(VOLUME_K_MAX, raw))
 
 
 def universal_score(
@@ -79,6 +242,7 @@ class MatchRow(NamedTuple):
 
     match_id: int
     played_on: str  # ISO date
+    division: str | None
     side_a_player1_id: int
     side_a_player2_id: int
     side_a_games: int
@@ -95,7 +259,7 @@ def _iter_active_matches(db_conn: sqlite3.Connection) -> Iterator[MatchRow]:
     rows = db_conn.execute(
         """
         SELECT
-            m.id, m.played_on, m.walkover,
+            m.id, m.played_on, m.walkover, m.division,
             sa.player1_id, sa.player2_id, sa.games_won,
             sb.player1_id, sb.player2_id, sb.games_won
         FROM matches m
@@ -109,19 +273,39 @@ def _iter_active_matches(db_conn: sqlite3.Connection) -> Iterator[MatchRow]:
     for row in rows:
         # Doubles requires both partners on each side; skip malformed rows
         # rather than crashing (parser shouldn't produce these but be defensive).
-        if row[4] is None or row[7] is None:
+        if row[5] is None or row[8] is None:
             continue
         yield MatchRow(
             match_id=row[0],
             played_on=row[1],
-            side_a_player1_id=row[3],
-            side_a_player2_id=row[4],
-            side_a_games=row[5],
-            side_b_player1_id=row[6],
-            side_b_player2_id=row[7],
-            side_b_games=row[8],
+            division=row[3],
+            side_a_player1_id=row[4],
+            side_a_player2_id=row[5],
+            side_a_games=row[6],
+            side_b_player1_id=row[7],
+            side_b_player2_id=row[8],
+            side_b_games=row[9],
             walkover=bool(row[2]),
         )
+
+
+def _player_first_division(db_conn: sqlite3.Connection, player_id: int) -> str | None:
+    """Return the division of the chronologically first active match this
+    player appears in. Used to seed division-specific starting μ.
+    """
+    row = db_conn.execute(
+        """
+        SELECT m.division
+        FROM matches m
+        JOIN match_sides ms ON ms.match_id = m.id
+        WHERE (ms.player1_id = ? OR ms.player2_id = ?)
+          AND m.superseded_by_run_id IS NULL
+        ORDER BY m.played_on, m.id
+        LIMIT 1
+        """,
+        (player_id, player_id),
+    ).fetchone()
+    return row[0] if row else None
 
 
 def _periods_between(date_from: str, date_to: str, period_days: int) -> int:
@@ -169,9 +353,10 @@ def recompute_all(
         db_conn.execute("DELETE FROM ratings WHERE model_name = ?", (model_name,))
 
     # In-memory state during replay
-    player_ratings: dict[int, object] = {}      # player_id → current Rating
-    player_last_played: dict[int, str] = {}     # player_id → ISO date string
-    player_n_matches: dict[int, int] = {}       # player_id → cumulative count
+    player_ratings: dict[int, object] = {}        # player_id → current Rating
+    player_last_played: dict[int, str] = {}       # player_id → ISO date string
+    player_n_matches: dict[int, int] = {}         # player_id → cumulative count
+    player_first_division: dict[int, str | None] = {}  # cached first-division per player
 
     n_matches = 0
 
@@ -182,10 +367,14 @@ def recompute_all(
                 m.side_b_player1_id, m.side_b_player2_id,
             )
 
-            # Get-or-create rating, applying sigma drift on inactivity
+            # Get-or-create rating, applying sigma drift on inactivity.
+            # New players' starting μ is division-specific (T-P0-011).
             for pid in player_ids:
                 if pid not in player_ratings:
-                    player_ratings[pid] = model.rating()
+                    first_div = _player_first_division(db_conn, pid)
+                    player_first_division[pid] = first_div
+                    starting_mu = division_starting_mu(first_div)
+                    player_ratings[pid] = model.rating(mu=starting_mu)
                 else:
                     last = player_last_played.get(pid)
                     periods = _periods_between(last, m.played_on, rating_period_days)
@@ -204,10 +393,40 @@ def recompute_all(
             # OpenSkill rate: higher score = better outcome
             new_a, new_b = model.rate([team_a, team_b], scores=[s_a, s_b])
 
-            player_ratings[m.side_a_player1_id] = new_a[0]
-            player_ratings[m.side_a_player2_id] = new_a[1]
-            player_ratings[m.side_b_player1_id] = new_b[0]
-            player_ratings[m.side_b_player2_id] = new_b[1]
+            # Combined K-multiplier (T-P0-011 + T-P0-012):
+            # K = K_division × K_volume per _RESEARCH_/... §8.4
+            k_div = division_k_multiplier(m.division)
+            total_games = m.side_a_games + m.side_b_games
+            k_vol = volume_k_multiplier(total_games, walkover=m.walkover)
+            k_combined = k_div * k_vol
+
+            # Apply K_combined to scale the OpenSkill-recommended delta.
+            # OpenSkill doesn't expose a per-match K-factor, so we scale
+            # the post-update delta manually (both μ and σ — less σ
+            # shrinkage when K<1, since less of the update is applied).
+            old_objs = (
+                player_ratings[m.side_a_player1_id],
+                player_ratings[m.side_a_player2_id],
+                player_ratings[m.side_b_player1_id],
+                player_ratings[m.side_b_player2_id],
+            )
+            new_objs = (new_a[0], new_a[1], new_b[0], new_b[1])
+
+            # Each player's division ceiling/floor is determined by their
+            # FIRST match's division (cached to avoid repeated DB hits).
+            scaled_objs = []
+            for pid, old, new in zip(player_ids, old_objs, new_objs):
+                adj_mu = old.mu + k_combined * (new.mu - old.mu)
+                adj_sigma = old.sigma + k_combined * (new.sigma - old.sigma)
+                # Clip μ to player's first-division floor/ceiling
+                first_div = player_first_division.get(pid)
+                adj_mu = clip_mu_to_division(adj_mu, first_div)
+                scaled_objs.append(model.rating(mu=adj_mu, sigma=adj_sigma))
+
+            player_ratings[m.side_a_player1_id] = scaled_objs[0]
+            player_ratings[m.side_a_player2_id] = scaled_objs[1]
+            player_ratings[m.side_b_player1_id] = scaled_objs[2]
+            player_ratings[m.side_b_player2_id] = scaled_objs[3]
 
             # Append rating_history rows + bookkeeping
             for pid in player_ids:

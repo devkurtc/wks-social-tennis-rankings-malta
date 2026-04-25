@@ -112,10 +112,15 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | (none — round 5 complete; full Phase 0 chain works end-to-end) |
-| `up next` (todo, deps satisfied) | **T-P0-009** (validation — gated on Kurt review of rank + pair-rec output) |
-| `blocked` | T-P0-010 (retro, after T-P0-009 acceptance) |
-| `recently done` | T-P0-007 + T-P0-008 (rank + recommend-pairs CLIs); T-P0-006 (rating engine); T-P0-004 (parser); T-P0-005 (player normalization); T-P0-003 (parser spec); T-P0-002 (schema); T-P0-001 (scaffold) |
+| `in-progress` | T-P0-014 (bulk-load additional VLTC tournaments — accelerated from Phase 1); T-P0-009 (validation, awaiting more data) |
+| `up next` (todo, deps satisfied) | (gated on T-P0-014) |
+| `blocked` | T-P0-010 (retro) |
+| `recently done` | T-P0-011 + T-P0-012 (math fix: division weights + game-volume K + ceilings/floors); T-P0-007 + T-P0-008 (rank + recommend-pairs CLIs); T-P0-006 (rating engine); T-P0-004 (parser); T-P0-005 (player normalization); T-P0-003 (parser spec); T-P0-002 (schema); T-P0-001 (scaffold) |
+
+**T-P0-009 review (2026-04-26):** Kurt rejected current rankings:
+- **Cross-division blocker:** Div 2 winners outranking Div 1 players is wrong. Need per-division weighting (T-P0-011).
+- **Within-division ordering:** "model wrong weights." Likely addressed by T-P0-011 + T-P0-012 in combination.
+- **Game-volume signal:** "take number of games into consideration" (Q2 → option A) — match weight scales with total games played. Implemented as T-P0-012.
 
 ---
 
@@ -383,7 +388,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-009 — End-to-end validation & user review
 
-- **Status:** `todo`
+- **Status:** `in-progress`
 - **Phase:** 0
 - **Depends on:** T-P0-004, T-P0-007, T-P0-008
 - **Blocks:** T-P0-010
@@ -408,7 +413,111 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - If a few rankings look obviously wrong but most are right, log specifics and triage in T-P0-010 retrospective rather than blocking.
 
 **Progress log:**
-- (none yet)
+- 2026-04-26 01:38 — Claude (Opus 4.7) — first attempt; ran full pipeline, presented top 20 men + top 15 ladies + 12-player pair-rec to Kurt for review.
+- 2026-04-26 01:42 — Kurt — REJECTED: cross-division ordering wrong (Div 2 winners > Div 1 winners); within-division ordering "not very good — model wrong weights"; pair-rec "don't know yet." Direction: "take no of games into consideration" + Q2 option A. File new tasks for the fixes; Phase 0 not done.
+- 2026-04-26 01:43 — Claude (Opus 4.7) — filed T-P0-011 (per-division starting μ + K-multipliers per `_RESEARCH_/...` §8) and T-P0-012 (game-volume K-multiplier — option A). Status reverted to in-progress; will re-attempt validation once both fixes land.
+
+---
+
+### T-P0-011 — Per-division starting μ + division K-multipliers
+
+- **Status:** `done`
+- **Phase:** 0 (accelerated from Phase 1 after T-P0-009 review)
+- **Depends on:** T-P0-006
+- **Blocks:** re-attempt of T-P0-009
+- **Estimated effort:** 2–3 hours
+- **References:** `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §2.2 (starting ratings) + §8.1, §8.2 (K-multipliers); PLAN.md §5.2.1 (queued enhancements); T-P0-009 review feedback
+
+**Goal:** Encode division strength into the rating math so Div 1 winners outrank Div 2 winners on cross-division comparison, and within-division ordering reflects relative tournament strength.
+
+**Acceptance criteria:**
+- [x] `DIVISION_STARTING_MU` dict in `rating.py` — wider 5-unit spacing (M1=35, M2=30, M3=25, M4=20; L1=33, L2=28, L3=23) needed because 3-unit spacing was insufficient: a dominating Div 2 winner's μ growth out-paced the smaller starting gap.
+- [x] `DIVISION_K` dict per `_RESEARCH_/...` §8.1, §8.2.
+- [x] **Smart `normalize_division`** with regex: handles `"Men Division 1"`, `"Men Div 1"`, `"Men Division 3 - Group A"`, `"Ladies Division 2"`, trailing whitespace. **This was a hidden bug in v1** — my constants used `"Men Div 1"` but parser emits `"Men Division 1"`, so all lookups silently fell back to defaults. Caught only by re-running validation. Added 4 regression tests against actual data strings.
+- [x] First-seen division lookup → starting μ (helper `_player_first_division` cached per session in `recompute_all`).
+- [x] Per-match K applied as `adjusted_delta = k_combined × openskill_delta` for both μ and σ.
+- [x] **Extension beyond original spec:** added `DIVISION_MU_CEILING` + `DIVISION_MU_FLOOR` + `clip_mu_to_division()` per `_RESEARCH_/...` §8.1, §8.2. Strictly enforces "Div 2 player can't exceed Div 1 starting μ" — necessary because pure starting-μ priors get washed out by 5+ matches of dominant within-division play.
+- [x] Unit tests: 7 division-helper tests + 2 integration tests (higher-division-larger-Δμ, starting-μ-uses-division). All pass.
+- [x] Re-run validation: Div 1 men now ranked #1-6 (Duncan/Clayton at top, Mark/Manuel at #5-6); Fotis/Kristen (Div 2) at #7-8 capped at μ=34.0 (Div 2 ceiling).
+
+**Implementation notes:**
+- Division names in the data have inconsistent whitespace (`'Men Div 1 '` with trailing space). Normalize before lookup.
+- Apply T-P0-011 and T-P0-012 K-multipliers as a *combined* `K_effective = K_division × K_volume` per the research doc §8.4.
+- Don't add a new schema column for `players.starting_division` — derive it on-the-fly from the chronologically-first match. Phase 0 keeps the schema stable.
+
+**Progress log:**
+- 2026-04-26 01:43 — Claude (Opus 4.7) — picked up; will implement combined with T-P0-012 (same file, same recompute_all path).
+- 2026-04-26 02:05 — Claude (Opus 4.7) — completed (with iteration). First pass with 3-unit μ spacing didn't fix the cross-division ordering. Then I discovered my constants used `"Men Div 1"` while parser emits `"Men Division 1"` — silent fallback bug. Fixed normalize_division with regex; widened spacing to 5 units; added per-division ceilings/floors per friend's research. Re-validation now shows Div 1 men cleanly ranked #1-6 above Div 2 (capped at 34). 60 tests passing.
+
+---
+
+### T-P0-012 — Game-volume K-multiplier
+
+- **Status:** `done`
+- **Phase:** 0 (accelerated from Phase 1 after T-P0-009 review)
+- **Depends on:** T-P0-006
+- **Blocks:** re-attempt of T-P0-009
+- **Estimated effort:** 1 hour (combined with T-P0-011)
+- **References:** Kurt's T-P0-009 feedback Q2 → option A; `_RESEARCH_/...` §8.4 (combined K-factor)
+
+**Goal:** Match weight scales with total games played so a 12-game blowout (6-0 6-0) carries less weight than a 26-game battle (7-6 7-6) — more rallies = more signal about each player's skill.
+
+**Acceptance criteria:**
+- [x] `volume_k_multiplier(total_games, walkover=False) -> float` clamped to `[0.5, 1.5]`.
+- [x] `K_combined = K_division × K_volume` applied in `recompute_all`.
+- [x] Walkovers use `WALKOVER_VOLUME_K = 0.5` regardless of recorded score.
+- [x] Unit tests: 18-game baseline = 1.0; 12-game = 0.667; 26-game = 1.44; clamped at min/max; walkover; zero-game defensive. 7 tests pass.
+- [x] Within-division ordering: improved but limited by single-tournament data sparsity (5 matches per pair). Real evaluation needs more tournaments — see T-P0-014.
+
+**Implementation notes:**
+- Choice of baseline=18: typical 2-set match length (6-3 6-3 = 18 games is roughly average).
+- Clamp [0.5, 1.5] prevents unrealistic short/long matches from dominating.
+- Single-application: K_volume goes into K_combined, then scales delta once (don't double-apply).
+
+**Progress log:**
+- 2026-04-26 01:43 — Claude (Opus 4.7) — picked up; will implement combined with T-P0-011 (same recompute_all path).
+- 2026-04-26 02:05 — Claude (Opus 4.7) — completed alongside T-P0-011. Game-volume helper + walkover handling + 7 unit tests. Combined K landed in `recompute_all` (K_combined = K_division × K_volume scaling the OpenSkill delta).
+
+---
+
+### T-P0-014 — Bulk-load additional VLTC tournaments (accelerated from Phase 1)
+
+- **Status:** `in-progress`
+- **Phase:** 0 (accelerated from Phase 1 after Kurt's "1 tournament isn't enough to evaluate" feedback)
+- **Depends on:** T-P0-006 (rating engine), T-P0-011 (division weights)
+- **Blocks:** re-attempt of T-P0-009
+- **Estimated effort:** 4-8 hours (parallel subagents)
+- **References:** T-P0-009 review feedback ("we need more data to evaluate if this is working well"); PLAN.md §7 Phase 1 row (T-P1-003..006 originally scoped here)
+
+**Goal:** Load enough additional VLTC tournament data to make the rankings *meaningfully* evaluable. With one tournament, we can validate the rating math but not whether it produces correct rankings — we have no signal on whether a player like Maria Angela Gambin is genuinely top-tier or just dominated one Div 3 event.
+
+**Approach:**
+- Identify template families across the 40 files in `_DATA_/VLTC/`
+- For each NEW family: spawn `tennis-data-explorer` agent → spec → spawn `parser-implementer` agent → parser
+- For SIMILAR-format files: try existing `sports_experience_2025` parser (with light renaming/adaptation)
+- Bulk-load everything; re-rate; present to Kurt for re-validation
+
+**Template families identified by filename:**
+
+| Family | Files (approx) | Notes |
+|---|---|---|
+| Division round-robin doubles (existing parser) | SE 2024, SE 2025 (done), TCK 2024 | Try existing parser first |
+| Mixed-doubles division round-robin | ESS 2024/2025, Elektra 2022/2023, Samsung Rennie Tonna 2024/2025 | Likely same shape as SE; adapt parser |
+| Team tournament (rotating partners per rubber) | Antes 2024/2025 (3 variants), Tennis Trade 2023/2024/2025, San Michel 2023/2025/2026, PKF 2023/2024 | NEW parser — different schema (Day N sheets) |
+| Wilson Autumn/Spring (older format) | Wilson Autumn 2017-2021, Wilson Spring 2018/2019 | NEW parser — possibly very different layout |
+
+**Acceptance criteria:**
+- [ ] Existing SE 2025 parser tested on SE 2024 — works or needs minor tweak
+- [ ] Mixed-doubles parser handles ESS + Elektra + Samsung Rennie Tonna
+- [ ] Team-tournament parser handles Antes + Tennis Trade + San Michel + PKF
+- [ ] Wilson parser handles 2017-2021 series
+- [ ] Bulk-load script (or cli.py extension) loads all available files in one go
+- [ ] After bulk load: total active matches > 1000; total players > 200
+- [ ] Re-run rate; present new top-N to Kurt
+- [ ] Kurt confirms rankings are meaningfully evaluable (not necessarily perfect, but reflect cross-tournament reality)
+
+**Progress log:**
+- 2026-04-26 02:08 — Claude (Opus 4.7) — picked up after Kurt confirmed "we need more data to evaluate if this is working well." Plan: commit T-P0-011/T-P0-012 first, then spawn parser-implementer agents for additional template families. Start with the easy ones (test existing parser on SE 2024 + similar-format files) before spawning new-parser work.
 
 ---
 
