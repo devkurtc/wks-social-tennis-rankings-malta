@@ -134,6 +134,37 @@ The system runs a *configurable set* of models, not just one — see §5.7 for t
 
 **Open question:** vision (screenshot → Claude vision model) vs structured (XLSX → cells → Claude with text). Probably structured for XLSX, vision fallback for PDFs and image scans. Decide during Phase 3.
 
+#### 5.3.1 Ingestion review pattern (decided 2026-04-25)
+
+**Pattern: auto-accept with post-hoc quality report and re-process workflow.** No human review gate before matches land in the DB; instead, every ingestion run produces a quality report the admin reviews after the fact. If the admin spots a mistake, they trigger a re-process which cleanly supersedes the previous run's matches.
+
+**Required architectural properties:**
+
+1. **Idempotent, reversible ingestion.** Each upload of a file creates an `ingestion_runs` row with a unique `id`. Every match produced carries `ingestion_run_id` as a foreign key. Re-processing a file means: mark all matches from prior runs of that source file as `superseded_by_run_id = <new run>`; the rating engine ignores superseded matches and recomputes affected ratings from `rating_history` forward.
+2. **Quality report per run.** Generated automatically at the end of each ingestion. Sections:
+   - Summary: matches detected, players detected, run duration, agent/model version
+   - Low-confidence rows (highlighted) with reason: missing date, ambiguous player name, score that violates tennis rules, etc.
+   - New player names that don't match any existing alias (proposed merges)
+   - Anomalies: dates outside the file's apparent year, scores like 6-7 in a best-of-3 set where no tiebreak is recorded, rubbers where one side has only one player named
+   - Diff vs the previous run of the same file (if any)
+3. **Visible-everywhere unreviewed reports.** Dashboard widget on admin home: "X ingestion reports unreviewed" with a click-through. Optional email digest. Login banner if any report is older than N days unreviewed. Quiet reports = ignored reports.
+4. **Re-process action** is one click on the report page → confirms → enqueues a new ingestion run on the same source file → previous run's matches are marked superseded → ratings recompute → audit_log entry `ingestion.reprocessed` with reason text.
+
+**Pros:**
+- Zero workflow friction in the steady state — uploads land immediately
+- Quality report catches problems without blocking ingestion
+- Re-process gives a clean fix path that doesn't require manual DB edits
+- Admin attention is spent on detected issues, not on the 95% of routine matches
+
+**Cons:**
+- **Human-skip risk**: if admins don't read reports, bad data persists. Mitigated by visibility (dashboard widget, banner, optional email) but not eliminated.
+- Ratings may be briefly wrong between ingestion and admin re-process. Acceptable for this domain — tournament rankings are not safety-critical.
+- Idempotency complexity in the schema (`ingestion_run_id`, `superseded_by_run_id`) and rating-engine logic (skip superseded matches, recompute on supersede). Real but contained.
+
+**Out of scope for this pattern:**
+- Public users seeing pending/under-review matches separately from confirmed ones — there's no "pending" state, just current and superseded.
+- Partial supersede (replace some matches from a run, keep others) — too complex; if anything is wrong, re-process the whole file.
+
 ### 5.4 Player identity (entity resolution)
 
 The hardest non-obvious problem. Three layers:
@@ -248,13 +279,23 @@ player_club_memberships(player_id, club_id, joined_year, left_year)
 
 -- Tournaments and matches
 source_files(id, club_id, original_filename, storage_key, sha256, uploaded_by, uploaded_at)
-ingestion_runs(id, source_file_id, status, agent_version, started_at, completed_at, raw_extraction_jsonb)
+
+ingestion_runs(id, source_file_id, status, agent_version, started_at, completed_at,
+               raw_extraction_jsonb, quality_report_jsonb,
+               reviewed_at, reviewed_by_user_id, supersedes_run_id)
+  -- status: 'running' | 'completed' | 'failed' | 'superseded'
+  -- quality_report_jsonb: structured per §5.3.1 (low-conf rows, anomalies, new aliases)
+  -- supersedes_run_id: filled when this run is a re-process of a previous run
 
 tournaments(id, club_id, name, year, format, source_file_id)
   -- format: 'doubles_division' | 'doubles_team' | 'singles_*'
 
-matches(id, tournament_id, played_on, match_type, division, round)
+matches(id, tournament_id, played_on, match_type, division, round,
+        ingestion_run_id, superseded_by_run_id, informal)
   -- match_type: 'doubles' (singles deferred)
+  -- superseded_by_run_id: NULL = active; non-NULL = this match was replaced by a re-process
+  -- informal: TRUE for matches added via the informal-upload HITL channel
+  -- Active-match index: WHERE superseded_by_run_id IS NULL
 
 match_sides(match_id, side, player1_id, player2_id, sets_won, games_won, won)
   -- two rows per match (side 'A' and 'B')
@@ -293,7 +334,7 @@ This is a sketch — column types and indexes get refined when we write the migr
 | **0. Local proof** | SQLite (model-agnostic schema) + manual parser for one VLTC file + OpenSkill ratings + CLI for top players + pair recommender (Hungarian algorithm). Run locally only. | 1–2 focused days | Rankings on real VLTC data look intuitively correct to a knowledgeable observer (Kurt). |
 | **1. Data foundation** | Postgres schema + hand-written parsers for ~4 dominant VLTC template families + bulk-load all existing VLTC files + alias/merge CLI + champion rating engine + **first challenger model running in shadow** + player-merge HITL channel. No web UI yet. | 2–3 weeks part-time | All VLTC data ingested, deduplication done, two models producing leaderboards that can be compared by hand. |
 | **2. Web app skeleton** | Next.js + Postgres + auth + public rankings + player profile w/ rating-history chart + admin player-merge UI + **multi-model dashboard (side-by-side leaderboards, disagreements, predictive scoreboard)** + **HITL channels: match exclusion, score correction** + audit log writes. Deployed to Proxmox via docker-compose. | 3–4 weeks | Site is publicly browsable; admin can merge players, exclude matches, and compare model leaderboards through the UI; audit trail exists. |
-| **3. Agentic ingestion** | Upload UI for admins → Redis job → Python worker calls Claude API → extracted matches go to a review screen → admin confirms → matches land in DB. Original file kept in MinIO. **Adds informal-match upload HITL channel.** | 3–4 weeks | An admin can drop an unfamiliar tournament file in and have it processed end-to-end. |
+| **3. Agentic ingestion** | Upload UI for admins → Redis job → Python worker calls Claude API → matches land in DB immediately tagged with `ingestion_run_id` → quality report generated → admin reviews report after the fact and can re-process if needed (matches superseded; ratings recomputed). Original file kept in MinIO. **Adds informal-match upload HITL channel.** Dashboard widget surfaces unreviewed reports. | 3–4 weeks | An admin can drop a tournament file in and have it processed end-to-end; quality report is visible; re-process flow works idempotently. |
 | **4. Pair recommender** | Roster input UI + chemistry-residual model + constraint-aware optimization (pairs across men/women × division A/B/C/D). **Adds pair-rec accept/reject HITL logging.** | 1–2 weeks | Captain can input team availability and get a justified pairing suggestion; choices are logged for chemistry-model training. |
 | **5. Multi-club & polish** | Onboard a second club; cross-club player linking flow; per-club admin permission isolation. Manual rating-pin escape hatch only if a real need has emerged by now. | Ongoing | Second club's admin can use the system without seeing or affecting the first club's admin operations. |
 
@@ -312,13 +353,14 @@ This is a sketch — column types and indexes get refined when we write the migr
 | Postgres on a single Proxmox host becomes a SPOF | Low (this domain) | Medium | Daily dumps + offsite backups; accept the tradeoff vs running HA Postgres for hobby-scale traffic |
 | Self-hosted Caddy / TLS / domain setup has a misconfiguration that exposes admin endpoints | Medium | High | Network policy: admin routes require login + IP allowlist option; security review before public DNS goes live |
 | Scope creep into singles, tournament management, or live scoring | High | Medium — slows the doubles core | Re-read §1 non-goals before adding any feature outside it |
+| Auto-accept ingestion (§5.3.1) lands bad data that admin never reviews | Medium | High — silent corruption of public ratings | Dashboard widget for unreviewed reports; login banner for reports >N days unreviewed; optional email digest; quality report defaults to grouping low-confidence + anomalies at top |
 
 ---
 
 ## 9. Open questions
 
 1. **Stack final answer**: Next.js + Python worker, or all-Python (Django/FastAPI)? Recommendation in §5.1 is Next.js, but pushback welcome.
-2. **Ingestion review granularity**: confirm every extracted match, or only those flagged low-confidence by the agent? Earlier conversation said "trust admins" — leaning toward "show all extractions on one screen with low-confidence rows highlighted; admin clicks Approve."
+2. ~~**Ingestion review granularity**~~ — **decided 2026-04-25**: auto-accept with post-hoc quality report and re-process workflow. See §5.3.1.
 3. **Public visibility**: are all rankings public, or do players opt in? GDPR-adjacent — Malta is in the EU. Recommend: club controls visibility per club, default-public, with a per-player opt-out.
 4. **Singles data**: some files are singles tournaments. Ignore them entirely, or store them too (without a rating for now)? Recommend: store everything we ingest, but don't compute singles ratings in v1.
 5. **Backfill cutoff**: ingest all 40 historical files, or start from 2024 onward? Recommend: ingest everything — historical depth gives the rating model more signal even if older matches are weighted down by time decay.
