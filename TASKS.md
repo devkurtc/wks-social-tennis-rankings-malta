@@ -112,9 +112,9 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | (none — round 2 complete) |
-| `up next` (todo, deps satisfied) | **T-P0-004** (parser; ambiguities + date-NULL decision pre-recorded) |
-| `blocked` | T-P0-006..010 (downstream chain) |
+| `in-progress` | T-P0-004 (parser-implementer subagent — background); rating.py skeleton sketch (main session — pre-T-P0-006 prep, no data dep) |
+| `up next` (todo, deps satisfied) | T-P0-006 (full implementation — after T-P0-004 lands) |
+| `blocked` | T-P0-007..010 |
 | `recently done` | T-P0-005 (player normalization, 13 tests pass); T-P0-003 (parser spec, 276-line); T-P0-002 (schema, 12 tables); T-P0-001 (scaffold) |
 
 ---
@@ -218,7 +218,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-004 — Manual parser for Sports Experience Chosen Doubles 2025
 
-- **Status:** `todo`
+- **Status:** `in-progress`
 - **Phase:** 0
 - **Depends on:** T-P0-002, T-P0-003
 - **Blocks:** T-P0-006, T-P0-009
@@ -252,6 +252,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
   3. Lad Div 1 has unplayed-match cells: blank vs literal `0.0`. Distinguish — blank = skip + log; `0.0` in both columns = legitimate 6-0 6-0 bagel.
   4. `vs` (Men Div 2) and `vs.` (others) — tolerant divider matcher.
   5. `Players Ladies` rows 10/11 both have rank `5.0`. Both are valid pairs; don't dedupe by rank.
+- 2026-04-26 00:55 — Claude (Opus 4.7) — picked up; spawning `parser-implementer` agent in background (general-purpose with agent definition + spec inlined). Main session does pre-T-P0-006 prep concurrently (rating.py skeleton — no data dep so no conflict).
 
 ---
 
