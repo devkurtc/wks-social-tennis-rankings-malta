@@ -1,7 +1,7 @@
-# Social Tennis — Doubles Ranking System: Plan
+# RallyRank — Doubles Tennis Ranking System: Plan
 
-**Status:** Draft for review · **Owner:** Kurt Carabott · **Last updated:** 2026-04-25
-**Repo:** https://github.com/devkurtc/wks-social-tennis-rankings-malta
+**Public product name:** RallyRank · **Status:** Phase 0 ready · **Owner:** Kurt Carabott · **Last updated:** 2026-04-25
+**Repo:** https://github.com/devkurtc/wks-social-tennis-rankings-malta (internal repo name kept descriptive)
 
 This document captures the plan, the alternatives considered, and the tradeoffs of each major decision. It's intentionally argumentative — every recommendation is paired with the strongest counter-arguments so we can push back before writing code.
 
@@ -389,7 +389,7 @@ This is a sketch — column types and indexes get refined when we write the migr
 4. ~~**Singles data**~~ — **decided 2026-04-25**: ignore singles entirely. See §1 non-goals.
 5. ~~**Backfill cutoff**~~ — **decided 2026-04-25**: full backfill of all doubles tournaments 2017–2026. See §3 backfill scope.
 6. ~~**Time decay on ratings**~~ — **decided 2026-04-25**: enabled via OpenSkill sigma drift (`tau` parameter); plus an "active in last N months" leaderboard filter. See §5.2 Time decay paragraph.
-7. **Domain & branding**: is there a chosen name for this product? Affects the Next.js project name and the eventual public URL.
+7. ~~**Domain & branding**~~ — **decided 2026-04-25**: public product name is **RallyRank**. Repo name stays descriptive (`wks-social-tennis-rankings-malta`). Domain availability + trademark + social-handle reservation is a Phase 2 follow-up.
 
 ---
 
@@ -408,9 +408,16 @@ These are knowable unknowns — flagged here so we don't pretend the v1 design i
 
 ## 11. Decisions still needed from Kurt before Phase 0 starts
 
-- [x] Confirm Next.js + Python worker — **decided: Option A** (2026-04-25)
-- [x] Confirm OpenSkill (Plackett-Luce) as the **champion / primary** rating model (2026-04-25). Challengers added in Phase 1+ per §5.7.
-- [x] Confirm the schema is **model-agnostic from day one** — `model_name` discriminator on `ratings`, `rating_history`, `pair_chemistry`; new tables for predictions, scoreboard, champion history, and feedback (2026-04-25). See §5.7, §5.8, §6.
-- [ ] Confirm the phasing — specifically that internal tool (Phase 0–1) ships before web app (Phase 2)
-- [ ] Pick an answer for each open question in §9 (or punt to later, but mark explicitly)
-- [x] Pick a repo name — **decided: `wks-social-tennis-rankings-malta`** (2026-04-25). Product/brand name still deferred to Phase 2.
+- [x] Stack — **Next.js + TS + Python worker** (Option A, 2026-04-25)
+- [x] Champion rating model — **OpenSkill (Plackett-Luce)** (2026-04-25). Challengers added in Phase 1+ per §5.7.
+- [x] Schema **model-agnostic from day one** — `model_name` discriminator on rating tables; new tables for predictions, scoreboard, champion history, feedback (2026-04-25). See §5.7, §5.8, §6.
+- [x] Phasing — **sequential Phase 0 → 1 → 2 → 3 → 4 → 5** (Option A, 2026-04-25)
+- [x] Ingestion review — **auto-accept with post-hoc quality report + re-process workflow** (Option D variant, 2026-04-25). See §5.3.1.
+- [x] Public visibility — **fully public, no opt-out** (2026-04-25). See §5.9.
+- [x] Singles data — **out of scope** (Option A, 2026-04-25). See §1 non-goals.
+- [x] Backfill — **full doubles 2017–2026** (Option A, 2026-04-25). See §3.
+- [x] Time decay — **OpenSkill sigma drift + leaderboard activity filter** (Option A, 2026-04-25). See §5.2 Time decay.
+- [x] Repo name — `wks-social-tennis-rankings-malta` (2026-04-25)
+- [x] Public product name — **RallyRank** (2026-04-25)
+
+**All blocking decisions resolved. Phase 0 can begin.**

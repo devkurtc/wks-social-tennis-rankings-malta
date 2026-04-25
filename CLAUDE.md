@@ -4,9 +4,10 @@ Orientation file for Claude Code sessions on this repo. Skim on every session st
 
 ## Project
 
-Multi-club tennis doubles ranking system + partner-recommendation engine + agentic spreadsheet ingestion. Self-hosted on Proxmox. VLTC (Vittoriosa Lawn Tennis Club, Malta) is the bootstrap data source; more clubs will follow.
+**RallyRank** — multi-club tennis doubles ranking system + partner-recommendation engine + agentic spreadsheet ingestion. Self-hosted on Proxmox. VLTC (Vittoriosa Lawn Tennis Club, Malta) is the bootstrap data source; more clubs will follow.
 
-**Repo:** https://github.com/devkurtc/wks-social-tennis-rankings-malta
+**Repo:** https://github.com/devkurtc/wks-social-tennis-rankings-malta (descriptive name, kept separate from brand)
+**Code identifiers:** use `rallyrank` prefix (e.g., `rallyrank-web`, `rallyrank-worker`)
 
 ## Source of truth
 
