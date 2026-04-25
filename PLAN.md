@@ -114,7 +114,9 @@ For each decision: alternatives considered, then the recommendation.
 | Custom UTR-style Elo | Score margin native; matches mental model tennis players already have | No uncertainty; reinventing what OpenSkill gives you for free; harder to defend "why is Player X's rating exactly 4.7?" |
 | Bayesian custom (PyMC / Stan) | Most flexible; can model partner effects, court surface, time decay all jointly | Massive overkill for a few thousand matches; harder to maintain; slow to update incrementally |
 
-**Recommendation: OpenSkill (Plackett-Luce).** Bayesian uncertainty matters here because most VLTC players will have <20 matches in the dataset — pretending we have high confidence in their rating would be dishonest. The team-native API removes a class of bugs in how we aggregate partner ratings.
+**Recommendation: OpenSkill (Plackett-Luce) as the primary / champion model.** Bayesian uncertainty matters here because most VLTC players will have <20 matches in the dataset — pretending we have high confidence in their rating would be dishonest. The team-native API removes a class of bugs in how we aggregate partner ratings.
+
+The system runs a *configurable set* of models, not just one — see §5.7 for the champion/challenger architecture and the phased rollout. OpenSkill PL is what drives public rankings; other models run in shadow.
 
 **Score margin** is added as a "match weight" multiplier: a 6-0 6-0 win counts more than a 7-6 7-6 win. Specific weighting function is tunable in Phase 0.
 
@@ -164,6 +166,72 @@ Already locked: Proxmox host, LXC or VM, docker-compose. Open sub-questions:
 - **TLS?** Caddy with automatic Let's Encrypt against your domain. If the box isn't internet-exposed for ACME, use a DNS challenge.
 - **Secrets?** `.env` files inside the LXC, not in git. Consider Doppler / SOPS later if multiple admins manage deployment.
 
+### 5.7 Multi-model evaluation (champion / challenger)
+
+**Recommendation: schema is model-agnostic from day one; multiple models in operation are phased in over time.**
+
+Single-model rating systems hide their own bugs. When OpenSkill ranks Player X very differently from Glicko-2, that disagreement is valuable — usually it flags a data-quality issue specific to that player, sometimes a property of the model that doesn't fit our use case. Multi-model surfaces it; single-model doesn't.
+
+**Architecture (champion / challenger pattern):**
+
+```
+Match lands ──► fan-out to N evaluators (worker jobs)
+              ├─ OpenSkill PL  ─► ratings(model='openskill_pl')   ← CHAMPION
+              ├─ OpenSkill BT  ─► ratings(model='openskill_bt')   ← challenger (Phase 1+)
+              ├─ Glicko-2      ─► ratings(model='glicko2')        ← challenger (Phase 1+)
+              └─ ...
+```
+
+The CHAMPION drives public rankings and pair recommendations. CHALLENGERS run alongside in shadow — they emit ratings and predictions but don't affect what users see.
+
+**Champion promotion is data-driven:** each model emits a `P(team A wins)` prediction before each match. When the match resolves, log Brier score (or log-loss) per model to `model_scoreboard`. A challenger can be promoted to champion when it has lower mean loss over a defined rolling window — and only via an audited two-step admin confirmation.
+
+**Phasing:**
+- **Phase 0** — schema includes `model_name` column; only OpenSkill PL runs. Goal is validating *any* model on the data.
+- **Phase 1** — add Glicko-2 (or one OpenSkill variant) as the first challenger. Compare leaderboards by hand. No dashboard yet.
+- **Phase 2** — admin dashboard: side-by-side leaderboards, "biggest disagreements" view, predictive-accuracy chart per model.
+- **Phase 3+** — more challengers if useful; promotion automation only if a clear winner emerges.
+
+**Pros:**
+- Catches model bugs and data quality issues early (disagreements are diagnostic)
+- Defensible: "four models agree this player is top 10" is harder to argue with than one
+- Enables data-driven model promotion via predictive scoring
+- Engineering cost is one-time (schema); per-model addition after that is cheap
+
+**Cons:**
+- ~Nx compute per recompute (still trivial at this scale; each rating update is microseconds)
+- Schema cost (`model_name` column on every rating-related table)
+- Admin UI for the dashboard and promotion flow is real Phase 2 work
+- "Ensemble paralysis" risk — admin can't decide which model is right when they confidently disagree
+
+### 5.8 Human-in-the-loop feedback channels
+
+**Recommendation: a small set of typed feedback channels, each producing a structured signal a model or admin queue can act on. Avoid generic "comments" boxes.**
+
+Generic free-text feedback degenerates into a graveyard of unactionable text. Typed channels stay actionable.
+
+**Channels (built incrementally with the underlying features):**
+
+| Channel | Phase | Signal | Action |
+|---|---|---|---|
+| Player merge | 1 | "these two records are the same person" | merge records, recompute affected ratings, audit |
+| Match exclusion | 2 | "this match should not count, reason: walkover / wrong-division / etc." | exclude from rating computation, audit |
+| Score correction | 2 | "set 2 was 6-3 not 6-4" | edit match, recompute affected ratings, audit |
+| Informal match upload | 3 | "add these informal results" | new ingestion source, marked `informal=true` in schema |
+| Pair-rec accept / reject | 4 | captain accepted suggestion B instead of recommended A | passive log → signal for chemistry-residual model |
+| Manual rating pin | 5+ | "freeze this player's rating at X for Y reason" | rare escape hatch; very loud audit log entry; resist as long as possible |
+
+**Rules common to all channels:**
+- Every action writes to `audit_log` with a semantic type (e.g. `match.excluded`, `player.merged`).
+- Auto-applying feedback to ratings is allowed for typed signals (merges, exclusions, corrections) — never for unstructured text.
+- Pair-rec accept/reject feeds a separate `model_feedback` table that the chemistry-residual model can train on.
+- Rating pins require justification text + admin two-step confirm + a visible badge on the affected player's public profile ("rating manually adjusted, reason: X").
+
+**Out of scope (deliberately):**
+- Subjective "rate this player 1–10" feedback — bias-prone, low signal value
+- Public crowd-sourced corrections — admin-only for v1
+- Auto-acting on a single feedback signal without admin confirmation for high-impact actions (merges, pins)
+
 ---
 
 ## 6. Data model (initial sketch)
@@ -193,10 +261,22 @@ match_sides(match_id, side, player1_id, player2_id, sets_won, games_won, won)
 
 match_set_scores(match_id, set_number, side_a_games, side_b_games, was_tiebreak)
 
--- Ratings
-ratings(player_id, mu, sigma, last_updated_at, n_matches)
-rating_history(player_id, match_id, mu_after, sigma_after, computed_at)
-pair_chemistry(player1_id, player2_id, residual, n_matches_together, last_updated_at)
+-- Ratings (model-agnostic from day one — see §5.7)
+ratings(player_id, model_name, mu, sigma, last_updated_at, n_matches)
+  -- PRIMARY KEY (player_id, model_name)
+rating_history(id, player_id, model_name, match_id, mu_after, sigma_after, computed_at)
+pair_chemistry(player1_id, player2_id, model_name, residual, n_matches_together, last_updated_at)
+  -- PRIMARY KEY (player1_id, player2_id, model_name)
+
+-- Multi-model evaluation
+model_predictions(id, match_id, model_name, side_a_win_prob, predicted_at)
+model_scoreboard(id, model_name, period_start, period_end, n_predictions,
+                 mean_brier_score, mean_log_loss)
+champion_history(id, model_name, promoted_at, promoted_by_user_id, demoted_at, reason)
+
+-- HITL feedback signals (typed — see §5.8)
+model_feedback(id, ts, source, signal_type, payload_jsonb)
+  -- source: 'pair_rec_accept' | 'pair_rec_reject' | 'match_excluded' | ...
 
 -- Audit
 audit_log(id, ts, actor_user_id, action, entity_type, entity_id, before_jsonb, after_jsonb, ip)
@@ -210,12 +290,12 @@ This is a sketch — column types and indexes get refined when we write the migr
 
 | Phase | Deliverable | Estimated effort | Exit criterion |
 |---|---|---|---|
-| **0. Local proof** | SQLite + manual parser for one VLTC file + OpenSkill ratings + CLI showing top players + pair recommender (Hungarian algorithm). Run locally only. | 1–2 focused days | Rankings on real VLTC data look intuitively correct to a knowledgeable observer (Kurt). |
-| **1. Data foundation** | Postgres schema + hand-written parsers for ~4 dominant VLTC template families + bulk-load all existing VLTC files + alias/merge CLI + rating engine producing leaderboards. Still no UI. | 2–3 weeks part-time | All VLTC data ingested, deduplication done, reproducible rankings exist. |
-| **2. Web app skeleton** | Next.js + Postgres + auth + public rankings page + player profile w/ rating history chart + admin player-merge UI + audit log writes. Deployed to Proxmox via docker-compose. | 2–3 weeks | Site is publicly browsable; you can do a player merge through the UI; audit trail exists. |
-| **3. Agentic ingestion** | Upload UI for admins → Redis job → Python worker calls Claude API → extracted matches go to a review screen → admin confirms → matches land in DB. Original file kept in MinIO. | 3–4 weeks | An admin can drop an unfamiliar tournament file in and have it processed end-to-end. |
-| **4. Pair recommender** | Roster input UI + chemistry residual model + constraint-aware optimization (pairs across men/women × division A/B/C/D). | 1–2 weeks | Captain can input team availability and get a justified pairing suggestion. |
-| **5. Multi-club** | Onboard a second club; cross-club player linking flow; per-club admin permission isolation. | Ongoing | Second club's admin can use the system without seeing or affecting the first club's admin operations. |
+| **0. Local proof** | SQLite (model-agnostic schema) + manual parser for one VLTC file + OpenSkill ratings + CLI for top players + pair recommender (Hungarian algorithm). Run locally only. | 1–2 focused days | Rankings on real VLTC data look intuitively correct to a knowledgeable observer (Kurt). |
+| **1. Data foundation** | Postgres schema + hand-written parsers for ~4 dominant VLTC template families + bulk-load all existing VLTC files + alias/merge CLI + champion rating engine + **first challenger model running in shadow** + player-merge HITL channel. No web UI yet. | 2–3 weeks part-time | All VLTC data ingested, deduplication done, two models producing leaderboards that can be compared by hand. |
+| **2. Web app skeleton** | Next.js + Postgres + auth + public rankings + player profile w/ rating-history chart + admin player-merge UI + **multi-model dashboard (side-by-side leaderboards, disagreements, predictive scoreboard)** + **HITL channels: match exclusion, score correction** + audit log writes. Deployed to Proxmox via docker-compose. | 3–4 weeks | Site is publicly browsable; admin can merge players, exclude matches, and compare model leaderboards through the UI; audit trail exists. |
+| **3. Agentic ingestion** | Upload UI for admins → Redis job → Python worker calls Claude API → extracted matches go to a review screen → admin confirms → matches land in DB. Original file kept in MinIO. **Adds informal-match upload HITL channel.** | 3–4 weeks | An admin can drop an unfamiliar tournament file in and have it processed end-to-end. |
+| **4. Pair recommender** | Roster input UI + chemistry-residual model + constraint-aware optimization (pairs across men/women × division A/B/C/D). **Adds pair-rec accept/reject HITL logging.** | 1–2 weeks | Captain can input team availability and get a justified pairing suggestion; choices are logged for chemistry-model training. |
+| **5. Multi-club & polish** | Onboard a second club; cross-club player linking flow; per-club admin permission isolation. Manual rating-pin escape hatch only if a real need has emerged by now. | Ongoing | Second club's admin can use the system without seeing or affecting the first club's admin operations. |
 
 **What ships first to real users:** end of Phase 2. Phase 3 follows but doesn't block public rankings being live.
 
@@ -263,7 +343,8 @@ These are knowable unknowns — flagged here so we don't pretend the v1 design i
 ## 11. Decisions still needed from Kurt before Phase 0 starts
 
 - [x] Confirm Next.js + Python worker — **decided: Option A** (2026-04-25)
-- [ ] Confirm OpenSkill (Plackett-Luce) is OK as the starting rating model
+- [x] Confirm OpenSkill (Plackett-Luce) as the **champion / primary** rating model (2026-04-25). Challengers added in Phase 1+ per §5.7.
+- [x] Confirm the schema is **model-agnostic from day one** — `model_name` discriminator on `ratings`, `rating_history`, `pair_chemistry`; new tables for predictions, scoreboard, champion history, and feedback (2026-04-25). See §5.7, §5.8, §6.
 - [ ] Confirm the phasing — specifically that internal tool (Phase 0–1) ships before web app (Phase 2)
 - [ ] Pick an answer for each open question in §9 (or punt to later, but mark explicitly)
 - [x] Pick a repo name — **decided: `wks-social-tennis-rankings-malta`** (2026-04-25). Product/brand name still deferred to Phase 2.
