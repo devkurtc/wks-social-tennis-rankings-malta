@@ -112,10 +112,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | T-P0-004 (parser-implementer subagent — background); rating.py skeleton sketch (main session — pre-T-P0-006 prep, no data dep) |
-| `up next` (todo, deps satisfied) | T-P0-006 (full implementation — after T-P0-004 lands) |
-| `blocked` | T-P0-007..010 |
-| `recently done` | T-P0-005 (player normalization, 13 tests pass); T-P0-003 (parser spec, 276-line); T-P0-002 (schema, 12 tables); T-P0-001 (scaffold) |
+| `in-progress` | (none — round 3 complete) |
+| `up next` (todo, deps satisfied) | **T-P0-006** (rating engine — needs `pip install openskill` first) |
+| `blocked` | T-P0-007, T-P0-008 (after T-P0-006); T-P0-009, T-P0-010 (downstream) |
+| `recently done` | T-P0-004 (parser, 9 tests, 128 matches loaded); T-P0-005 (player normalization, 13 tests); T-P0-003 (parser spec, 276-line); T-P0-002 (schema, 12 tables); T-P0-001 (scaffold) |
 
 ---
 
@@ -218,7 +218,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-004 — Manual parser for Sports Experience Chosen Doubles 2025
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** T-P0-002, T-P0-003
 - **Blocks:** T-P0-006, T-P0-009
@@ -229,15 +229,15 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Implement a Python parser that reads the chosen file and inserts normalized rows into SQLite using the schema from T-P0-002.
 
 **Acceptance criteria:**
-- [ ] `scripts/phase0/parsers/sports_experience_2025.py` exists, exposing `parse(xlsx_path, db_conn) -> ingestion_run_id`
-- [ ] CLI `python scripts/phase0/cli.py load --file <path>` invokes the parser and reports rows inserted
-- [ ] One `source_files` row, one `ingestion_runs` row created per invocation
-- [ ] One `tournaments` row created (format `'doubles_division'`)
-- [ ] `matches`, `match_sides`, `match_set_scores` populated faithfully — every match in the file has corresponding rows
-- [ ] Each `matches` row has `ingestion_run_id` set
-- [ ] Players inserted into `players` (via T-P0-005's normalization) — no duplicates within this file
-- [ ] All test cases listed in `parser_spec_sports_experience_2025.md` pass (manual verification)
-- [ ] Re-running the load on the same file with the same content produces a NEW `ingestion_runs` row, marks the previous run's matches as superseded (this is the re-process path from §5.3.1)
+- [x] `scripts/phase0/parsers/sports_experience_2025.py` exposes `parse(xlsx_path, db_conn) -> int (ingestion_run_id)`
+- [x] CLI `python scripts/phase0/cli.py load --file <path>` invokes the parser via filename dispatch and reports the run_id
+- [x] One `source_files` row + one `ingestion_runs` row created per invocation (verified: re-load → 2 ingestion_runs, 1 source_files)
+- [x] One `tournaments` row created with `format = 'doubles_division'` (NOTE: re-load creates a *second* tournament row — flagged for T-P0-010 retrospective; not blocking since rating engine filters by active matches via `superseded_by_run_id IS NULL`)
+- [x] `matches`, `match_sides`, `match_set_scores` populated faithfully: 128 matches (= 133 spec estimate − 5 unplayed Lad Div 1), 256 match_sides (= 128×2), 292 match_set_scores
+- [x] Each `matches` row has `ingestion_run_id` set
+- [x] 110 players inserted via `players.get_or_create_player` (above spec's "~70-80" estimate — expected since each pair has 2 distinct players with little cross-pair sharing across 7 sheets)
+- [x] All 6 spec-named test cases pass (parser tests file has 9 total: 6 spec + 3 supporting incl. idempotency)
+- [x] Re-running the load creates new run, marks prior matches superseded: verified — after 2nd load, 128 active + 128 superseded
 
 **Implementation notes:**
 - Use `openpyxl.load_workbook(path, data_only=True, read_only=True)`.
@@ -253,6 +253,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
   4. `vs` (Men Div 2) and `vs.` (others) — tolerant divider matcher.
   5. `Players Ladies` rows 10/11 both have rank `5.0`. Both are valid pairs; don't dedupe by rank.
 - 2026-04-26 00:55 — Claude (Opus 4.7) — picked up; spawning `parser-implementer` agent in background (general-purpose with agent definition + spec inlined). Main session does pre-T-P0-006 prep concurrently (rating.py skeleton — no data dep so no conflict).
+- 2026-04-26 01:04 — Claude (Opus 4.7) — completed; agent returned in 8m56s. Files: `scripts/phase0/parsers/{__init__.py, sports_experience_2025.py, test_sports_experience_2025.py}`; `scripts/phase0/cli.py` modified to dispatch by filename. 9/9 parser tests pass. Real load: 128 active matches, 110 players, 256 match_sides, 292 match_set_scores — counts match spec exactly (133 − 5 unplayed = 128). Idempotent re-load verified: run_id=2, prior 128 matches superseded, source_files row not duplicated. **Findings for T-P0-010 retrospective:** (a) re-load creates a duplicate `tournaments` row — not breaking (matches filter by active) but cleanup candidate; (b) Men Div 3 final block has asymmetric layout (pair A scores on row+1, pair B scores on row+0); agent solved with `_find_score_row` helper that sniffs both rows; (c) Test case 5 spec typo (set 1 = 6-4 vs file's 6-3); parser follows file truth.
 
 ---
 

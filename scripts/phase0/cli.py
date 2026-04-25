@@ -31,8 +31,29 @@ def cmd_load(args: argparse.Namespace) -> int:
         print("load: --file required (or use --init-only)", file=sys.stderr)
         return 1
 
-    print("load --file: not implemented (T-P0-004 parser)", file=sys.stderr)
-    return 1
+    # Phase 0: only one parser registered. Filename-based dispatch — Phase 1
+    # introduces a registry pattern when more parsers exist.
+    import os
+    filename = os.path.basename(args.file).lower()
+    parse_fn = None
+    if filename.startswith("sports experience chosen doubles 2025"):
+        from parsers import sports_experience_2025 as _p
+        parse_fn = _p.parse
+    if parse_fn is None:
+        print(
+            f"load: no parser registered for {os.path.basename(args.file)!r}. "
+            "Phase 0 only supports 'Sports Experience Chosen Doubles 2025 result sheet.xlsx'.",
+            file=sys.stderr,
+        )
+        return 1
+
+    conn = db.init_db()
+    try:
+        run_id = parse_fn(args.file, conn)
+    finally:
+        conn.close()
+    print(f"Loaded ingestion_run_id={run_id} from {args.file}")
+    return 0
 
 
 def cmd_rate(args: argparse.Namespace) -> int:
