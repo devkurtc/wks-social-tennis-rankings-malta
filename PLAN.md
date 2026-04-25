@@ -120,11 +120,34 @@ For each decision: alternatives considered, then the recommendation.
 
 The system runs a *configurable set* of models, not just one — see §5.7 for the champion/challenger architecture and the phased rollout. OpenSkill PL is what drives public rankings; other models run in shadow.
 
-**Score margin** is added as a "match weight" multiplier: a 6-0 6-0 win counts more than a 7-6 7-6 win. Specific weighting function is tunable in Phase 0.
+**Score margin (revised 2026-04-26 after `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §4):** the actual-score input to the rating math is the **universal games-won proportion**:
+
+```
+S_A  =  games_won_A  /  (games_won_A  +  games_won_B)
+S_B  =  1 - S_A
+```
+
+Range `[0, 1]`. A 6-0 6-0 win → `S_A = 1.0`; 7-6 7-5 win → `S_A ≈ 0.56`; even split → `0.5` (no rating movement, mathematically correct — draws are uninformative). This naturally normalizes 18-game format events vs 2-set matches with no special-casing — the same formula works everywhere.
+
+This replaces the earlier "tanh weight multiplier" approach. Adopting `S` as the actual score (rather than a multiplier on Δ) plugs cleanly into OpenSkill's existing actual-vs-expected mechanism instead of bolting on a side channel.
+
+**Forfeit / walkover handling (per `_RESEARCH_/...` §11.4):** record as `S_winner = 0.90`, `S_loser = 0.10` — NOT `1.0 / 0.0`. A walkover is not a played match; treating it as a max-signal win over-rewards the recipient. The 0.90/0.10 split preserves a small rating effect without dominating.
 
 **Time decay (decided 2026-04-25):** enabled via OpenSkill's `tau` parameter (sigma drift per rating period). During inactivity, μ stays frozen while σ grows — the system becomes less certain about a player it hasn't observed. Returning players' new matches then move μ sharply because the prior uncertainty is high. Rating period defaults to monthly; `tau` and the period length are tunable in Phase 0. Independently, the public leaderboard's default view filters to "active in the last N months" (UX concern, not a rating-engine concern); inactive players are still rated, just not surfaced by default.
 
-**Pair chemistry** is a separate residual model: for each pair that has played together ≥N times, compute (actual win rate − model-predicted win rate). Use this residual as a bonus/penalty when the pair recommender considers that combination. For pairs with no shared history, residual = 0 (assume neutral chemistry).
+**Pair chemistry** is a separate residual model: for each pair that has played together ≥N times, compute (actual win rate − model-predicted win rate). Use this residual as a bonus/penalty when the pair recommender considers that combination. For pairs with no shared history, residual = 0 (assume neutral chemistry). Equivalent to "Partner Synergy" in `_RESEARCH_/...` §12.
+
+#### 5.2.1 Future enhancements queued for Phase 1+
+
+The following ideas (sourced from `_RESEARCH_/Doubles_Tennis_Ranking_System.docx`) are deliberately deferred — Phase 0's job is to validate the *base* approach before layering tunables on top. Each is a candidate for the Phase 0 retrospective (T-P0-010) to schedule.
+
+| Enhancement | Source | Phase | Notes |
+|---|---|---|---|
+| **Rating drift toward division mean for long absences** | §9.2 | 1 | Beyond pure σ-growth, also drift μ toward the player's division mean for absences ≥3 missed periods (1%/period for 3-5, 2%/period for 6-11, 4%/period for 12+). Attacks the "ghost rating" problem where a long-absent player's μ is pinned at peak indefinitely. |
+| **Division K-factor multipliers** | §8.1, §8.2 | 1 | Per-division weight on rating updates (M1=1.0, M2=0.9, M3=0.8, M4=0.7; L1=1.0, L2=0.87, L3=0.73). Requires per-division calibration data — not Phase 0. |
+| **Tournament-type K multipliers** | §8.3 | 1 | Championship Finals=1.20×, Standard=1.0×, Friendly=0.30×, etc. Requires a new `tournaments.tier` schema column populated during Phase 1 bulk-load. |
+| **Per-division starting ratings (the *pattern*, not the numbers)** | §2.2 | 1 | Seed new players at division-specific μ rather than a global default. Their numbers are Glicko-2 scale (~1500); OpenSkill PL is on a μ=25 scale — calibrate during Phase 1. |
+| **Investigate: OpenSkill PL native team apportionment vs explicit partner-weighting** | §7 | 0/1 | Their "Modified Glicko-2" requires explicit `Δ × weight × 2` per player to handle teams (because base Glicko-2 is 1v1). OpenSkill PL handles teams natively — open question whether its apportionment is similar. Owned by `rating-engine-expert` agent during T-P0-006. If they diverge meaningfully, layer an explicit weighting on top of OpenSkill too. |
 
 ### 5.3 Ingestion approach
 

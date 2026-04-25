@@ -253,7 +253,9 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - [ ] `scripts/phase0/rating.py` exposes `recompute_all(db_conn, model_name: str = 'openskill_pl')`
 - [ ] CLI `python scripts/phase0/cli.py rate` invokes recompute over all matches, processed in `played_on, match.id` chronological order
 - [ ] For each match: each side modeled as a 2-player team; OpenSkill `rate()` produces updated mu/sigma per player; `ratings` table updated; one `rating_history` row per player (4 per match) appended
-- [ ] **Score margin weighting** applied: each match has a "weight" multiplier in `[0.5, 1.5]` derived from games-won margin. Specific formula left to Phase 0 to tune; document choice in the progress log.
+- [ ] **Universal games-won score** applied (per `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §4 + PLAN.md §5.2): the actual-score input `S = games_won_team / (games_won_team + games_won_opponent)` ∈ `[0, 1]`. Use this directly as OpenSkill's actual-score input. NO separate weight multiplier — `S` IS the signal. Same formula handles 18-game and 2-set formats with no special-casing.
+- [ ] **Forfeit / walkover handling** (per PLAN.md §5.2): if a match is recorded as a walkover, set `S_winner = 0.90`, `S_loser = 0.10` rather than `1.0/0.0`. Detect from match metadata (e.g. `match.walkover = TRUE` if parser flagged it).
+- [ ] **Open question for `rating-engine-expert`** answered in this task's progress log: does OpenSkill PL's native team apportionment behave similarly to the explicit `Δ × weight × 2` partner-weighting in `_RESEARCH_/...` §7? Walk through one match's update math both ways using actual numbers from the Sports Experience 2025 data.
 - [ ] **Sigma drift (time decay)** applied between matches: when computing a player's pre-match rating, if their last match was N rating periods ago, apply `sigma' = sqrt(sigma² + N * tau²)`. Default `tau = 0.0833`, rating period = 1 calendar month. Tunable.
 - [ ] Skips matches where `superseded_by_run_id IS NOT NULL`
 - [ ] After running on the Sports Experience 2025 data, the `ratings` table has one row per player who appeared
@@ -261,8 +263,8 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Implementation notes:**
 - `openskill.models.PlackettLuce` is the model class. See https://openskill.me — but pin the version in `requirements-phase0.txt` and document it.
 - Don't try to be incremental in Phase 0. `recompute_all` is fine — wipe `ratings` and `rating_history`, replay from earliest match. Incremental updates land in Phase 1.
-- For score margin: a sensible starter formula is `weight = 1.0 + 0.5 * tanh(games_diff / 4.0)`. Tune it later.
 - For sigma drift: rating period = month (start of). For a player with last match in March 2025 whose new match is in June 2025, N = 3.
+- For partner-weighting investigation: spawn `rating-engine-expert` with the question above. Don't add an explicit partner-weight multiplier on top of OpenSkill in Phase 0 — first verify whether it's needed. Either answer is acceptable; the reasoning goes in the progress log so T-P1-009 (Modified Glicko-2 challenger) knows what to do differently.
 
 **Progress log:**
 - (none yet)
@@ -392,7 +394,7 @@ Tasks below are intentionally sketchy until Phase 0 lands and we know what concr
 - **T-P1-006** — Hand-written parser: Samsung Rennie Tonna / TCK / San Michel team formats
 - **T-P1-007** — Bulk-load all VLTC files
 - **T-P1-008** — Player alias / merge CLI (Phase 1 fuzzy-match + propose; admin confirms)
-- **T-P1-009** — Add Glicko-2 as the first challenger model (per §5.7)
+- **T-P1-009** — Add **Modified Glicko-2** (per `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §5–9) as the first challenger model. Includes: team rating = avg(R) with RD = sqrt(mean RD²); universal games-won proportion as score `S`; explicit **partner-weighted Δ** per §7 (`ΔR_p1 = Δ × weight_p1 × 2` where `weight_p1 = R_p1 / (R_p1 + R_p2)`); per-division K-multipliers per §8; rating drift toward division mean for long absences per §9.2. `model_name = 'modified_glicko2'`. Use `glicko2` Python package for the base math; layer the modifications on top.
 - **T-P1-010** — HITL: player merge channel (per §5.8)
 
 ---
@@ -412,6 +414,8 @@ Tasks below are intentionally sketchy until Phase 0 lands and we know what concr
 - **T-P2-011** — docker-compose for self-host on Proxmox (Caddy + Next.js + Postgres + Redis + worker + MinIO)
 - **T-P2-012** — Privacy notice page (per §5.9 — covers GDPR Art. 17 path)
 - **T-P2-013** — Admin "remove player" action (per §5.9 — for GDPR Art. 17 requests)
+- **T-P2-014** — Leaderboard secondary stats per `_RESEARCH_/...` §12: Win%, Game Win%, Average Margin, Consistency Index, Partner Synergy (= our `pair_chemistry`), Upset Rate, Peak Rating, Current Form (Δ over last 3 tournaments), Head-to-Head. Display-only — does not affect the rating math.
+- **T-P2-015** — RD-based "Provisional / Reliable" badges per `_RESEARCH_/...` §2.3 thresholds; minimum-activity gates for leaderboard inclusion (≥8 matches lifetime; ≥3 matches in last 12 months for "active" status) per §9.4.
 
 ---
 
