@@ -41,6 +41,8 @@ Build a multi-club tennis doubles ranking system that:
 
 `_DATA_/VLTC/` — ~40 Excel files from Vittoriosa Lawn Tennis Club, 2017–2026. These are publicly available from the VLTC club website, so re-hosting them in this repo carries no additional disclosure risk.
 
+**Backfill scope (decided 2026-04-25):** all doubles tournaments 2017–2026 are in scope for ingestion. Singles are out of scope (§1). Old matches don't distort current ratings because of time decay — see §5.2.
+
 Two structural patterns observed:
 
 1. **Division-style doubles**: fixed pairs (e.g. `"Duncan D'Alessandro/Clayton Zammit Cesare"`) play round-robins within a division. One sheet per division.
@@ -119,6 +121,8 @@ For each decision: alternatives considered, then the recommendation.
 The system runs a *configurable set* of models, not just one — see §5.7 for the champion/challenger architecture and the phased rollout. OpenSkill PL is what drives public rankings; other models run in shadow.
 
 **Score margin** is added as a "match weight" multiplier: a 6-0 6-0 win counts more than a 7-6 7-6 win. Specific weighting function is tunable in Phase 0.
+
+**Time decay (decided 2026-04-25):** enabled via OpenSkill's `tau` parameter (sigma drift per rating period). During inactivity, μ stays frozen while σ grows — the system becomes less certain about a player it hasn't observed. Returning players' new matches then move μ sharply because the prior uncertainty is high. Rating period defaults to monthly; `tau` and the period length are tunable in Phase 0. Independently, the public leaderboard's default view filters to "active in the last N months" (UX concern, not a rating-engine concern); inactive players are still rated, just not surfaced by default.
 
 **Pair chemistry** is a separate residual model: for each pair that has played together ≥N times, compute (actual win rate − model-predicted win rate). Use this residual as a bonus/penalty when the pair recommender considers that combination. For pairs with no shared history, residual = 0 (assume neutral chemistry).
 
@@ -383,8 +387,8 @@ This is a sketch — column types and indexes get refined when we write the migr
 2. ~~**Ingestion review granularity**~~ — **decided 2026-04-25**: auto-accept with post-hoc quality report and re-process workflow. See §5.3.1.
 3. ~~**Public visibility**~~ — **decided 2026-04-25**: fully public, no opt-out workflow. See §5.9. Privacy notice + admin "remove player" action deferred until Phase 2 / first request.
 4. ~~**Singles data**~~ — **decided 2026-04-25**: ignore singles entirely. See §1 non-goals.
-5. **Backfill cutoff**: ingest all 40 historical files, or start from 2024 onward? Recommend: ingest everything — historical depth gives the rating model more signal even if older matches are weighted down by time decay.
-6. **Time decay on ratings**: should a player's rating decay if they stop playing for a year? UTR does this. Recommend yes; tune in Phase 1.
+5. ~~**Backfill cutoff**~~ — **decided 2026-04-25**: full backfill of all doubles tournaments 2017–2026. See §3 backfill scope.
+6. ~~**Time decay on ratings**~~ — **decided 2026-04-25**: enabled via OpenSkill sigma drift (`tau` parameter); plus an "active in last N months" leaderboard filter. See §5.2 Time decay paragraph.
 7. **Domain & branding**: is there a chosen name for this product? Affects the Next.js project name and the eventual public URL.
 
 ---
