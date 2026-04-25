@@ -41,6 +41,54 @@ Use one of:
 - `Claude (Opus 4.7)` or `Claude (Sonnet 4.6)` etc. — for Claude sessions; include model
 - `agent:tennis-data-explorer` — for spawned subagents (use the agent name)
 
+### Multi-agent execution
+
+Tasks are designed to run concurrently when their dependencies allow. The `Depends on` / `Blocks` fields define the DAG; tasks at the same depth are parallel-safe.
+
+**Phase 0 dependency map:**
+
+```
+T-P0-001 (scaffold)               ← gate, blocks everything
+   │
+   ├─► T-P0-002 (schema)          ┐
+   ├─► T-P0-003 (parser spec)     ├─ all 3 parallel after T-P0-001
+   └─► T-P0-005 (player names)    ┘
+            │
+            ▼
+       T-P0-004 (parser)           ← needs schema (002) AND spec (003)
+            │
+            ▼
+       T-P0-006 (rating)
+            │
+            ├─► T-P0-007 (rank CLI)         ┐ both parallel after 006
+            └─► T-P0-008 (pair recommender) ┘
+                          │
+                          ▼
+                     T-P0-009 (validation, gated by Kurt review)
+                          │
+                          ▼
+                     T-P0-010 (retrospective)
+```
+
+**Recommended execution rounds:**
+
+| Round | Parallel work | Drivers |
+|---|---|---|
+| 1 | T-P0-001 | main session (sequential, blocks all others) |
+| 2 | T-P0-002 + T-P0-003 + T-P0-005 | main session + `tennis-data-explorer` subagent (background) + main session |
+| 3 | T-P0-004 | `parser-implementer` subagent |
+| 4 | T-P0-006 | main session + `rating-engine-expert` for code review |
+| 5 | T-P0-007 + T-P0-008 | main session (single-process internal parallelism) |
+| 6 | T-P0-009 → T-P0-010 | main + Kurt validation |
+
+**Multi-agent safety rules:**
+
+- **Mutual exclusion on pickup.** Two agents NEVER `in-progress` on the same task. If you see one in-progress, pick something else from the parallel-safe set.
+- **Pickup is a commit + push.** Marking `in-progress` only locally is invisible to other agents on other machines. Always commit and push the TASKS.md edit before starting actual work.
+- **Cross-task discoveries:** if you spot a problem in a sibling task, log it via `/log-progress` on the sibling and on yours — don't silently fix it.
+- **Small, frequent commits** from parallel agents minimize merge conflicts on TASKS.md.
+- **Subagents don't need to follow the protocol if their work doesn't change TASKS.md state.** A spawned `tennis-data-explorer` producing a spec file is data-only — the parent task records the work in its own progress log.
+
 ### Project skills and agents
 
 Use these to follow protocol consistently — mostly to avoid drift between TASKS.md and reality.
@@ -64,8 +112,8 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | (none) |
-| `up next` (todo, deps satisfied) | T-P0-001 |
+| `in-progress` | T-P0-001 |
+| `up next` (todo, deps satisfied) | (gated on T-P0-001 — then T-P0-002, T-P0-003, T-P0-005 unblock in parallel) |
 | `blocked` | (none) |
 | `recently done` | (none yet — first code commit pending) |
 
@@ -81,7 +129,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-001 — Phase 0 scaffolding
 
-- **Status:** `todo`
+- **Status:** `in-progress`
 - **Phase:** 0
 - **Depends on:** none
 - **Blocks:** T-P0-002, T-P0-003, T-P0-006
@@ -104,7 +152,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - The `__init__.py` is empty — the module is meant to be run via `python -m` or `python scripts/phase0/cli.py`.
 
 **Progress log:**
-- (none yet)
+- 2026-04-26 00:22 — Claude (Opus 4.7) — picked up; plan: scaffold scripts/phase0/ with empty __init__.py, argparse-based cli.py with four no-op subcommands (`load --init-only --file`, `rate`, `rank --top --active-months --gender`, `recommend-pairs --players`), README with usage + status, requirements-phase0.txt with openpyxl + openskill + scipy + python-dateutil, .gitignore additions for sqlite WAL/SHM. Verify `--help` runs cleanly.
 
 ---
 
