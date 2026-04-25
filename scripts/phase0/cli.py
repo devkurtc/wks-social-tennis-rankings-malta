@@ -15,7 +15,23 @@ import sys
 
 
 def cmd_load(args: argparse.Namespace) -> int:
-    print("load: not implemented (T-P0-002 schema; T-P0-004 parser)", file=sys.stderr)
+    # lazy import so `--help` doesn't pay the sqlite import + schema-read cost
+    import db
+
+    if args.init_only:
+        conn = db.init_db()
+        try:
+            n = db.table_count(conn)
+        finally:
+            conn.close()
+        print(f"Initialized {db.DEFAULT_DB_PATH} with {n} tables.")
+        return 0
+
+    if not args.file:
+        print("load: --file required (or use --init-only)", file=sys.stderr)
+        return 1
+
+    print("load --file: not implemented (T-P0-004 parser)", file=sys.stderr)
     return 1
 
 

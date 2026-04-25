@@ -112,10 +112,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | T-P0-002 (main session — schema), T-P0-003 (tennis-data-explorer agent — parser spec) |
-| `up next` (todo, deps satisfied) | T-P0-005 (after T-P0-002 lands) |
-| `blocked` | T-P0-004 (waits on T-P0-002 + T-P0-003); T-P0-006..010 (downstream chain) |
-| `recently done` | T-P0-001 (8533c8f scaffold + a3b commit pending) |
+| `in-progress` | T-P0-003 (subagent — parser spec, background), T-P0-005 (main session — player normalization) |
+| `up next` (todo, deps satisfied) | T-P0-004 unblocks once T-P0-003 returns |
+| `blocked` | T-P0-006..010 (downstream chain) |
+| `recently done` | T-P0-002 (schema, 12 tables); T-P0-001 (scaffold) |
 
 ---
 
@@ -159,7 +159,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-002 — SQLite schema (model-agnostic, Phase 0 subset)
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** T-P0-001
 - **Blocks:** T-P0-004, T-P0-006
@@ -169,17 +169,12 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Create the initial SQLite schema matching `PLAN.md` §6, scaled down to the tables Phase 0 actually needs. **Crucially: the `model_name` discriminator column is included from day one** even though Phase 0 only runs one model — this is settled per §5.7.
 
 **Acceptance criteria:**
-- [ ] `scripts/phase0/schema.sql` exists with `CREATE TABLE` statements for these tables only:
-  - `clubs`, `players`, `player_aliases`
-  - `tournaments`, `source_files`, `ingestion_runs`
-  - `matches`, `match_sides`, `match_set_scores`
-  - `ratings` (with `model_name`), `rating_history` (with `model_name`)
-  - `audit_log`
-- [ ] **Skipped** for Phase 0 (will be added in Phase 1+): `model_predictions`, `model_scoreboard`, `champion_history`, `pair_chemistry`, `model_feedback`, `player_club_memberships`, `users`, `user_club_roles`. Comment in the SQL file explains why each is skipped.
-- [ ] Primary keys correct, including composite `(player_id, model_name)` on `ratings` and `(player1_id, player2_id, model_name)` on `pair_chemistry` (when added).
-- [ ] Index on `matches(superseded_by_run_id) WHERE superseded_by_run_id IS NULL` (the active-match index from §5.3.1).
-- [ ] `scripts/phase0/db.py` exposes `init_db(path: str) -> sqlite3.Connection` that creates the file if missing and applies `schema.sql`. Idempotent.
-- [ ] Running `python scripts/phase0/cli.py load --init-only` creates a fresh `phase0.sqlite` and applies the schema with no errors.
+- [x] `scripts/phase0/schema.sql` exists with `CREATE TABLE` statements for these tables only: `clubs`, `players`, `player_aliases`, `tournaments`, `source_files`, `ingestion_runs`, `matches`, `match_sides`, `match_set_scores`, `ratings` (with `model_name`), `rating_history` (with `model_name`), `audit_log` — 12 tables total.
+- [x] **Skipped** for Phase 0 documented in a section at the bottom of `schema.sql` with reason per table: `model_predictions`, `model_scoreboard`, `champion_history`, `pair_chemistry`, `model_feedback`, `player_club_memberships`, `users`, `user_club_roles`.
+- [x] Primary keys correct: composite `(player_id, model_name)` on `ratings`; composite `(match_id, side)` on `match_sides`; composite `(match_id, set_number)` on `match_set_scores`. (Composite on `pair_chemistry` reserved for Phase 4.)
+- [x] Active-match index on `matches (tournament_id, played_on) WHERE superseded_by_run_id IS NULL` per §5.3.1.
+- [x] `scripts/phase0/db.py` exposes `init_db(path) -> sqlite3.Connection` that creates the file if missing, sets `PRAGMA foreign_keys = ON`, applies `schema.sql`, and is idempotent.
+- [x] `python scripts/phase0/cli.py load --init-only` creates a fresh `phase0.sqlite` with all 12 tables; second invocation re-runs cleanly with no error (idempotent).
 
 **Implementation notes:**
 - Use `sqlite3` from stdlib.
@@ -190,6 +185,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 **Progress log:**
 - 2026-04-26 00:31 — Claude (Opus 4.7) — picked up; plan: write schema.sql with the Phase 0 subset of tables from PLAN.md §6, including model_name discriminator on ratings/rating_history; write db.py with init_db helper (idempotent, foreign keys ON, applies schema). Wire into cli.py `load --init-only`.
+- 2026-04-26 00:42 — Claude (Opus 4.7) — completed; schema.sql with 12 tables; db.py with init_db + table_count helpers; cli.py `load --init-only` wired to call init_db and report table count. Verified: fresh init creates all 12 tables; rerun is idempotent (no errors). Skipped tables documented per-row at end of schema.sql.
 
 ---
 
@@ -255,7 +251,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-005 — Player name normalization + alias storage
 
-- **Status:** `todo`
+- **Status:** `in-progress`
 - **Phase:** 0
 - **Depends on:** T-P0-002
 - **Blocks:** T-P0-004
@@ -282,7 +278,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - Don't lowercase. "Duncan D'Alessandro" and "duncan d'alessandro" are technically the same person but Phase 0 will flag them as different — that's a Phase 1 problem.
 
 **Progress log:**
-- (none yet — queued for after T-P0-002 lands)
+- 2026-04-26 00:42 — Claude (Opus 4.7) — picked up (T-P0-002 just landed, deps satisfied); plan: write players.py with `normalize_name(raw)` (NFKC, curly→straight apostrophes, collapse internal whitespace, strip) and `get_or_create_player(conn, raw, source_file_id) -> player_id` (returns existing or creates new player + alias row); write test_players.py with cases for curly/straight collide, whitespace ignored, casing preserved, distinct names = distinct players.
 
 ---
 
