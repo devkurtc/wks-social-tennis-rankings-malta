@@ -18,7 +18,7 @@ Build a multi-club tennis doubles ranking system that:
 **Success looks like:** a self-hosted web app where (a) any visitor can browse rankings and player history, (b) club admins can drop new tournament files in and have them flow into the rating engine within minutes, and (c) team captains can input a roster and get back data-driven pairing suggestions.
 
 **Non-goals (for now):**
-- Singles ranking as a primary product (we may rate singles incidentally, but this is a doubles tool).
+- Singles ranking — **fully out of scope** (decided 2026-04-25). Bulk-load parsers in Phase 1 skip singles files. Agentic ingestion in Phase 3 detects singles format, archives the file in MinIO, and reports "out of scope — no DB rows created." The schema's `match_type` column reserves the option to add singles later if scope expands.
 - Live match scoring / on-court data entry.
 - Tournament management / draws / scheduling.
 - Mobile app (web is responsive; native apps later if needed).
@@ -311,7 +311,7 @@ tournaments(id, club_id, name, year, format, source_file_id)
 
 matches(id, tournament_id, played_on, match_type, division, round,
         ingestion_run_id, superseded_by_run_id, informal)
-  -- match_type: 'doubles' (singles deferred)
+  -- match_type: 'doubles' only in v1; 'singles' reserved but not used (§1 non-goals)
   -- superseded_by_run_id: NULL = active; non-NULL = this match was replaced by a re-process
   -- informal: TRUE for matches added via the informal-upload HITL channel
   -- Active-match index: WHERE superseded_by_run_id IS NULL
@@ -382,7 +382,7 @@ This is a sketch — column types and indexes get refined when we write the migr
 1. **Stack final answer**: Next.js + Python worker, or all-Python (Django/FastAPI)? Recommendation in §5.1 is Next.js, but pushback welcome.
 2. ~~**Ingestion review granularity**~~ — **decided 2026-04-25**: auto-accept with post-hoc quality report and re-process workflow. See §5.3.1.
 3. ~~**Public visibility**~~ — **decided 2026-04-25**: fully public, no opt-out workflow. See §5.9. Privacy notice + admin "remove player" action deferred until Phase 2 / first request.
-4. **Singles data**: some files are singles tournaments. Ignore them entirely, or store them too (without a rating for now)? Recommend: store everything we ingest, but don't compute singles ratings in v1.
+4. ~~**Singles data**~~ — **decided 2026-04-25**: ignore singles entirely. See §1 non-goals.
 5. **Backfill cutoff**: ingest all 40 historical files, or start from 2024 onward? Recommend: ingest everything — historical depth gives the rating model more signal even if older matches are weighted down by time decay.
 6. **Time decay on ratings**: should a player's rating decay if they stop playing for a year? UTR does this. Recommend yes; tune in Phase 1.
 7. **Domain & branding**: is there a chosen name for this product? Affects the Next.js project name and the eventual public URL.
