@@ -263,6 +263,25 @@ Generic free-text feedback degenerates into a graveyard of unactionable text. Ty
 - Public crowd-sourced corrections — admin-only for v1
 - Auto-acting on a single feedback signal without admin confirmation for high-impact actions (merges, pins)
 
+### 5.9 Public visibility (decided 2026-04-25)
+
+**Decision: all rankings, profiles, and match histories are fully public. No opt-out workflow built in v1.**
+
+Rationale: source data is already public from each contributing club's website; this product re-presents and enriches that public information. User opted to keep visibility binary and operationally simple.
+
+**What this means for v1:**
+- No `visibility` flag on `players`
+- No "Hidden Player" placeholder rendering
+- No opt-out request workflow
+- Simpler leaderboard, profile, and match-card UI
+
+**What's still required for legal compliance (cheap to add later, NOT built upfront):**
+- An admin "remove player" action — for **GDPR Article 17 (Right to Erasure)** requests, which cannot be contractually waived under EU law. When a request arrives: admin uses the action; player record + their `match_sides` rows are deleted; ratings recomputed; `audit_log` records the takedown with reason and requesting party.
+- A privacy notice on the public site stating what's processed, the lawful basis (legitimate interest + public sources), and how to file a Right-to-Erasure request. Add in Phase 2.
+- The admin action can be added on first request — no need to pre-build.
+
+**Escalation path:** if takedown requests become routine (>1/month sustained), revisit and add a per-player `visibility` boolean (the "Option B" we deliberately skipped). Cheap migration: add column + surface the admin action through the existing player profile UI.
+
 ---
 
 ## 6. Data model (initial sketch)
@@ -354,6 +373,7 @@ This is a sketch — column types and indexes get refined when we write the migr
 | Self-hosted Caddy / TLS / domain setup has a misconfiguration that exposes admin endpoints | Medium | High | Network policy: admin routes require login + IP allowlist option; security review before public DNS goes live |
 | Scope creep into singles, tournament management, or live scoring | High | Medium — slows the doubles core | Re-read §1 non-goals before adding any feature outside it |
 | Auto-accept ingestion (§5.3.1) lands bad data that admin never reviews | Medium | High — silent corruption of public ratings | Dashboard widget for unreviewed reports; login banner for reports >N days unreviewed; optional email digest; quality report defaults to grouping low-confidence + anomalies at top |
+| GDPR Article 17 takedown requests with no built-in opt-out workflow (per §5.9) | Low–medium | Medium — manual ad-hoc handling required | Build admin "remove player" action when first request arrives; publish privacy notice on the public site in Phase 2; if requests become routine, add per-player `visibility` flag |
 
 ---
 
@@ -361,7 +381,7 @@ This is a sketch — column types and indexes get refined when we write the migr
 
 1. **Stack final answer**: Next.js + Python worker, or all-Python (Django/FastAPI)? Recommendation in §5.1 is Next.js, but pushback welcome.
 2. ~~**Ingestion review granularity**~~ — **decided 2026-04-25**: auto-accept with post-hoc quality report and re-process workflow. See §5.3.1.
-3. **Public visibility**: are all rankings public, or do players opt in? GDPR-adjacent — Malta is in the EU. Recommend: club controls visibility per club, default-public, with a per-player opt-out.
+3. ~~**Public visibility**~~ — **decided 2026-04-25**: fully public, no opt-out workflow. See §5.9. Privacy notice + admin "remove player" action deferred until Phase 2 / first request.
 4. **Singles data**: some files are singles tournaments. Ignore them entirely, or store them too (without a rating for now)? Recommend: store everything we ingest, but don't compute singles ratings in v1.
 5. **Backfill cutoff**: ingest all 40 historical files, or start from 2024 onward? Recommend: ingest everything — historical depth gives the rating model more signal even if older matches are weighted down by time decay.
 6. **Time decay on ratings**: should a player's rating decay if they stop playing for a year? UTR does this. Recommend yes; tune in Phase 1.
