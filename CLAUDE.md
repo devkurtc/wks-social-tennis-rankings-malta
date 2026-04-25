@@ -11,9 +11,18 @@ Orientation file for Claude Code sessions on this repo. Skim on every session st
 
 ## Source of truth
 
-`PLAN.md` (repo root) is canonical for: scope, architecture, rating-engine choice, phasing, risks, open questions, and pros/cons of every major decision. Read it first when in doubt.
+- `PLAN.md` (repo root) — canonical for **decisions and rationale**: scope, architecture, rating-engine choice, phasing, risks, pros/cons. Read first when in doubt about *why* something is the way it is.
+- `TASKS.md` (repo root) — operational **task tracker**. Multi-agent friendly: every task is self-contained with goal, dependencies, references, acceptance criteria, and an append-only progress log. Read first when picking up work.
 
-This file (CLAUDE.md) is just orientation. It never overrides `PLAN.md`. If they disagree, fix CLAUDE.md.
+This file (CLAUDE.md) is just orientation. It never overrides `PLAN.md` or `TASKS.md`. If they disagree, fix CLAUDE.md.
+
+**Workflow when picking up work:**
+1. Read `TASKS.md` "Current focus" section to find what's next.
+2. Pick a task whose `Depends on` are all `done`.
+3. Set status to `in-progress`, add a progress-log line, follow the task's "Picking up a task" protocol in `TASKS.md`.
+4. Read the task's referenced `PLAN.md` sections for context.
+5. Work the task; commit in small chunks; append progress notes.
+6. On completion: verify all acceptance criteria; mark `done`; final progress note.
 
 ## Tech stack (locked — see PLAN.md §5 for rationale)
 
