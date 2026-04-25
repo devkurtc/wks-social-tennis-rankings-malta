@@ -57,8 +57,16 @@ def cmd_load(args: argparse.Namespace) -> int:
 
 
 def cmd_rate(args: argparse.Namespace) -> int:
-    print("rate: not implemented (T-P0-006 OpenSkill rating engine)", file=sys.stderr)
-    return 1
+    import db
+    import rating
+
+    conn = db.init_db()
+    try:
+        n = rating.recompute_all(conn, model_name=rating.CHAMPION_MODEL)
+    finally:
+        conn.close()
+    print(f"Recomputed ratings over {n} matches (model={rating.CHAMPION_MODEL}).")
+    return 0
 
 
 def cmd_rank(args: argparse.Namespace) -> int:
