@@ -112,10 +112,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | T-P0-003 (subagent — parser spec, background), T-P0-005 (main session — player normalization) |
-| `up next` (todo, deps satisfied) | T-P0-004 unblocks once T-P0-003 returns |
+| `in-progress` | (none — round 2 complete) |
+| `up next` (todo, deps satisfied) | **T-P0-004** (parser; ambiguities + date-NULL decision pre-recorded) |
 | `blocked` | T-P0-006..010 (downstream chain) |
-| `recently done` | T-P0-002 (schema, 12 tables); T-P0-001 (scaffold) |
+| `recently done` | T-P0-005 (player normalization, 13 tests pass); T-P0-003 (parser spec, 276-line); T-P0-002 (schema, 12 tables); T-P0-001 (scaffold) |
 
 ---
 
@@ -191,7 +191,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-003 — Pick target file & produce parser specification
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** T-P0-001
 - **Blocks:** T-P0-004
@@ -201,10 +201,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Use the `tennis-data-explorer` agent to produce a parser-ready specification for the chosen Phase 0 file. The output is a markdown spec the parser implementer (T-P0-004) follows.
 
 **Acceptance criteria:**
-- [ ] `tennis-data-explorer` agent invoked on `_DATA_/VLTC/Sports Experience Chosen Doubles 2025 result sheet.xlsx`
-- [ ] Output saved as `scripts/phase0/parser_spec_sports_experience_2025.md` (NOT auto-deleted at end of session)
-- [ ] Spec contains all sections from the agent's output format: file analyzed, format classification, sheet map, extraction recipe, schema mapping, edge cases, suggested parser test cases
-- [ ] At least 3 specific test cases (named matches with expected extracted data) listed for the parser
+- [x] `tennis-data-explorer` agent invoked on `_DATA_/VLTC/Sports Experience Chosen Doubles 2025 result sheet.xlsx` (used `general-purpose` agent with the agent definition inlined since project-local agents don't auto-load mid-session)
+- [x] Output saved as `scripts/phase0/parser_spec_sports_experience_2025.md` (276 lines)
+- [x] Spec contains all sections from the agent's output format: file analyzed, format classification (high confidence), sheet map (9 sheets), extraction recipe, schema mapping, edge cases (5), suggested parser test cases
+- [x] 6 specific named test cases listed for the parser
 
 **Implementation notes:**
 - This is a pure delegation task — invoke the agent with the file path and persist its output. Don't rewrite or summarize.
@@ -212,6 +212,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 **Progress log:**
 - 2026-04-26 00:31 — Claude (Opus 4.7) — picked up; plan: spawn `tennis-data-explorer` agent in background on `_DATA_/VLTC/Sports Experience Chosen Doubles 2025 result sheet.xlsx`; persist its output as `scripts/phase0/parser_spec_sports_experience_2025.md`. Running in parallel with T-P0-002 (schema).
+- 2026-04-26 00:46 — Claude (Opus 4.7) — completed; agent returned in 4m37s with 276-line spec. Format: VLTC division round-robin doubles, 9 sheets, ~133 matches across 7 match sheets + 2 roster sheets. Confidence: high. **5 ambiguities flagged for T-P0-004** (recorded on T-P0-004's progress log too): (1) **no per-match dates in the file** — `matches.played_on` is NOT NULL; T-P0-004 should use tournament-year-Jan-1 placeholder and document the limitation; (2) Final-block layout differs across sheets (Men Div 3 splits names across two rows, others use single-row pair string — detect by `'/' in cell_value`); (3) Lad Div 1 has unplayed-match cells (blank vs literal `0.0` — distinguish); (4) `vs` vs `vs.` divider tolerance needed; (5) `Players Ladies` rows 10/11 both rank 5.0 (data quirk; both valid). Spec file is the deliverable; full text not duplicated here.
 
 ---
 
@@ -245,13 +246,18 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - Wrap the whole load in a single SQLite transaction so a parse failure doesn't leave a half-loaded run.
 
 **Progress log:**
-- (none yet)
+- 2026-04-26 00:46 — Claude (Opus 4.7) — pre-pickup intake of T-P0-003 agent findings. **5 ambiguities the parser implementer must handle** (full detail in `scripts/phase0/parser_spec_sports_experience_2025.md`):
+  1. **No per-match dates in the file.** `matches.played_on` is `NOT NULL`. **Decision: use tournament-year-Jan-1 placeholder** (`'2025-01-01'`) for all matches in this file. Phase 0 limitation; revisit when a file with real dates lands. Within-tournament chronological order falls back to `match.id` insertion order (matches the file's row order, which mirrors round order).
+  2. Final-block layout differs across sheets: Men Div 3 splits player names across two rows; Men Div 4 / Lad Div 3 use single-row pair strings. Detect by `'/' in cell_value`.
+  3. Lad Div 1 has unplayed-match cells: blank vs literal `0.0`. Distinguish — blank = skip + log; `0.0` in both columns = legitimate 6-0 6-0 bagel.
+  4. `vs` (Men Div 2) and `vs.` (others) — tolerant divider matcher.
+  5. `Players Ladies` rows 10/11 both have rank `5.0`. Both are valid pairs; don't dedupe by rank.
 
 ---
 
 ### T-P0-005 — Player name normalization + alias storage
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** T-P0-002
 - **Blocks:** T-P0-004
@@ -261,16 +267,11 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Implement the Phase 0 minimum-viable player-identity layer: NFKC + apostrophe + whitespace normalization on insert, with a canonical `players` row and one or more `player_aliases` rows tracking each raw form ever seen.
 
 **Acceptance criteria:**
-- [ ] `scripts/phase0/players.py` exposes `get_or_create_player(db_conn, raw_name: str, source_file_id: int) -> player_id`
-- [ ] Normalization rules applied:
-  - NFKC normalize
-  - Replace curly apostrophes (`'`, `'`) with straight (`'`)
-  - Collapse internal whitespace runs to single space
-  - Strip leading/trailing whitespace
-  - Casing preserved as-is (don't lowercase — display name matters)
-- [ ] If a player with the same canonical name already exists, return its ID and add an alias row only if the raw name differs from any existing alias for that player
-- [ ] Phase 0 does NOT do fuzzy matching (Levenshtein, initials) — that's Phase 1's `merge` CLI. Two genuinely-different names → two genuinely-different players, even if obviously the same person. Document this trade-off in the progress log.
-- [ ] Unit tests cover: curly vs straight apostrophe collide, surrounding whitespace ignored, casing preserved, distinct names create distinct players
+- [x] `scripts/phase0/players.py` exposes `get_or_create_player(db_conn, raw_name: str, source_file_id: int | None = None) -> player_id`
+- [x] Normalization rules applied: NFKC, curly apostrophes → straight, whitespace runs collapsed, leading/trailing stripped, casing preserved
+- [x] If a player with the same canonical name already exists, returns its ID; new alias added only if raw form is new for that player (UNIQUE(player_id, raw_name) + INSERT OR IGNORE)
+- [x] No fuzzy matching in Phase 0 — explicit Phase-1 deferral documented in module docstring
+- [x] Unit tests cover all required cases — 13 tests pass: curly/straight collide, whitespace variants collide, casing preserved (and distinguishes), distinct names create distinct players, repeated raw_name doesn't dup alias, source_file_id optional, NFKC composes decomposed chars
 
 **Implementation notes:**
 - Use `unicodedata.normalize('NFKC', name)`.
@@ -279,6 +280,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 **Progress log:**
 - 2026-04-26 00:42 — Claude (Opus 4.7) — picked up (T-P0-002 just landed, deps satisfied); plan: write players.py with `normalize_name(raw)` (NFKC, curly→straight apostrophes, collapse internal whitespace, strip) and `get_or_create_player(conn, raw, source_file_id) -> player_id` (returns existing or creates new player + alias row); write test_players.py with cases for curly/straight collide, whitespace ignored, casing preserved, distinct names = distinct players.
+- 2026-04-26 00:51 — Claude (Opus 4.7) — completed; players.py with `normalize_name` (5 apostrophe variants, regex-based whitespace collapse) and `get_or_create_player` (idempotent via UNIQUE + INSERT OR IGNORE). 13 unit tests pass on in-memory SQLite (run `python -m unittest scripts.phase0.test_players -v`). Phase-0 case-sensitivity trade-off documented in module docstring + test (test_casing_distinguishes_in_phase_0).
 
 ---
 
