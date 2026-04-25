@@ -41,6 +41,21 @@ Use one of:
 - `Claude (Opus 4.7)` or `Claude (Sonnet 4.6)` etc. — for Claude sessions; include model
 - `agent:tennis-data-explorer` — for spawned subagents (use the agent name)
 
+### Project skills and agents
+
+Use these to follow protocol consistently — mostly to avoid drift between TASKS.md and reality.
+
+**Skills (slash commands, defined in `.claude/skills/`):**
+- `/pickup-task [task-id]` — pick up a task; sets status `in-progress`, appends "picked up" progress note, prints task body. With no arg, picks the next ready task automatically.
+- `/log-progress <task-id> <note>` — append a timestamped progress note. Use after every commit, snag, direction change, or hand-off.
+- `/complete-task <task-id> [<commit-sha>]` — verify every acceptance criterion against actual repo state, then mark `done` only if all pass. Refuses to mark done on unmet criteria — no goalpost-moving.
+- `/inspect-xlsx <file>` — quick structural dump of a tournament Excel file. Use before writing or debugging a parser.
+
+**Subagents (spawned via Agent tool, defined in `.claude/agents/`):**
+- `tennis-data-explorer` — produces a parser-ready specification for a tournament file or template family. Use before T-P0-004 / T-P1-003..006 / Phase 3 ingestion design.
+- `parser-implementer` — implements a parser from a spec, writes tests, iterates until passing. Use after spec exists. Ideal for T-P0-004 and Phase 1 parser tasks.
+- `rating-engine-expert` — domain expert on OpenSkill / Glicko / TrueSkill / UTR-Elo. Consult during T-P0-006 design and tuning, T-P1-009 challenger setup, and any time a ranking looks wrong.
+
 ---
 
 ## Current focus
@@ -163,6 +178,7 @@ Use one of:
 - **Blocks:** T-P0-006, T-P0-009
 - **Estimated effort:** 3–5 hours
 - **References:** `parser_spec_sports_experience_2025.md` (created in T-P0-003); `PLAN.md` §6 (schema), §3 (data sources), §5.3.1 (`ingestion_run_id`)
+- **Recommended agents:** `parser-implementer` (spawn after spec exists; it follows the spec and writes the tests)
 
 **Goal:** Implement a Python parser that reads the chosen file and inserts normalized rows into SQLite using the schema from T-P0-002.
 
@@ -229,6 +245,7 @@ Use one of:
 - **Blocks:** T-P0-007, T-P0-008
 - **Estimated effort:** 2–4 hours
 - **References:** `PLAN.md` §5.2 (algorithm + score margin + time decay); `PLAN.md` §5.7 (model-agnostic — `model_name='openskill_pl'`)
+- **Recommended agents:** `rating-engine-expert` (consult for parameter choices — tau, score-margin formula, alpha — and for code review of the rating math before completing the task)
 
 **Goal:** Apply OpenSkill (Plackett-Luce) to all matches in the DB; write per-player `mu`/`sigma` to `ratings` and per-match deltas to `rating_history`.
 

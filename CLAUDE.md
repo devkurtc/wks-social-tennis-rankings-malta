@@ -77,13 +77,22 @@ Code (parsers, rating engine, web app) will land in `scripts/`, `apps/web/`, `ap
 
 Invoked with `/<name>` from the slash-command menu:
 
-- `/inspect-xlsx <file>` — dump sheets and first rows of a tournament file. Quick structural read.
+| Skill | Purpose |
+|---|---|
+| `/pickup-task [task-id]` | Start work on a TASKS.md task — sets status `in-progress`, appends "picked up" progress note, prints task body. With no arg, picks the next ready task. |
+| `/log-progress <task-id> <note>` | Append a timestamped progress note. Use after every commit, snag, direction change, or hand-off. |
+| `/complete-task <task-id> [<sha>]` | Verify every acceptance criterion against actual repo state; mark `done` only if all pass. Refuses on unmet criteria. |
+| `/inspect-xlsx <file>` | Quick structural dump of a tournament Excel file — sheets, dimensions, first ~25 rows. Use before writing or debugging a parser. |
 
 ## Project-local agents
 
-Spawned via the `Agent` tool with `subagent_type="tennis-data-explorer"`:
+Spawned via the `Agent` tool with `subagent_type=<name>`:
 
-- `tennis-data-explorer` — produces a parser-ready specification for a tournament file or a family of similar files. Use when you need deep structural understanding before writing a parser, not just a quick dump.
+| Agent | Purpose |
+|---|---|
+| `tennis-data-explorer` | Produces a parser-ready specification for a tournament file or template family. Use before writing/debugging a parser when you need deep structural understanding. |
+| `parser-implementer` | Implements a parser from a spec, writes tests, iterates until passing. Use after the spec exists. Ideal for T-P0-004 and Phase 1 parser tasks. |
+| `rating-engine-expert` | Domain expert on OpenSkill / Glicko / TrueSkill / UTR-Elo. Consult during T-P0-006 design and tuning, T-P1-009 challenger setup, and any time a ranking looks wrong. |
 
 ## Memory
 
