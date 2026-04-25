@@ -50,6 +50,8 @@ yarn-error.log*
 
 # Local data we don't want shared
 *.sqlite
+*.sqlite-wal
+*.sqlite-shm
 *.sqlite3
 *.db
 .coverage

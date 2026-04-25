@@ -1,0 +1,5 @@
+# Phase 0 dependencies — minimum versions; pin tighter if reproducibility matters
+openpyxl>=3.1
+openskill>=6.0
+scipy>=1.11
+python-dateutil>=2.8

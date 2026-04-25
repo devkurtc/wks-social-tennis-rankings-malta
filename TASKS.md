@@ -112,10 +112,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | T-P0-001 |
-| `up next` (todo, deps satisfied) | (gated on T-P0-001 — then T-P0-002, T-P0-003, T-P0-005 unblock in parallel) |
-| `blocked` | (none) |
-| `recently done` | (none yet — first code commit pending) |
+| `in-progress` | T-P0-002 (main session — schema), T-P0-003 (tennis-data-explorer agent — parser spec) |
+| `up next` (todo, deps satisfied) | T-P0-005 (after T-P0-002 lands) |
+| `blocked` | T-P0-004 (waits on T-P0-002 + T-P0-003); T-P0-006..010 (downstream chain) |
+| `recently done` | T-P0-001 (8533c8f scaffold + a3b commit pending) |
 
 ---
 
@@ -129,7 +129,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-001 — Phase 0 scaffolding
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** none
 - **Blocks:** T-P0-002, T-P0-003, T-P0-006
@@ -139,12 +139,12 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Set up the directory structure, dependencies pin file, and a stub CLI entry point so subsequent tasks can hang code off a real skeleton.
 
 **Acceptance criteria:**
-- [ ] `scripts/phase0/` directory exists with `__init__.py`
-- [ ] `scripts/phase0/cli.py` exists with subcommand stubs (`load`, `rate`, `rank`, `recommend-pairs`) that print "not implemented" — no logic yet
-- [ ] `scripts/phase0/README.md` exists with how to install deps, how to run each subcommand, and a pointer to `PLAN.md`
-- [ ] `requirements-phase0.txt` exists pinning at minimum: `openpyxl`, `openskill`, `scipy`, `python-dateutil`
-- [ ] `.gitignore` updated to ignore `phase0.sqlite`, `*.sqlite-wal`, `*.sqlite-shm`, `scripts/phase0/.venv/`
-- [ ] `python scripts/phase0/cli.py --help` runs without error and shows the four subcommands
+- [x] `scripts/phase0/` directory exists with `__init__.py`
+- [x] `scripts/phase0/cli.py` exists with subcommand stubs (`load`, `rate`, `rank`, `recommend-pairs`) that print "not implemented" — no logic yet
+- [x] `scripts/phase0/README.md` exists with how to install deps, how to run each subcommand, and a pointer to `PLAN.md`
+- [x] `requirements-phase0.txt` exists pinning at minimum: `openpyxl`, `openskill`, `scipy`, `python-dateutil`
+- [x] `.gitignore` updated to ignore `phase0.sqlite`, `*.sqlite-wal`, `*.sqlite-shm`, `scripts/phase0/.venv/` (sqlite + .venv already covered; WAL/SHM added)
+- [x] `python scripts/phase0/cli.py --help` runs without error and shows the four subcommands
 
 **Implementation notes:**
 - Use `argparse` (stdlib) — don't pull in click or typer for Phase 0.
@@ -153,12 +153,13 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 **Progress log:**
 - 2026-04-26 00:22 — Claude (Opus 4.7) — picked up; plan: scaffold scripts/phase0/ with empty __init__.py, argparse-based cli.py with four no-op subcommands (`load --init-only --file`, `rate`, `rank --top --active-months --gender`, `recommend-pairs --players`), README with usage + status, requirements-phase0.txt with openpyxl + openskill + scipy + python-dateutil, .gitignore additions for sqlite WAL/SHM. Verify `--help` runs cleanly.
+- 2026-04-26 00:30 — Claude (Opus 4.7) — completed; scaffold built, all 6 acceptance criteria verified (`--help` exits 0 and lists 4 subcommands; subcommand `--help` works too). All deps loose-pinned (>=). Committed in this push.
 
 ---
 
 ### T-P0-002 — SQLite schema (model-agnostic, Phase 0 subset)
 
-- **Status:** `todo`
+- **Status:** `in-progress`
 - **Phase:** 0
 - **Depends on:** T-P0-001
 - **Blocks:** T-P0-004, T-P0-006
@@ -188,13 +189,13 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - For `*_jsonb` columns from §6 (e.g., `ingestion_runs.quality_report_jsonb`): use `TEXT` and store JSON; column name keeps the `_jsonb` suffix for clarity even though SQLite has no JSONB type.
 
 **Progress log:**
-- (none yet)
+- 2026-04-26 00:31 — Claude (Opus 4.7) — picked up; plan: write schema.sql with the Phase 0 subset of tables from PLAN.md §6, including model_name discriminator on ratings/rating_history; write db.py with init_db helper (idempotent, foreign keys ON, applies schema). Wire into cli.py `load --init-only`.
 
 ---
 
 ### T-P0-003 — Pick target file & produce parser specification
 
-- **Status:** `todo`
+- **Status:** `in-progress`
 - **Phase:** 0
 - **Depends on:** T-P0-001
 - **Blocks:** T-P0-004
@@ -214,7 +215,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - If the agent flags ambiguities the parser implementer needs to resolve, surface them in the progress log here so T-P0-004 doesn't stall.
 
 **Progress log:**
-- (none yet)
+- 2026-04-26 00:31 — Claude (Opus 4.7) — picked up; plan: spawn `tennis-data-explorer` agent in background on `_DATA_/VLTC/Sports Experience Chosen Doubles 2025 result sheet.xlsx`; persist its output as `scripts/phase0/parser_spec_sports_experience_2025.md`. Running in parallel with T-P0-002 (schema).
 
 ---
 
@@ -281,7 +282,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 - Don't lowercase. "Duncan D'Alessandro" and "duncan d'alessandro" are technically the same person but Phase 0 will flag them as different — that's a Phase 1 problem.
 
 **Progress log:**
-- (none yet)
+- (none yet — queued for after T-P0-002 lands)
 
 ---
 
