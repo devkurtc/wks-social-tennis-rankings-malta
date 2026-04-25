@@ -1,6 +1,7 @@
 # Social Tennis — Doubles Ranking System: Plan
 
 **Status:** Draft for review · **Owner:** Kurt Carabott · **Last updated:** 2026-04-25
+**Repo:** https://github.com/devkurtc/wks-social-tennis-rankings-malta
 
 This document captures the plan, the alternatives considered, and the tradeoffs of each major decision. It's intentionally argumentative — every recommendation is paired with the strongest counter-arguments so we can push back before writing code.
 
@@ -38,7 +39,7 @@ Build a multi-club tennis doubles ranking system that:
 
 ## 3. Data sources (current)
 
-`_DATA_/VLTC/` — ~40 Excel files from Vittoriosa Lawn Tennis Club, 2017–2026.
+`_DATA_/VLTC/` — ~40 Excel files from Vittoriosa Lawn Tennis Club, 2017–2026. These are publicly available from the VLTC club website, so re-hosting them in this repo carries no additional disclosure risk.
 
 Two structural patterns observed:
 
@@ -261,8 +262,8 @@ These are knowable unknowns — flagged here so we don't pretend the v1 design i
 
 ## 11. Decisions still needed from Kurt before Phase 0 starts
 
-- [ ] Confirm Next.js + Python worker (or argue for Django/all-Python)
+- [x] Confirm Next.js + Python worker — **decided: Option A** (2026-04-25)
 - [ ] Confirm OpenSkill (Plackett-Luce) is OK as the starting rating model
 - [ ] Confirm the phasing — specifically that internal tool (Phase 0–1) ships before web app (Phase 2)
 - [ ] Pick an answer for each open question in §9 (or punt to later, but mark explicitly)
-- [ ] Pick a project name (or defer until Phase 2)
+- [x] Pick a repo name — **decided: `wks-social-tennis-rankings-malta`** (2026-04-25). Product/brand name still deferred to Phase 2.
