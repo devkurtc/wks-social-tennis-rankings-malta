@@ -95,6 +95,11 @@ def cmd_load(args: argparse.Namespace) -> int:
         ("tck mixed doubles", _tck.parse),
     ]
 
+    # Team-tournament parsers are the ones whose source files carry a
+    # 'Team Selection' sheet with captain-assigned class labels. Mark them so
+    # we can run extract_team_selection after the main parse succeeds.
+    TEAM_TOURNAMENT_PARSERS = {_tt.parse, _ttl.parse, _wl.parse}
+
     parse_fn = None
     for substr, fn in DISPATCH:
         if substr in filename:
@@ -136,9 +141,41 @@ def cmd_load(args: argparse.Namespace) -> int:
                     (club_id, sf_id),
                 )
                 conn.commit()
+
+        # Extract captain-assigned class labels from the 'Team Selection' sheet
+        # for team-tournament files. Players (with their gender) are upserted
+        # via get_or_create_player so this also fills in genders for players
+        # that the match-sheet parsers couldn't infer.
+        n_team_assigns = 0
+        if parse_fn in TEAM_TOURNAMENT_PARSERS:
+            import team_selection
+            from players import get_or_create_player
+
+            assignments = team_selection.extract_team_selection(args.file)
+            if assignments:
+                sf_id_row = conn.execute(
+                    "SELECT source_file_id FROM ingestion_runs WHERE id = ?",
+                    (run_id,),
+                ).fetchone()
+                t_id_row = conn.execute(
+                    "SELECT id FROM tournaments WHERE source_file_id = ?",
+                    (sf_id_row[0],),
+                ).fetchone() if sf_id_row else None
+                if sf_id_row and t_id_row:
+                    n_team_assigns = team_selection.store_team_selection(
+                        conn,
+                        tournament_id=t_id_row[0],
+                        source_file_id=sf_id_row[0],
+                        assignments=assignments,
+                        get_or_create_player_fn=get_or_create_player,
+                    )
+                    conn.commit()
     finally:
         conn.close()
-    print(f"Loaded ingestion_run_id={run_id} from {args.file}")
+    print(
+        f"Loaded ingestion_run_id={run_id} from {args.file}"
+        + (f" (+{n_team_assigns} team assignments)" if n_team_assigns else "")
+    )
     return 0
 
 
@@ -338,6 +375,259 @@ def cmd_merge_case_duplicates(args: argparse.Namespace) -> int:
             print(f"  {loser!r}  →  {winner!r}")
     print()
     print("Run `cli.py rate` to recompute ratings against the merged data.")
+    return 0
+
+
+def cmd_suggest_merges(args: argparse.Namespace) -> int:
+    """Surface plausible same-person fuzzy matches for human review."""
+    import db
+    import players
+
+    conn = db.init_db()
+    try:
+        suggestions = players.suggest_fuzzy_matches(
+            conn,
+            threshold=args.threshold,
+            same_gender_only=not args.cross_gender,
+            min_matches=args.min_matches,
+        )
+    finally:
+        conn.close()
+
+    if not suggestions:
+        print(
+            f"No suggestions at threshold {args.threshold}. "
+            f"Try lowering --threshold (current: {args.threshold})."
+        )
+        return 0
+
+    if args.limit and args.limit > 0:
+        suggestions = suggestions[: args.limit]
+
+    base = args.base_url.rstrip("/")
+
+    # Bucket by confidence
+    BUCKETS = [
+        ("VERY HIGH", 0.95, 1.01, "auto-merge candidates — safe to bulk-add"),
+        ("HIGH",      0.88, 0.95, "almost certainly the same person — quick glance"),
+        ("MEDIUM",    0.78, 0.88, "needs human review — not obvious"),
+        ("LOW",       0.00, 0.78, "probably different — but flagged"),
+    ]
+    buckets: dict[str, list[dict]] = {b[0]: [] for b in BUCKETS}
+    for s in suggestions:
+        c = s["confidence"]
+        for label, lo, hi, _ in BUCKETS:
+            if lo <= c < hi:
+                buckets[label].append(s)
+                break
+
+    total = sum(len(v) for v in buckets.values())
+    print(
+        f"Found {total} candidate pair(s) (raw >= {args.threshold:.2f}). "
+        f"Cmd+click any name to open the player page."
+    )
+    summary = []
+    for label, lo, hi, _ in BUCKETS:
+        summary.append(f"{label}={len(buckets[label])}")
+    print(f"Distribution: {' · '.join(summary)}")
+    print()
+
+    # Short signal codes for the compact table.
+    SIGNAL_CODES = {
+        "first-letter match":         "fl+",
+        "first-letter differs":       "fl!",
+        "gender match (M)":           "gM",
+        "gender match (F)":           "gF",
+        "gender differs":             "g!",
+        "shared club":                "club",
+        "token-fp ~1-char-edit":      "typo",
+        "token-count differs":        "tc!",
+        "both have 30+ matches":      "30+",
+    }
+
+    def _short_signals(reasons: list[str]) -> str:
+        out = []
+        for r in reasons:
+            if r.startswith("token-count match"):
+                out.append("tc")
+                continue
+            if r.startswith("shared club"):
+                out.append("club")
+                continue
+            if r.startswith("both have 30+"):
+                out.append("30+")
+                continue
+            for prefix, code in SIGNAL_CODES.items():
+                if r.startswith(prefix):
+                    out.append(code)
+                    break
+        return "·".join(out)
+
+    # OSC 8 hyperlink (clickable in iTerm2, Terminal.app, Warp, modern Cmder).
+    OSC8_START = "\033]8;;{url}\033\\"
+    OSC8_END = "\033]8;;\033\\"
+    use_links = not args.no_links
+
+    def _pad(text: str, visible: str, width: int) -> str:
+        pad = max(1, width - len(visible))
+        return text + (" " * pad)
+
+    def _player_cell(p: dict, side: str) -> str:
+        """Render one player as: ' A 385  37m C2  Aaron Micallef Piccione'.
+        Total width ~46 + name. Name is OSC8-linked to the live player page.
+        Gender, clubs, last-played are encoded via signal codes — not repeated
+        in the table — so each row stays narrow enough for 80-char terminals.
+        """
+        url = f"{base}/players/{p['id']}.html"
+        name = p["name"]
+        truncated_name = name[:32]
+        if use_links:
+            linked = OSC8_START.format(url=url) + truncated_name + OSC8_END
+        else:
+            linked = truncated_name
+        return (
+            f"  {side}  "
+            f"{str(p['id']):<5}"
+            f"{str(p['n']) + 'm':>4}  "
+            f"{(p.get('latest_class') or '-'):<3} "
+            f"{linked}"
+        )
+
+    overall_idx = 0
+    for label, lo, hi, hint in BUCKETS:
+        bucket = buckets[label]
+        if not bucket:
+            continue
+        bar = "═" * 78
+        print(bar)
+        rng = f"{lo:.2f}+" if hi > 1.0 else f"{lo:.2f}..{hi:.2f}"
+        print(f"  {label}  (conf {rng})  —  {hint}  ({len(bucket)})")
+        print(bar)
+        # Compact header. Columns: [N] conf | side id n cl name | signals on next line.
+        print(f"  #     conf   vs id    n   cl  player")
+        print("─" * 78)
+
+        for s in bucket:
+            overall_idx += 1
+            a, b = s["a"], s["b"]
+            sigs = _short_signals(s["reasons"])
+            print(f"[{overall_idx:>3}] {s['confidence']:.2f}{_player_cell(a, 'A')}")
+            print(f"            {_player_cell(b, 'B')}".rstrip())
+            print(f"            ↳ {sigs}")
+        print()
+
+    print(
+        "Signal codes: fl+/fl! = first-letter match/differs · tc/tc! = "
+        "token-count match/differs · gM/gF/g! = gender match/differs · "
+        "club = shared club · typo = ~1-char-edit on token fp · 30+ = both "
+        "30+ matches (dampener)"
+    )
+    print()
+    print(
+        "Same-person? Add their canonical names to "
+        "scripts/phase0/manual_aliases.json (winner = prettier name, losers "
+        "= the rest), then `apply-manual-aliases` + `rate` + "
+        "`./scripts/deploy-site.sh`."
+    )
+    return 0
+
+
+def cmd_apply_manual_aliases(args: argparse.Namespace) -> int:
+    """Apply manual same-person merges from a JSON file (marriage names,
+    nicknames, etc).
+    """
+    import db
+    import players
+
+    conn = db.init_db()
+    try:
+        applied, warnings = players.apply_manual_aliases(
+            conn, args.file, dry_run=args.dry_run
+        )
+    finally:
+        if args.dry_run:
+            conn.rollback()
+        conn.close()
+
+    if not applied and not warnings:
+        print(f"No merges defined in {args.file}.")
+        return 0
+
+    label = "Would apply" if args.dry_run else "Applied"
+    n_merged = sum(
+        1 for r in applied for l in r["losers"] if l["status"] == "merged"
+    )
+    print(f"{label} {n_merged} loser merge(s):")
+    for r in applied:
+        winner_label = f"{r['winner_name']!r} (id={r['winner_id']})"
+        for loser in r["losers"]:
+            status = loser["status"]
+            if status == "merged":
+                arrow = "→"
+            elif status == "already-merged":
+                arrow = "↻ already-merged →"
+            elif status == "self":
+                arrow = "= self →"
+            else:
+                arrow = "✗ not-found →"
+            print(
+                f"  {loser['name']!r} (id={loser['id']})  {arrow}  {winner_label}"
+            )
+    if warnings:
+        print()
+        print("Warnings:")
+        for w in warnings:
+            print(f"  - {w}")
+    print()
+    if args.dry_run:
+        print("Dry run — re-run without --dry-run to apply.")
+    else:
+        print("Run `cli.py rate` to recompute ratings against the merged data.")
+    return 0
+
+
+def cmd_merge_token_duplicates(args: argparse.Namespace) -> int:
+    """Merge players whose names are token-order-insensitive equivalents.
+
+    Catches: case variants, swapped Surname/Name order, mixed combos.
+    Same-token-count requirement avoids collapsing 'Robert Smith' into
+    an unrelated 'Robert John Smith'.
+    """
+    import db
+    import players
+
+    conn = db.init_db()
+    try:
+        results = players.merge_token_duplicates(conn, dry_run=args.dry_run)
+    finally:
+        if args.dry_run:
+            conn.rollback()
+        conn.close()
+
+    if not results:
+        print("No token-equivalent duplicate players found.")
+        return 0
+
+    n_losers = sum(len(r["losers"]) for r in results)
+    label = "Would merge" if args.dry_run else "Merged"
+    print(
+        f"{label} {n_losers} duplicate record(s) into {len(results)} canonical "
+        f"player(s):"
+    )
+    for r in results:
+        winner_label = (
+            f"{r['winner_name']!r} (id={r['winner_id']}, n={r['winner_n_matches']})"
+        )
+        for loser in r["losers"]:
+            print(
+                f"  {loser['name']!r} (id={loser['id']}, n={loser['n_matches']}) "
+                f" →  {winner_label}"
+            )
+    print()
+    if args.dry_run:
+        print("Dry run only — re-run without --dry-run to apply.")
+    else:
+        print("Run `cli.py rate` to recompute ratings against the merged data.")
     return 0
 
 
@@ -790,6 +1080,94 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     p_merge.set_defaults(func=cmd_merge_case_duplicates)
+
+    p_merge_tok = sub.add_parser(
+        "merge-token-duplicates",
+        help=(
+            "Like merge-case-duplicates but ALSO catches swapped Surname/Name "
+            "order (e.g. 'SCHEMBRI LEANNE' = 'Leanne Schembri'). Same token "
+            "count required — won't collapse 'Robert Smith' into 'Robert John "
+            "Smith'. Use --dry-run to preview."
+        ),
+    )
+    p_merge_tok.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the proposed merges without modifying the database.",
+    )
+    p_merge_tok.set_defaults(func=cmd_merge_token_duplicates)
+
+    p_apply_aliases = sub.add_parser(
+        "apply-manual-aliases",
+        help=(
+            "Apply manual same-person merges from a JSON file. For cases the "
+            "automated rules can't catch — surname changes, nicknames, etc. "
+            "Default file: scripts/phase0/manual_aliases.json. Idempotent."
+        ),
+    )
+    p_apply_aliases.add_argument(
+        "--file",
+        default="scripts/phase0/manual_aliases.json",
+        help="Path to the manual aliases JSON file.",
+    )
+    p_apply_aliases.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview without modifying the database.",
+    )
+    p_apply_aliases.set_defaults(func=cmd_apply_manual_aliases)
+
+    p_suggest = sub.add_parser(
+        "suggest-merges",
+        help=(
+            "List plausible same-person fuzzy matches above a similarity "
+            "threshold so you can decide which to add to manual_aliases.json. "
+            "Excludes pairs already caught by the case + token mergers."
+        ),
+    )
+    p_suggest.add_argument(
+        "--threshold",
+        type=float,
+        default=0.78,
+        help=(
+            "Raw similarity threshold (0..1). Default 0.78 — surfaces typos "
+            "(VERY HIGH/HIGH) plus borderline pairs (MEDIUM/LOW) for review."
+        ),
+    )
+    p_suggest.add_argument(
+        "--limit",
+        type=int,
+        default=200,
+        help="Max suggestions to print (default 200; 0 = unlimited).",
+    )
+    p_suggest.add_argument(
+        "--min-matches",
+        type=int,
+        default=1,
+        help=(
+            "Skip players with fewer than this many active matches "
+            "(default 1; raise to suppress noise from one-off entries)."
+        ),
+    )
+    p_suggest.add_argument(
+        "--cross-gender",
+        action="store_true",
+        help="Allow pairs across genders (default: off; same-gender only).",
+    )
+    p_suggest.add_argument(
+        "--base-url",
+        default="https://devkurtc.github.io/wks-social-tennis-rankings-malta",
+        help="Base URL for clickable player links (default: live GH Pages).",
+    )
+    p_suggest.add_argument(
+        "--no-links",
+        action="store_true",
+        help=(
+            "Disable OSC 8 hyperlinks (use if your terminal renders the "
+            "escape sequences as garbled text)."
+        ),
+    )
+    p_suggest.set_defaults(func=cmd_suggest_merges)
 
     p_rank = sub.add_parser(
         "rank",

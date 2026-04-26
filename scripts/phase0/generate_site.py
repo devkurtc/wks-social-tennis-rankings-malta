@@ -18,6 +18,7 @@ from __future__ import annotations
 import difflib
 import hashlib
 import html
+import json
 import os
 import sqlite3
 import sys
@@ -36,12 +37,22 @@ TOURNAMENT_ROSTERS: list[dict] = [
         "title": "VLTC next Tournament (Antes TT)",
         "menu_label": "Antes TT 2026 (roster)",
         "roster_xlsx": "_ANALYSIS_/NewTournamentRanking/Players List.xlsx",
+        # Optional list of captain-supplied rankings. Each adds a sortable
+        # column to the rated table. JSON is {"men": [...], "ladies": [...]}
+        # where the name's index in the list = ordinal rank.
+        "captain_rankings": [
+            {
+                "label": "Lonia",
+                "json_path": "_ANALYSIS_/NewTournamentRanking/Captain-Lonia-Ranking/lonia_ranking.json",
+            },
+        ],
         "subtitle": (
             "Pre-tournament roster ranking. Players ordered by μ-3σ "
             "(conservative skill estimate). Class is the proposed slot for "
             "this tournament — 6 captains, so every 6 ranked players advance "
             "to the next slot (A1→A2→A3→A4→B1→…). Hover a class to see the "
-            "player's previous-tournament class for reference."
+            "player's previous-tournament class for reference. Click any "
+            "column header to sort."
         ),
     },
 ]
@@ -215,11 +226,15 @@ def render_nav(rel_root: str, active: str) -> str:
     """Top-of-page navigation bar.
 
     rel_root  -- prefix for hrefs ('' from index, '../' from sub-pages).
-    active    -- which entry to highlight: 'index' or 'tournament:<slug>'.
+    active    -- which entry to highlight: 'index', 'matches',
+                 or 'tournament:<slug>'.
     """
     parts: list[str] = []
     cls_index = ' class="active"' if active == "index" else ""
     parts.append(f'<a href="{rel_root}index.html"{cls_index}>Leaderboard</a>')
+    parts.append('<span class="sep">·</span>')
+    cls_matches = ' class="active"' if active == "matches" else ""
+    parts.append(f'<a href="{rel_root}matches.html"{cls_matches}>All matches</a>')
     for t in TOURNAMENT_ROSTERS:
         slug = t["slug"]
         label = t["menu_label"]
@@ -654,6 +669,30 @@ SELECT set_number, side_a_games, side_b_games, was_tiebreak
 FROM match_set_scores WHERE match_id = ? ORDER BY set_number
 """
 
+# All raw-name aliases ever recorded for this player (post-merge: includes
+# aliases that were transferred from absorbed losers).
+PLAYER_ALIASES_SQL = """
+SELECT pa.raw_name, pa.first_seen_at, sf.original_filename
+FROM player_aliases pa
+LEFT JOIN source_files sf ON sf.id = pa.source_file_id
+WHERE pa.player_id = ?
+ORDER BY pa.first_seen_at, pa.raw_name
+"""
+
+# Merge events where THIS player was the winner (others got absorbed).
+# Reads the audit_log entries written by `merge_player_into`.
+PLAYER_MERGES_IN_SQL = """
+SELECT al.entity_id      AS loser_id,
+       al.ts             AS merged_at,
+       al.before_jsonb   AS before_json,
+       al.after_jsonb    AS after_json
+FROM audit_log al
+WHERE al.action = 'player.merged'
+  AND al.entity_type = 'players'
+  AND json_extract(al.after_jsonb, '$.merged_into_id') = ?
+ORDER BY al.ts
+"""
+
 
 def _resolve(name_lookup, pid):
     return name_lookup.get(pid, (pid, f"#{pid}"))
@@ -847,6 +886,101 @@ def compute_yearly_summary(matches: list) -> list[dict]:
     return [by_year[y] for y in sorted(by_year)]
 
 
+def render_identity_section(
+    conn: sqlite3.Connection, pid: int, canonical_name: str
+) -> str:
+    """Show every alias seen for this player + every merge event that absorbed
+    another record into this one. Full transparency on identity decisions.
+    """
+    import json as _json
+
+    aliases = conn.execute(PLAYER_ALIASES_SQL, (pid,)).fetchall()
+    merges = conn.execute(PLAYER_MERGES_IN_SQL, (pid,)).fetchall()
+
+    # Canonical name itself isn't always present as an alias; show it first
+    # so the reader sees the "official" name at the top of the alias list.
+    alias_rows: list[tuple[str, str, str]] = [
+        (canonical_name, "—", "(canonical)")
+    ]
+    for raw_name, first_seen_at, src in aliases:
+        if raw_name == canonical_name:
+            continue  # already shown
+        alias_rows.append((
+            raw_name or "",
+            (first_seen_at or "")[:10],
+            src or "",
+        ))
+
+    alias_html = "".join(
+        f'<tr>'
+        f'<td>{esc(name)}</td>'
+        f'<td class="muted">{esc(seen)}</td>'
+        f'<td class="muted">{esc(src)}</td>'
+        f'</tr>'
+        for (name, seen, src) in alias_rows
+    )
+
+    merge_rows_html = ""
+    if merges:
+        rows = []
+        for loser_id, merged_at, before_json, after_json in merges:
+            try:
+                before = _json.loads(before_json or "{}")
+                after = _json.loads(after_json or "{}")
+            except _json.JSONDecodeError:
+                before, after = {}, {}
+            loser_name = before.get("canonical_name", f"#{loser_id}")
+            reason = after.get("reason", "—")
+            merged_on = (merged_at or "")[:10]
+            # Loser pages aren't generated, but the merge target's match log
+            # contains the absorbed matches. Provide an in-page anchor link
+            # to the match log so the reader can scan there.
+            rows.append(
+                f'<tr>'
+                f'<td><span class="tag">id #{loser_id}</span> {esc(loser_name)}</td>'
+                f'<td class="muted">{esc(merged_on)}</td>'
+                f'<td>{esc(reason)}</td>'
+                f'<td><a href="#match-log">view in match log ↓</a></td>'
+                f'</tr>'
+            )
+        merge_rows_html = "".join(rows)
+    else:
+        merge_rows_html = (
+            '<tr><td colspan="4" class="muted">'
+            'No merges — this is a single original record.'
+            '</td></tr>'
+        )
+
+    return f"""
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. Use this to verify the merges look right.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody>{alias_html}</tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody>{merge_rows_html}</tbody>
+  </table>
+  </div>
+"""
+
+
 def compute_swings(match_rows_with_delta: list) -> tuple[list, list]:
     """Return (top_3_wins, top_3_losses) as lists of (delta, row_dict).
     Input items: dict with keys delta, played, opps, partner, score, result."""
@@ -904,6 +1038,9 @@ def build_player_page(
         bucket_key = gender if gender in ("M", "F") else "all"
         bucket = neighbours_by_gender.get(bucket_key, [])
         peers_html = render_neighbours(bucket, pid)
+
+    # Identity block: aliases + merge history (full transparency).
+    identity_block = render_identity_section(conn, pid, name)
 
     # Match rows. Δμ must be computed in chronological order (per match it's
     # mu_after − mu_after_of_prior_match), but the table is rendered newest
@@ -1132,6 +1269,8 @@ def build_player_page(
 
   {swings_html}
 
+  {identity_block}
+
   <h2 class="section-title">Captain class assignments</h2>
   <div class="table-wrap">
   <table>
@@ -1140,7 +1279,7 @@ def build_player_page(
   </table>
   </div>
 
-  <h2 class="section-title">Match log ({n})</h2>
+  <h2 id="match-log" class="section-title">Match log ({n})</h2>
   <div class="table-wrap">
   <table>
     <thead><tr>
@@ -1323,8 +1462,67 @@ def _proposed_class_label(rank_idx: int, group_size: int = 6, slots_per_tier: in
     return f"{tier_letter}{within_tier}"
 
 
+def _load_captain_rankings(
+    conn: sqlite3.Connection, configs: list[dict]
+) -> list[dict]:
+    """Load each captain's ranking JSON, resolve names against the DB.
+
+    Returns one dict per captain with:
+      - label: short column heading
+      - <gender>_by_pid: {player_id: rank}  (1-based; for matched roster players)
+      - <gender>_by_name: {lowercased_name: rank}  (covers debutants)
+      - <gender>_unresolved: [(rank, name)]  (didn't match any DB player)
+    where <gender> is 'men' or 'ladies'.
+    """
+    out: list[dict] = []
+    for cfg in configs:
+        path = Path(cfg["json_path"])
+        if not path.exists():
+            print(
+                f"  captain ranking not found: {path}",
+                file=sys.stderr,
+            )
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"  captain ranking JSON parse error ({path}): {e}", file=sys.stderr)
+            continue
+        resolved: dict = {"label": cfg["label"]}
+        for sheet_key in ("men", "ladies"):
+            names = data.get(sheet_key, []) or []
+            by_pid: dict[int, int] = {}
+            by_name: dict[str, int] = {}
+            unresolved: list[tuple[int, str]] = []
+            for i, name in enumerate(names, 1):
+                if not isinstance(name, str):
+                    continue
+                by_name[name.strip().lower()] = i
+                row = _lookup_roster_player(conn, name)
+                if row is not None:
+                    by_pid[row["id"]] = i
+                else:
+                    unresolved.append((i, name))
+            resolved[f"{sheet_key}_by_pid"] = by_pid
+            resolved[f"{sheet_key}_by_name"] = by_name
+            resolved[f"{sheet_key}_unresolved"] = unresolved
+        out.append(resolved)
+    return out
+
+
+def _captain_rank_cell(rank: int | None) -> str:
+    """One <td> for a captain rank — blank slot is sortable to the end."""
+    if rank is None:
+        # data-sort = large sentinel pushes blanks to the end on ascending sort.
+        return '<td class="num muted" data-sort="999999">—</td>'
+    return f'<td class="num" data-sort="{rank}">{rank}</td>'
+
+
 def _render_roster_section(
-    sheet: str, hits: list[dict], misses: list[tuple[str, list[str]]]
+    sheet: str,
+    hits: list[dict],
+    misses: list[tuple[str, list[str]]],
+    captain_rankings: list[dict] | None = None,
 ) -> str:
     rated = sorted(
         (h for h in hits if h["mu"] is not None),
@@ -1340,13 +1538,14 @@ def _render_roster_section(
         pills.append(f'<span class="pill miss">{len(misses)} not in DB</span>')
     pills.append(f'<span class="pill">total {total}</span>')
 
+    captain_rankings = captain_rankings or []
+    sheet_key = "men" if sheet.lower().startswith("men") else "ladies"
+
     rows = []
     for i, h in enumerate(rated, 1):
         cons = h["mu"] - 3 * h["sigma"]
         proposed_cls = _proposed_class_label(i - 1)
         prev_cls = h["class"]
-        # Hover tooltip on the class cell shows the player's most recent
-        # captain-assigned class from a prior tournament, when known.
         cls_title = (
             f'previous tournament class: {prev_cls}' if prev_cls else
             'no prior captain class on record'
@@ -1360,25 +1559,37 @@ def _render_roster_section(
                 f' <span class="muted" title="roster name">'
                 f'({esc(h["roster_name"])})</span>'
             )
+        captain_cells = "".join(
+            _captain_rank_cell(c[f"{sheet_key}_by_pid"].get(h["id"]))
+            for c in captain_rankings
+        )
         rows.append(
             f'<tr>'
-            f'<td class="num">{i}</td>'
+            f'<td class="num" data-sort="{i}">{i}</td>'
             f'<td class="cls" title="{esc(cls_title)}">{esc(proposed_cls)}</td>'
             f'<td>{link}</td>'
-            f'<td class="num"><strong>{cons:.2f}</strong></td>'
-            f'<td class="num">{h["mu"]:.2f}</td>'
-            f'<td class="num">{h["sigma"]:.2f}</td>'
-            f'<td class="num">{h["n"]}</td>'
-            f'<td>{esc(h["last"] or "?")}</td>'
+            f'<td class="num" data-sort="{cons:.4f}"><strong>{cons:.2f}</strong></td>'
+            f'<td class="num" data-sort="{h["mu"]:.4f}">{h["mu"]:.2f}</td>'
+            f'<td class="num" data-sort="{h["sigma"]:.4f}">{h["sigma"]:.2f}</td>'
+            f'<td class="num" data-sort="{h["n"]}">{h["n"]}</td>'
+            f'<td data-sort="{esc(h["last"] or "")}">{esc(h["last"] or "?")}</td>'
+            f'{captain_cells}'
             f'</tr>'
         )
+
+    captain_headers = "".join(
+        f'<th class="num" title="{esc(c["label"])}\'s pre-tournament rank">'
+        f'{esc(c["label"])}</th>'
+        for c in captain_rankings
+    )
     rated_table = (
-        f'<div class="table-wrap"><table>'
+        f'<div class="table-wrap"><table class="sortable">'
         f'<thead><tr>'
         f'<th class="num">#</th><th>Class</th><th>Player</th>'
         f'<th class="num">μ-3σ</th>'
         f'<th class="num">μ</th><th class="num">σ</th>'
         f'<th class="num">n</th><th>Last played</th>'
+        f'{captain_headers}'
         f'</tr></thead>'
         f'<tbody>{"".join(rows)}</tbody>'
         f'</table></div>'
@@ -1388,12 +1599,22 @@ def _render_roster_section(
     if misses:
         items = []
         for n, suggestions in misses:
+            captain_chips = " ".join(
+                f'<span class="muted" style="margin-left:6px;">'
+                f'{esc(c["label"])} #{c[f"{sheet_key}_by_name"][n.strip().lower()]}'
+                f'</span>'
+                for c in captain_rankings
+                if n.strip().lower() in c[f"{sheet_key}_by_name"]
+            )
             sugg = (
                 ", ".join(esc(s) for s in suggestions)
                 if suggestions
                 else '<span class="muted">no close match</span>'
             )
-            items.append(f'<li>{esc(n)} <span class="muted">— suggest: {sugg}</span></li>')
+            items.append(
+                f'<li>{esc(n)}{captain_chips} '
+                f'<span class="muted">— suggest: {sugg}</span></li>'
+            )
         miss_html = (
             f'<h3 class="section-title">Not yet in our system ({len(misses)})</h3>'
             f'<ul class="plain">{"".join(items)}</ul>'
@@ -1424,7 +1645,66 @@ _ROSTER_PAGE_CSS = """
 .pill.miss { color: var(--loss); border-color: rgba(224,122,122,0.4); }
 ul.plain { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 24px; }
 ul.plain li { padding: 4px 0; border-bottom: 1px solid var(--border); break-inside: avoid; }
+table.sortable th { cursor: pointer; user-select: none; }
+table.sortable th:hover { color: var(--fg); }
+table.sortable th[aria-sort="ascending"]::after { content: " ▲"; opacity: 0.6; }
+table.sortable th[aria-sort="descending"]::after { content: " ▼"; opacity: 0.6; }
 @media (max-width: 700px) { ul.plain { columns: 1; } }
+"""
+
+_ROSTER_PAGE_JS = r"""
+<script>
+// Click-to-sort for any <table class="sortable">.
+// Sort key: th-cell's data-sort attribute when present (numeric or string),
+// otherwise textContent. Three-state: asc → desc → original.
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('table.sortable').forEach((tbl) => {
+    const tbody = tbl.querySelector('tbody');
+    const originalRows = Array.from(tbody.querySelectorAll('tr'));
+    tbl.querySelectorAll('thead th').forEach((th, idx) => {
+      th.addEventListener('click', () => {
+        const cur = th.getAttribute('aria-sort');
+        // Reset all other headers
+        tbl.querySelectorAll('thead th').forEach((o) => {
+          if (o !== th) o.removeAttribute('aria-sort');
+        });
+        let dir;
+        if (cur === 'ascending') dir = 'descending';
+        else if (cur === 'descending') dir = 'none';
+        else dir = 'ascending';
+        if (dir === 'none') {
+          th.removeAttribute('aria-sort');
+          originalRows.forEach((r) => tbody.appendChild(r));
+          return;
+        }
+        th.setAttribute('aria-sort', dir);
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const numeric = th.classList.contains('num');
+        const get = (row) => {
+          const cell = row.cells[idx];
+          if (cell.dataset.sort !== undefined) return cell.dataset.sort;
+          return cell.textContent.trim();
+        };
+        rows.sort((a, b) => {
+          const av = get(a);
+          const bv = get(b);
+          if (numeric) {
+            const an = parseFloat(av);
+            const bn = parseFloat(bv);
+            if (!isNaN(an) && !isNaN(bn)) {
+              return dir === 'ascending' ? an - bn : bn - an;
+            }
+          }
+          return dir === 'ascending'
+            ? String(av).localeCompare(String(bv))
+            : String(bv).localeCompare(String(av));
+        });
+        rows.forEach((r) => tbody.appendChild(r));
+      });
+    });
+  });
+});
+</script>
 """
 
 
@@ -1434,6 +1714,21 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
     if not roster_path.exists():
         return ""  # silently skip — caller logs the miss
     roster = _read_roster_xlsx(roster_path)
+
+    captain_rankings = _load_captain_rankings(
+        conn, config.get("captain_rankings", []) or []
+    )
+    # Surface unresolved captain names so the user can fix typos in the JSON.
+    for c in captain_rankings:
+        for sheet_key in ("men", "ladies"):
+            for rank, name in c.get(f"{sheet_key}_unresolved", []):
+                print(
+                    f"  captain '{c['label']}' {sheet_key} #{rank}: "
+                    f"{name!r} did not resolve to a DB player"
+                    " (will still display by name in 'Not yet in system' if "
+                    "the roster lists this person).",
+                    file=sys.stderr,
+                )
 
     sections: list[str] = []
     totals = {"rated": 0, "unrated": 0, "miss": 0, "all": 0}
@@ -1446,7 +1741,9 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
                 misses.append((n, _fuzzy_candidates(conn, n)))
             else:
                 hits.append(r)
-        sections.append(_render_roster_section(sheet, hits, misses))
+        sections.append(
+            _render_roster_section(sheet, hits, misses, captain_rankings)
+        )
         totals["rated"] += sum(1 for h in hits if h["mu"] is not None)
         totals["unrated"] += sum(1 for h in hits if h["mu"] is None)
         totals["miss"] += len(misses)
@@ -1494,9 +1791,10 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
 </main>
 <footer>
   Click any name to open that player's profile (μ trajectory, match history, peers).
-  Players in &ldquo;Not yet in our system&rdquo; will appear after their first
-  rated match is loaded.
+  Click any column header to sort. Players in &ldquo;Not yet in our system&rdquo;
+  will appear after their first rated match is loaded.
 </footer>
+{_ROSTER_PAGE_JS}
 </body>
 </html>
 """

@@ -67,10 +67,20 @@ def extract_team_selection(
 
     If the sheet doesn't exist (some legacy files omit it), returns [].
     """
-    wb = openpyxl.load_workbook(xlsx_path, data_only=True, read_only=True)
-    if sheet_name not in wb.sheetnames:
+    # openpyxl is .xlsx-only. Legacy .xls files (Wilson 2017-2019) don't
+    # carry a Team Selection sheet in this template anyway, so skip silently.
+    if xlsx_path.lower().endswith(".xls"):
         return []
-    ws = wb[sheet_name]
+    wb = openpyxl.load_workbook(xlsx_path, data_only=True, read_only=True)
+    # Tolerant sheet lookup: some files (TCK) use 'TEAM SELECTION ' with a
+    # trailing space and uppercase. Match by case-insensitive, stripped form.
+    target = sheet_name.strip().upper()
+    actual = next(
+        (s for s in wb.sheetnames if s.strip().upper() == target), None
+    )
+    if actual is None:
+        return []
+    ws = wb[actual]
 
     # Read all rows once into a list of lists (small sheet; ~30 rows)
     rows = [
