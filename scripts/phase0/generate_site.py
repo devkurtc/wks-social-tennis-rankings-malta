@@ -1708,6 +1708,144 @@ document.addEventListener('DOMContentLoaded', () => {
 """
 
 
+def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
+    """Chronological feed of every active match — newest first.
+
+    Single page with client-side year/club/text filter. Match sides are linked
+    to player profiles. Winning side is bolded.
+    """
+    rows = conn.execute(
+        """
+        SELECT m.id, m.played_on, m.division, m.round, m.walkover,
+               t.name AS tour_name, t.year AS tour_year,
+               c.slug AS club_slug,
+               sa.player1_id, sa.player2_id, sa.games_won, sa.won,
+               sb.player1_id, sb.player2_id, sb.games_won, sb.won
+        FROM matches m
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN clubs c ON c.id = t.club_id
+        JOIN match_sides sa ON sa.match_id = m.id AND sa.side = 'A'
+        JOIN match_sides sb ON sb.match_id = m.id AND sb.side = 'B'
+        WHERE m.superseded_by_run_id IS NULL
+        ORDER BY m.played_on DESC, m.id DESC
+        """
+    ).fetchall()
+
+    def _name(pid):
+        if pid is None:
+            return ""
+        cid, n = name_lookup.get(pid, (pid, f"#{pid}"))
+        return f'<a class="player-link" href="players/{cid}.html">{esc(n)}</a>'
+
+    body_rows = []
+    years: set = set()
+    clubs: set = set()
+    for r in rows:
+        (mid, played, division, rnd, walkover,
+         tour_name, tour_year, club_slug,
+         a1, a2, agw, awon,
+         b1, b2, bgw, bwon) = r
+        years.add(tour_year)
+        clubs.add(club_slug)
+        side_a = " / ".join(x for x in (_name(a1), _name(a2)) if x) or "—"
+        side_b = " / ".join(x for x in (_name(b1), _name(b2)) if x) or "—"
+        if awon:
+            side_a = f'<strong class="win">{side_a}</strong>'
+            side_b = f'<span class="muted">{side_b}</span>'
+        else:
+            side_b = f'<strong class="win">{side_b}</strong>'
+            side_a = f'<span class="muted">{side_a}</span>'
+        wo = ' <span class="tag">W/O</span>' if walkover else ""
+        body_rows.append(
+            f'<tr data-year="{esc(tour_year)}" data-club="{esc(club_slug)}">'
+            f'<td>{esc(played)}</td>'
+            f'<td><span class="tag">{esc(club_slug)}</span> {esc(tour_name)}</td>'
+            f'<td class="muted">{esc(division or "")} {esc(rnd or "")}</td>'
+            f'<td>{side_a}</td>'
+            f'<td>{side_b}</td>'
+            f'<td class="num">{agw or 0}-{bgw or 0}{wo}</td>'
+            f'</tr>'
+        )
+
+    year_options = "".join(
+        f'<option value="{y}">{y}</option>' for y in sorted(years, reverse=True)
+    )
+    club_options = "".join(
+        f'<option value="{esc(c)}">{esc(c)}</option>' for c in sorted(clubs)
+    )
+
+    js = """
+    <script>
+    function applyFilters() {
+      const y = document.getElementById('f-year').value;
+      const c = document.getElementById('f-club').value;
+      const q = document.getElementById('f-search').value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+      let visible = 0;
+      rows.forEach(row => {
+        const ok = (!y || row.dataset.year === y)
+                && (!c || row.dataset.club === c)
+                && (!q || row.textContent.toLowerCase().includes(q));
+        row.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+      });
+      document.getElementById('count').textContent = visible.toLocaleString() + ' matches';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      ['f-year','f-club','f-search'].forEach(id =>
+        document.getElementById(id).addEventListener('input', applyFilters));
+      applyFilters();
+    });
+    </script>
+    """
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>All matches — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v={CSS_VERSION}">
+</head>
+<body>
+<header>
+  <h1>All matches</h1>
+  <p>Every active match across every loaded source file, newest first. Winning side is bolded.</p>
+</header>
+{render_nav("", "matches")}
+<main>
+  <div class="controls">
+    <input id="f-search" type="search" placeholder="Search player / tournament / division ...">
+    <select id="f-year">
+      <option value="">All years</option>
+      {year_options}
+    </select>
+    <select id="f-club">
+      <option value="">All clubs</option>
+      {club_options}
+    </select>
+    <span id="count" class="muted"></span>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Side A</th><th>Side B</th><th class="num">Games</th>
+    </tr></thead>
+    <tbody>{''.join(body_rows)}</tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  Total: {len(rows):,} active match(es). Superseded matches (from re-ingested files) are excluded.
+</footer>
+{js}
+</body>
+</html>
+"""
+
+
 def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
     """Render one tournament roster ranking page."""
     roster_path = Path(config["roster_xlsx"])
@@ -1822,6 +1960,10 @@ def main() -> int:
         # Index
         write(OUT_DIR / "index.html", build_index(conn))
         print(f"Wrote {OUT_DIR / 'index.html'}")
+
+        # All-matches feed (chronological)
+        write(OUT_DIR / "matches.html", build_matches_page(conn, name_lookup))
+        print(f"Wrote {OUT_DIR / 'matches.html'}")
 
         # Per-player pages: only for unmerged players with at least 1 active match.
         eligible = conn.execute("""
