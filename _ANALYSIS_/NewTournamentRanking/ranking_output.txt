@@ -3,160 +3,160 @@
 Men  —  roster size 78
 ================================================================================================
 
-  Rated: 55    In DB but no rating: 1    Not found in DB: 22    Total in roster: 78
+  Rated: 72    In DB but no rating: 0    Not found in DB: 6    Total in roster: 78
 
     #  Class   Player                             μ      σ    μ-3σ    n  last        via
   ------------------------------------------------------------------------------------------
-    1  A1      Matthew Pace                   41.38   7.26   19.60    8  2026-03-21  (reorder→'Matthew Pace')
-    2  A1      Clayton Zammit Cesare          40.13   7.27   18.31    8  2026-03-21  (reorder→'Clayton Zammit Cesare')
-    3  A2      Fotios Evangelou               39.21   7.63   16.32    5  2026-03-13  (reorder→'Fotios Evangelou')
-    4  A2      Marco Mercieca                 34.09   7.33   12.09    8  2026-03-21  (reorder→'Marco Mercieca')
-    5  —       RUTTER TREVOR                  31.94   6.89   11.26   10  2024-09-15  
-    6  A3      Peter Khiev                    33.12   7.64   10.21    5  2026-03-21  (reorder→'Peter Khiev')
-    7  A2      Jean Attard                    31.99   7.49    9.52    6  2026-03-20  (reorder→'Jean Attard')
-    8  —       CACHIA IVAN                    32.00   7.53    9.41    6  2024-09-01  
-    9  —       SCHEMBRI DAVID                 32.41   7.67    9.40    6  2024-09-08  
-   10  B1      Jonathan Vella                 30.29   7.26    8.51    8  2026-03-21  (reorder→'Jonathan Vella')
-   11  —       MARTINELLI JONATHAN            28.00   6.75    7.74   11  2024-09-15  
-   12  B3      Jurgen Farrugia                29.86   7.41    7.62    6  2026-03-20  (reorder→'Jurgen Farrugia')
-   13  A3      Andrew Spiteri Willets         30.12   7.63    7.22    5  2026-03-21  (reorder→'Andrew Spiteri Willets')
-   14  —       Porto Luigi                    29.62   7.50    7.14    5  2022-01-01  
-   15  —       LASTIMOSA CYRIL                29.23   7.47    6.83    6  2024-08-25  
-   16  —       VELLA JEAN PAUL                29.46   7.57    6.74    6  2024-09-01  
-   17  —       FARRUGIA JAMES                 29.46   7.57    6.74    6  2024-09-01  
-   18  B2      George Grech                   29.13   7.50    6.63    6  2026-03-21  (reorder→'George Grech')
-   19  —       Agius Clint                    29.73   7.74    6.51    4  2022-01-01  
-   20  A1      Duncan D'Alessandro            28.00   7.24    6.29    8  2026-03-21  (reorder→"Duncan D'Alessandro")
-   21  B2      Ivan Cassar                    28.75   7.56    6.05    6  2026-03-20  (reorder→'Ivan Cassar')
-   22  —       GREENLAND CORY                 27.00   7.06    5.83   10  2024-09-15  
-   23  B2      Richard Curmi                  27.87   7.49    5.40    7  2026-03-21  (reorder→'Richard Curmi')
-   24  —       Formosa Kevin                  26.63   7.53    4.05    5  2022-01-01  
-   25  C2      Manuel Mifsud                  27.00   7.65    4.05    7  2026-03-20  (reorder→'Manuel Mifsud')
-   26  —       Re Simone                      26.61   7.71    3.50    4  2022-01-01  
-   27  C1      Max Anastasi                   25.77   7.55    3.12    8  2026-03-21  (reorder→'Max Anastasi')
-   28  —       Pule' Jesmond                  25.74   7.66    2.77    4  2022-01-01  
-   29  C1      Etienne Formosa Carabez        24.26   7.44    1.94    8  2026-03-21  (reorder→'Etienne Formosa Carabez')
-   30  —       Sciriha Neville                24.31   7.52    1.75    5  2022-01-01  
-   31  C3      Redent Scicluna                24.77   7.69    1.69    6  2026-03-21  (reorder→'Redent Scicluna')
-   32  C2      Jason Lee Evans                24.25   7.55    1.61    7  2026-03-21  (reorder→'Jason Lee Evans')
-   33  B3      Steve Gambin                   24.28   7.59    1.51    7  2026-03-20  (reorder→'Steve Gambin')
-   34  C1      Matthew Schembri               22.85   7.41    0.63    8  2026-03-20  (reorder→'Matthew Schembri')
-   35  —       ATTARD ROBERT                  23.18   7.62    0.33    6  2024-09-08  
-   36  C2      Juan Sammut                    22.88   7.63   -0.02    6  2026-03-21  (reorder→'Juan Sammut')
-   37  D1      Matthias Cremona               22.00   7.41   -0.24   10  2026-03-21  (reorder→'Matthias Cremona')
-   38  —       Bonello Manuel                 22.48   7.60   -0.31    5  2022-01-01  
-   39  C2      Charles Sacco                  22.14   7.58   -0.61    7  2026-03-21  (reorder→'Charles Sacco')
-   40  —       Murdocco Roberto               21.47   7.51   -1.08    5  2022-01-01  
-   41  —       FARRUGIA KENNETH               20.24   7.13   -1.15   10  2024-09-15  
-   42  —       Camilleri David                21.46   7.71   -1.67    4  2022-01-01  
-   43  D1      Daniele Privitera              21.01   7.68   -2.02    7  2026-03-20  (reorder→'Daniele Privitera')
-   44  —       Azzopardi Jean Carl            20.50   7.64   -2.42    4  2022-01-01  
-   45  D1      Ryan Ebejer                    19.83   7.52   -2.72    9  2026-03-21  (reorder→'Ryan Ebejer')
-   46  D2      Kevin Sciberras                18.52   7.24   -3.21   11  2026-03-21  (reorder→'Kevin Sciberras')
-   47  D2      Clinton Cutajar                19.94   7.72   -3.22    7  2026-03-20  (reorder→'Clinton Cutajar')
-   48  D2      Braydon Galea                  19.70   7.78   -3.63    6  2026-03-21  (reorder→'Braydon Galea')
-   49  C1      Julian Esposito                18.82   7.52   -3.73    8  2026-03-21  (reorder→'Julian Esposito')
-   50  D2      Antoine Bugeja                 19.43   7.76   -3.85    7  2026-03-21  (reorder→'Antoine Bugeja')
-   51  D3      Mario Abdilla                  17.54   7.77   -5.78    6  2026-03-21  (reorder→'Mario Abdilla')
-   52  —       Steenkamer Willem              16.92   7.61   -5.91    5  2022-01-01  
-   53  D2      Matthew Napier                 15.63   7.79   -7.74    7  2026-03-21  (reorder→'Matthew Napier')
-   54  D2      Clifford Debono                11.86   7.77  -11.46    6  2026-03-21  (reorder→'Clifford Debono')
-   55  D1      Joseph Randich                 11.32   7.61  -11.52    8  2026-03-21  (reorder→'Joseph Randich')
+    1  A1      Clayton Zammit Cesare          58.96   3.73   47.78   64  2026-03-21  (reorder→'Clayton Zammit Cesare')
+    2  A1      Trevor Rutter                  50.53   2.74   42.32  148  2026-03-12  (alias)
+    3  A1      Clyde Grech                    41.89   3.60   31.08   72  2025-11-19  (alias)
+    4  A1      Manuel Bonello                 40.50   3.56   29.81   64  2026-03-20  (alias)
+    5  A1      Fotios Evangelou               42.63   4.53   29.05   26  2026-03-13  (reorder→'Fotios Evangelou')
+    6  A1      Peter Khiev                    43.71   4.97   28.80   30  2026-03-21  (reorder→'Peter Khiev')
+    7  A2      Marco Mercieca                 36.94   2.75   28.68  129  2026-03-21  (alias)
+    8  A2      Jean Attard                    40.62   4.25   27.86   35  2026-03-20  (reorder→'Jean Attard')
+    9  A2      Ivan Cachia                    32.39   2.72   24.24  152  2026-03-21  (alias)
+   10  A2      Keith Micallef                 34.91   3.84   23.40   55  2025-09-24  (alias)
+   11  A2      Matthew Pace                   42.14   6.46   22.77    8  2026-03-21  (reorder→'Matthew Pace')
+   12  A2      Nicholas Gollcher              38.98   5.41   22.75   22  2024-10-02  (reorder→'Nicholas Gollcher')
+   13  A3      David Schembri                 32.08   3.19   22.51   91  2026-03-21  (alias)
+   14  A3      Jean Carl Azzopardi            34.61   4.27   21.80   38  2025-11-19  (alias)
+   15  A3      Jonathan Martinelli            29.57   2.85   21.01  116  2026-04-16  (alias)
+   16  A3      Kenneth Farrugia               30.57   3.23   20.88  107  2026-03-21  (alias)
+   17  A3      Luigi Porto                    29.50   2.88   20.86  132  2026-03-12  (alias)
+   18  A3      Cory Greenland                 30.23   3.51   19.70  118  2026-03-21  (alias)
+   19  A4      Willem Steenkamer              26.98   2.68   18.95  162  2026-04-16  (alias)
+   20  A4      James Farrugia                 30.89   4.23   18.18   53  2025-09-25  (alias)
+   21  A4      Ivan Cassar                    29.23   3.94   17.42   51  2026-03-20  (reorder→'Ivan Cassar')
+   22  A4      Neville Sciriha                31.38   4.86   16.80   38  2025-06-25  (alias)
+   23  A4      Jesmond Pule'                  27.35   3.62   16.50   68  2026-03-21  (alias)
+   24  A4      Max Anastasi                   26.83   3.47   16.41   83  2026-03-21  (alias)
+   25  B1      Jonathan Vella                 27.06   3.55   16.41   69  2026-03-21  (reorder→'Jonathan Vella')
+   26  B1      Redent Scicluna                31.82   5.22   16.17   42  2026-03-21  (reorder→'Redent Scicluna')
+   27  B1      Charles Sacco                  27.79   3.92   16.03   76  2026-03-21  (alias)
+   28  B1      Jason Lee Evans                28.72   4.29   15.85   61  2026-03-21  (reorder→'Jason Lee Evans')
+   29  B1      Duncan D'Alessandro            26.93   3.74   15.72   63  2026-03-21  (reorder→"Duncan D'Alessandro")
+   30  B1      Clint Agius                    27.19   4.03   15.12   58  2026-03-20  (alias)
+   31  B2      Cyril Lastimosa                24.18   3.25   14.44   96  2026-03-21  (alias)
+   32  B2      Steve Gambin                   26.59   4.15   14.15   65  2026-03-20  (reorder→'Steve Gambin')
+   33  B2      Roberto Murdocco               23.22   3.62   12.35   76  2026-03-21  (alias)
+   34  B2      Andrew Spiteri Willets         29.41   5.77   12.10   18  2026-03-21  (reorder→'Andrew Spiteri Willets')
+   35  B2      Juan Sammut                    23.97   3.99   11.99   74  2026-03-21  (reorder→'Juan Sammut')
+   36  B2      Roderick Spiteri               23.19   4.06   11.00   49  2025-09-24  (alias)
+   37  B3      George Grech                   24.88   4.65   10.93   44  2026-03-21  (reorder→'George Grech')
+   38  B3      Simone Re                      23.26   4.24   10.54   61  2026-03-20  (alias)
+   39  B3      Julian Esposito                21.87   3.84   10.35   83  2026-03-21  (alias)
+   40  B3      Manuel Mifsud                  22.22   3.99   10.26   74  2026-03-20  (reorder→'Manuel Mifsud')
+   41  B3      Maurice Borg                   22.38   4.10   10.07   66  2025-11-19  (reorder→'Maurice Borg')
+   42  B3      Richard Curmi                  25.93   5.33    9.93   28  2026-03-21  (reorder→'Richard Curmi')
+   43  B4      Jean Paul Vella                19.54   3.23    9.84  107  2026-03-06  (alias)
+   44  B4      Artiom Kiricenko               22.08   4.66    8.11   47  2025-05-03  (alias)
+   45  B4      Jurgen Farrugia                24.63   5.54    8.02   17  2026-03-20  (reorder→'Jurgen Farrugia')
+   46  B4      Malcolm Schembri               23.72   5.32    7.75   24  2025-11-26  (alias)
+   47  B4      Matthew Schembri               19.34   3.86    7.75   74  2026-03-20  (reorder→'Matthew Schembri')
+   48  B4      Matthias Cremona               23.27   5.34    7.26   39  2026-03-21  (reorder→'Matthias Cremona')
+   49  C1      Robert Attard                  18.16   3.80    6.77  100  2026-04-16  (alias)
+   50  C1      Kevin Sciberras                19.90   4.56    6.21   70  2026-03-21  (reorder→'Kevin Sciberras')
+   51  C1      Justin Scicluna                22.24   5.56    5.58   40  2025-09-24  (reorder→'Justin Scicluna')
+   52  C1      Etienne Formosa Carabez        23.36   5.94    5.54   15  2026-03-21  (reorder→'Etienne Formosa Carabez')
+   53  C1      Conrad Treeby Ward             20.87   5.12    5.50   39  2025-11-26  (reorder→'Conrad Treeby Ward')
+   54  C1      Stefan Holmin                  23.08   5.97    5.17   13  2025-09-17  (alias)
+   55  C2      Chris Vella                    22.62   5.83    5.12   32  2025-11-19  (reorder→'Chris Vella')
+   56  C2      Ryan Ebejer                    20.07   5.18    4.52   38  2026-03-21  (reorder→'Ryan Ebejer')
+   57  C2      David Camilleri                16.93   4.28    4.10   70  2026-03-20  (alias)
+   58  C2      Antoine Bugeja                 21.64   5.97    3.73   31  2026-03-21  (reorder→'Antoine Bugeja')
+   59  C2      Daniele Privitera              19.80   5.77    2.50   27  2026-03-20  (reorder→'Daniele Privitera')
+   60  C2      Kevin Formosa                  18.19   5.28    2.34   40  2025-04-11  (alias)
+   61  C3      Mario Abdilla                  16.91   4.96    2.04   59  2026-03-21  (reorder→'Mario Abdilla')
+   62  C3      Franco Montesin                16.68   5.10    1.39   54  2025-11-26  (alias)
+   63  C3      Adrian Sciberras               19.81   6.27    1.01   13  2026-03-26  (alias)
+   64  C3      Clinton Cutajar                19.15   6.19    0.56   23  2026-03-20  (reorder→'Clinton Cutajar')
+   65  C3      Braydon Galea                  16.53   5.73   -0.66   32  2026-03-21  (reorder→'Braydon Galea')
+   66  C3      JP Sciberras                   14.51   5.34   -1.52   41  2025-09-17  (reorder→'JP Sciberras')
+   67  C4      Matthew Micallef               14.92   5.65   -2.02   32  2025-09-24  (reorder→'Matthew Micallef')
+   68  C4      Adam Green                     18.33   6.93   -2.46   13  2025-11-19  (reorder→'Adam Green')
+   69  C4      Aaron Micallef Piccone         19.44   7.47   -2.98    5  2025-01-01  (reorder→'Aaron Micallef Piccone')
+   70  C4      Joseph Randich                 15.07   6.22   -3.59   27  2026-03-21  (reorder→'Joseph Randich')
+   71  C4      Clifford Debono                13.40   6.08   -4.83   26  2026-03-21  (reorder→'Clifford Debono')
+   72  C4      Matthew Napier                 13.51   7.14   -7.92   14  2026-03-21  (reorder→'Matthew Napier')
 
-  In DB but no rating (1):
-    - Aaron Micallef Piccone
-
-  Not found in DB (22):
+  Not found in DB (6):
     - Polidano Kyle   →   suggest: (no close match)
-    - Sciberras Adrian   →   suggest: (no close match)
-    - Borg Maurice   →   suggest: 'Borg Mary', 'Borg Matthew'
-    - Sciberras JP   →   suggest: 'Kevin Sciberras', 'Giada Sciberras'
-    - Schembri Malcolm   →   suggest: (no close match)
-    - Scicluna Justin   →   suggest: (no close match)
     - Choy Alex   →   suggest: (no close match)
-    - Spiteri Roderick   →   suggest: (no close match)
     - Ciantar Raymond   →   suggest: (no close match)
-    - Treeby Ward Conrad   →   suggest: (no close match)
-    - Vella Chris   →   suggest: (no close match)
-    - Gambin Robert   →   suggest: (no close match)
-    - Gollcher Nicholas   →   suggest: (no close match)
-    - Grech Clyde   →   suggest: (no close match)
-    - Green Adam   →   suggest: (no close match)
-    - Holmin Stefan   →   suggest: (no close match)
-    - Kiricenko Artiom   →   suggest: (no close match)
-    - Micallef Keith   →   suggest: 'Sam Micallef'
-    - Micallef Matthew   →   suggest: (no close match)
-    - Montesin Franco   →   suggest: (no close match)
-    - Napier Mark   →   suggest: (no close match)
-    - Patten Brian   →   suggest: (no close match)
+    - Gambin Robert   →   suggest: 'Gavin Borg'
+    - Napier Mark   →   suggest: 'David Marks'
+    - Patten Brian   →   suggest: 'Jael Briffa'
 
 ================================================================================================
 Ladies  —  roster size 60
 ================================================================================================
 
-  Rated: 42    In DB but no rating: 0    Not found in DB: 18    Total in roster: 60
+  Rated: 55    In DB but no rating: 0    Not found in DB: 5    Total in roster: 60
 
     #  Class   Player                             μ      σ    μ-3σ    n  last        via
   ------------------------------------------------------------------------------------------
-    1  A1      Leanne Vassallo                33.64   6.97   12.71    8  2026-03-21  (reorder→'Leanne Vassallo')
-    2  A2      Elaine Grech                   34.91   7.46   12.54    7  2026-03-21  (reorder→'Elaine Grech')
-    3  —       MERCIECA KIRSTY                33.85   7.43   11.57    6  2024-08-25  
-    4  —       Roca Jennifer                  33.39   7.59   10.61    5  2022-01-01  
-    5  —       FENECH DIANE                   32.44   7.71    9.31    6  2024-09-08  
-    6  —       MAGRO RENETTE                  32.44   7.71    9.31    6  2024-09-08  
-    7  B1      Kristina Briffa                30.00   7.08    8.76   10  2026-03-21  (reorder→'Kristina Briffa')
-    8  —       ATTARD JIN                     29.08   6.98    8.13   11  2024-09-01  
-    9  B2      Giada Sciberras                30.00   7.48    7.57    7  2026-03-21  (reorder→'Giada Sciberras')
-   10  A3      Kelsey Gauci                   29.55   7.56    6.87    6  2026-03-21  (reorder→'Kelsey Gauci')
-   11  A1      Amanda Falzon                  28.36   7.28    6.53    8  2026-03-21  (reorder→'Amanda Falzon')
-   12  B1      Maria Angela Gambin            28.19   7.29    6.32    9  2026-03-21  (reorder→'Maria Angela Gambin')
-   13  A3      Louise Qi                      28.67   7.46    6.29    5  2026-03-20  (reorder→'Louise Qi')
-   14  B3      Jade Sammut                    28.73   7.60    5.93    6  2026-03-13  (reorder→'Jade Sammut')
-   15  —       Mifsud Jennifer                28.35   7.62    5.50    4  2022-01-01  
-   16  A2      Kaya Sammut                    27.22   7.35    5.16    6  2026-03-21  (reorder→'Kaya Sammut')
-   17  A1      Christine Schembri             26.44   7.15    4.99    8  2026-03-20  (reorder→'Christine Schembri')
-   18  —       SCIORTINO FRANCESCA            26.00   7.02    4.95   10  2024-08-25  
-   19  A3      Olivia Belli                   27.19   7.48    4.75    5  2026-03-21  (reorder→'Olivia Belli')
-   20  B1      Dorianne Buhagiar              26.91   7.43    4.61    8  2026-03-21  (reorder→'Dorianne Buhagiar')
-   21  B3      Sarah Axiaq                    26.88   7.49    4.41    6  2026-03-06  (reorder→'Sarah Axiaq')
-   22  —       Muscat Alison                  27.16   7.69    4.10    4  2022-01-01  
-   23  A2      Lucienne Meli                  26.00   7.32    4.04    7  2026-03-21  (reorder→'Lucienne Meli')
-   24  B2      Brenda Baldacchino             25.76   7.35    3.71    7  2026-03-21  (reorder→'Brenda Baldacchino')
-   25  —       Farrugia Deborah               26.79   7.71    3.65    4  2022-01-01  
-   26  A3      Yanika Pace                    26.07   7.58    3.32    6  2026-03-21  (reorder→'Yanika Pace')
-   27  C1      Leanne Sammut                  24.94   7.52    2.38    8  2026-03-21  (reorder→'Leanne Sammut')
-   28  —       Wong Nancy                     24.71   7.58    1.98    4  2022-01-01  
-   29  —       SPITERI TIZIANA                24.54   7.55    1.90    6  2024-09-08  
-   30  —       Sciriha Marcette               24.31   7.52    1.75    5  2022-01-01  
-   31  C2      Jodie Stivala                  23.84   7.54    1.22    7  2026-03-21  (reorder→'Jodie Stivala')
-   32  C1      Karolina Papiernik             23.72   7.57    1.01    8  2026-03-13  (reorder→'Karolina Papiernik')
-   33  B1      Silvana Portelli               23.59   7.62    0.73    6  2026-03-21  (reorder→'Silvana Portelli')
-   34  —       Ann Marie Attard               22.55   7.59   -0.21    6  2026-03-20  (reorder→'Ann Marie Attard')
-   35  B1      Anabel Borg                    21.82   7.38   -0.31    8  2026-03-21  (reorder→'Anabel Borg')
-   36  C1      Francesca Mamo                 21.36   7.57   -1.35    7  2026-03-20  (reorder→'Francesca Mamo')
-   37  C1      Frances Saliba Hersey          21.19   7.59   -1.57    7  2026-03-21  (reorder→'Frances Saliba Hersey')
-   38  —       GRIXTI ROBERTA                 21.00   7.64   -1.91    6  2024-09-08  
-   39  C3      Christine Scerri               20.67   7.57   -2.05    8  2026-03-21  (reorder→'Christine Scerri')
-   40  —       Borg Mary                      19.13   7.49   -3.33    5  2022-01-01  
-   41  —       Steenkamer Mariska             16.92   7.61   -5.91    5  2022-01-01  
-   42  C2      Josette Cassar                 16.00   7.86   -7.59    6  2026-03-21  (reorder→'Josette Cassar')
+    1  A1      Renette Magro                  57.44   3.75   46.20   75  2026-03-21  (alias)
+    2  A1      Kim Fava                       45.54   3.58   34.81   69  2025-09-10  (alias)
+    3  A1      Leanne Vassallo                42.99   3.66   32.00   52  2026-03-21  (reorder→'Leanne Vassallo')
+    4  A1      Kirsty Mercieca                38.44   2.55   30.80  138  2026-03-20  (alias)
+    5  A1      Christine Schembri             36.21   3.04   27.07   88  2026-03-20  (alias)
+    6  A1      Jin Attard                     37.10   3.46   26.72  104  2025-11-26  (alias)
+    7  A2      Kristina Briffa                36.32   3.41   26.09   72  2026-03-21  (alias)
+    8  A2      Elaine Grech                   35.18   3.65   24.22   69  2026-03-21  (alias)
+    9  A2      Nancy Wong                     31.22   3.15   21.76  122  2026-03-20  (alias)
+   10  A2      Kaya Sammut                    33.31   4.17   20.79   40  2026-03-21  (reorder→'Kaya Sammut')
+   11  A2      Mariska Steenkamer             28.02   2.66   20.05  154  2026-04-16  (alias)
+   12  A2      Dorianne Buhagiar              31.50   3.90   19.81   59  2026-03-21  (alias)
+   13  A3      Giada Sciberras                35.39   5.33   19.41   24  2026-03-21  (reorder→'Giada Sciberras')
+   14  A3      Amanda Falzon                  28.64   3.32   18.69   74  2026-03-21  (alias)
+   15  A3      Maria Angela Gambin            29.62   3.73   18.45   71  2026-03-21  (reorder→'Maria Angela Gambin')
+   16  A3      Bernardette Fenech             34.05   5.30   18.14   36  2025-11-19  (reorder→'Bernardette Fenech')
+   17  A3      Olivia Belli                   27.20   3.13   17.81  101  2026-03-21  (alias)
+   18  A3      Karolina Papiernik             29.04   3.82   17.57   77  2026-03-13  (alias)
+   19  A4      Leanne Sammut                  30.54   4.34   17.52   57  2026-03-21  (reorder→'Leanne Sammut')
+   20  A4      Alison Muscat                  25.68   2.81   17.24  129  2026-03-21  (alias)
+   21  A4      Pierina Holmin                 28.68   3.82   17.22   44  2026-03-05  (alias)
+   22  A4      Diane Fenech                   29.02   4.02   16.95   53  2025-10-29  (alias)
+   23  A4      Ann Marie Attard               28.38   3.99   16.41   53  2026-03-20  (reorder→'Ann Marie Attard')
+   24  A4      Louise Qi                      32.84   5.52   16.27   14  2026-03-20  (alias)
+   25  B1      Deborah Farrugia               25.37   3.57   14.67   81  2026-03-21  (alias)
+   26  B1      Francesca Sciortino            23.13   2.97   14.23  117  2026-03-05  (alias)
+   27  B1      Sarah Axiaq                    24.20   3.43   13.90   78  2026-04-02  (alias)
+   28  B1      Jade Sammut                    26.25   4.12   13.88   49  2026-03-13  (reorder→'Jade Sammut')
+   29  B1      Marcette Sciriha               29.00   5.06   13.81   30  2025-02-24  (alias)
+   30  B1      Yanika Pace                    25.11   3.82   13.66   55  2026-03-21  (alias)
+   31  B2      Mirka Micallef                 29.30   5.38   13.17   17  2025-09-10  (reorder→'Mirka Micallef')
+   32  B2      Lonia Carabott                 23.67   3.68   12.63   79  2025-11-26  (alias)
+   33  B2      Frances Saliba Hersey          26.88   4.77   12.56   41  2026-03-21  (alias)
+   34  B2      Lucienne Meli                  24.98   4.19   12.41   44  2026-03-21  (reorder→'Lucienne Meli')
+   35  B2      Silvana Portelli               21.27   3.45   10.92   85  2026-04-16  (alias)
+   36  B2      Daniela Curmi                  30.25   6.44   10.92   10  2025-09-24  (reorder→'Daniela Curmi')
+   37  B3      Jennifer Mifsud                24.13   4.49   10.67   46  2025-09-24  (alias)
+   38  B3      Jodie Stivala                  23.74   4.45   10.40   54  2026-03-21  (reorder→'Jodie Stivala')
+   39  B3      Ruth Micallef                  23.48   4.46   10.11   51  2025-09-24  (reorder→'Ruth Micallef')
+   40  B3      Julia Barbara                  28.81   6.30    9.92   14  2021-11-24  (reorder→'Julia Barbara')
+   41  B3      Jennifer Roca                  21.68   3.98    9.74   69  2026-03-20  (alias)
+   42  B3      Stephanie Farrugia             21.73   4.20    9.13   43  2025-11-26  (reorder→'Stephanie Farrugia')
+   43  B4      Brenda Baldacchino             19.17   3.39    9.00   98  2026-03-21  (reorder→'Brenda Baldacchino')
+   44  B4      Christine Scerri               18.11   3.52    7.54   97  2026-03-21  (alias)
+   45  B4      Anabel Borg                    19.21   3.92    7.45   62  2026-03-21  (reorder→'Anabel Borg')
+   46  B4      Tiziana Spiteri                17.55   3.47    7.14  100  2026-04-16  (alias)
+   47  B4      Christine Seychell             20.02   4.41    6.79   56  2025-09-25  (alias)
+   48  B4      Francesca Mamo                 18.04   4.33    5.06   54  2026-04-16  (reorder→'Francesca Mamo')
+   49  C1      Mary Borg                      16.46   3.97    4.55   81  2026-03-21  (alias)
+   50  C1      Josette Cassar                 17.73   4.62    3.86   53  2026-03-21  (reorder→'Josette Cassar')
+   51  C1      Kelsey Gauci                   18.96   5.22    3.28   29  2026-03-21  (reorder→'Kelsey Gauci')
+   52  C1      Angelique Sciberras            25.49   7.43    3.21    4  2026-03-26  (reorder→'Angelique Sciberras')
+   53  C1      Mary Ciantar                   17.33   5.04    2.20   45  2025-11-26  (alias)
+   54  C1      Lindsey Napier                 25.21   7.96    1.33    2  2019-04-15  (reorder→'Lindsey Napier')
+   55  C2      Roberta Grixti                  9.48   4.38   -3.65   62  2026-04-16  (alias)
 
-  Not found in DB (18):
-    - Seychell Christine   →   suggest: (no close match)
-    - Spiteri Maria   →   suggest: 'Cuschieri Martina', 'Steenkamer Mariska', 'Sawyer Mavric'
-    - Barbara Julia   →   suggest: (no close match)
-    - Carabott Lonia   →   suggest: (no close match)
-    - Ciantar Mary   →   suggest: (no close match)
-    - Curmi Daniela   →   suggest: (no close match)
+  Not found in DB (5):
+    - Spiteri Maria   →   suggest: (no close match)
     - Cutajar Jacqui   →   suggest: (no close match)
-    - Farrugia Stephanie   →   suggest: 'Farrugia Melchior', 'Hercegovac Stephanie', 'Farrugia Deborah'
-    - Fava Kim   →   suggest: 'Fava Nicole'
-    - Fenech Bernardette   →   suggest: (no close match)
-    - Holmin Pierina   →   suggest: (no close match)
     - Lastimosa Leidel Mae   →   suggest: (no close match)
-    - Micallef Mirka   →   suggest: 'Sam Micallef'
-    - Micallef Ruth   →   suggest: 'Sam Micallef'
-    - Napier Lindsey   →   suggest: (no close match)
     - Polidano Amy   →   suggest: (no close match)
     - Portanier Elaine   →   suggest: (no close match)
-    - Sciberras Angelique   →   suggest: (no close match)
+
+→ wrote _ANALYSIS_/NewTournamentRanking/ranking.html

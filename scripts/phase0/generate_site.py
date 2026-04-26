@@ -16,6 +16,7 @@ Run from project root:
 from __future__ import annotations
 
 import difflib
+import hashlib
 import html
 import os
 import sqlite3
@@ -37,8 +38,10 @@ TOURNAMENT_ROSTERS: list[dict] = [
         "roster_xlsx": "_ANALYSIS_/NewTournamentRanking/Players List.xlsx",
         "subtitle": (
             "Pre-tournament roster ranking. Players ordered by μ-3σ "
-            "(conservative skill estimate). Class is the most recent "
-            "captain-assigned slot from a team tournament."
+            "(conservative skill estimate). Class is the proposed slot for "
+            "this tournament — 6 captains, so every 6 ranked players advance "
+            "to the next slot (A1→A2→A3→A4→B1→…). Hover a class to see the "
+            "player's previous-tournament class for reference."
         ),
     },
 ]
@@ -72,13 +75,17 @@ html, body { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   background: var(--bg); color: var(--fg);
-  margin: 0; padding: 16px; line-height: 1.45;
+  margin: 0; padding: 16px 24px; line-height: 1.45;
 }
-header { max-width: 1200px; margin: 0 auto 12px auto; }
-header h1 { margin: 0 0 4px 0; font-size: 20px; }
-header p { margin: 0; color: var(--muted); font-size: 13px; }
+/* Layout used to be capped at 1200px which forced horizontal scroll on the
+   wide match-log tables. Use the full viewport width (with body padding) so
+   tables can lay out all columns naturally on desktop. Prose elements
+   (h1/p) get their own readable max-width below. */
+header { margin: 0 0 12px 0; }
+header h1 { margin: 0 0 4px 0; font-size: 20px; max-width: 1100px; }
+header p { margin: 0; color: var(--muted); font-size: 13px; max-width: 1100px; }
 nav.topnav {
-  max-width: 1200px; margin: 0 auto 12px auto;
+  margin: 0 0 12px 0;
   display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
   padding: 8px 0; border-bottom: 1px solid var(--border);
 }
@@ -93,7 +100,7 @@ nav.topnav a.active {
   border: 1px solid var(--border);
 }
 nav.topnav .sep { color: var(--border); }
-main { max-width: 1200px; margin: 0 auto; }
+main { width: 100%; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .controls { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
@@ -121,7 +128,7 @@ table {
   /* No overflow:hidden here; the scroll container handles clipping.
      overflow:hidden also breaks position:sticky on <th>. */
 }
-th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
 th { background: #20283a; color: var(--muted); font-weight: 600;
      position: sticky; top: 0; cursor: pointer; user-select: none; }
 th:hover { color: var(--fg); }
@@ -140,7 +147,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   padding: 1px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px;
 }
 .muted { color: var(--muted); }
-footer { margin: 24px auto; max-width: 1200px; color: var(--muted); font-size: 12px; }
+footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px; }
 
 /* Player page */
 .profile-head { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
@@ -194,6 +201,11 @@ footer { margin: 24px auto; max-width: 1200px; color: var(--muted); font-size: 1
   table.leaderboard td:nth-child(12) { display: none; }
 }
 """
+
+# Cache-busting fingerprint for styles.css. GH Pages caches assets for 10 min;
+# without a query-string version, browsers may serve the old CSS even after a
+# fresh deploy. Recomputed automatically every time the CSS changes.
+CSS_VERSION = hashlib.sha1(CSS.encode("utf-8")).hexdigest()[:10]
 
 
 # --- Helpers -----------------------------------------------------------------
@@ -537,7 +549,7 @@ def build_index(conn: sqlite3.Connection) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
 <title>RallyRank — Leaderboard</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v={CSS_VERSION}">
 </head>
 <body>
 <header>
@@ -1094,7 +1106,7 @@ def build_player_page(
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
 <title>{esc(name)} — RallyRank</title>
-<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../styles.css?v={CSS_VERSION}">
 </head>
 <body>
 {render_nav("../", "")}
@@ -1295,6 +1307,22 @@ def _fuzzy_candidates(conn: sqlite3.Connection, name: str, limit: int = 3) -> li
     return difflib.get_close_matches(name, all_names, n=limit, cutoff=0.6)
 
 
+def _proposed_class_label(rank_idx: int, group_size: int = 6, slots_per_tier: int = 4) -> str:
+    """Class label (A1, A2, ..., A4, B1, ..., B4, C1, ...) from 0-indexed rank.
+
+    Mirrors the existing player_team_assignments convention: each tier
+    (A/B/C/D...) holds `slots_per_tier` slots, and `group_size` players share
+    a slot (one per team). With 6 captains and 4 slots per tier, every 6
+    positions advance the slot number, and every 24 positions advance the
+    tier letter.
+    """
+    slot_idx = rank_idx // group_size
+    tier_idx = slot_idx // slots_per_tier
+    within_tier = (slot_idx % slots_per_tier) + 1
+    tier_letter = chr(ord("A") + tier_idx)
+    return f"{tier_letter}{within_tier}"
+
+
 def _render_roster_section(
     sheet: str, hits: list[dict], misses: list[tuple[str, list[str]]]
 ) -> str:
@@ -1315,7 +1343,14 @@ def _render_roster_section(
     rows = []
     for i, h in enumerate(rated, 1):
         cons = h["mu"] - 3 * h["sigma"]
-        cls = h["class"] or "—"
+        proposed_cls = _proposed_class_label(i - 1)
+        prev_cls = h["class"]
+        # Hover tooltip on the class cell shows the player's most recent
+        # captain-assigned class from a prior tournament, when known.
+        cls_title = (
+            f'previous tournament class: {prev_cls}' if prev_cls else
+            'no prior captain class on record'
+        )
         link = (
             f'<a class="player-link" href="../players/{h["id"]}.html">'
             f'{esc(h["canonical"])}</a>'
@@ -1328,7 +1363,7 @@ def _render_roster_section(
         rows.append(
             f'<tr>'
             f'<td class="num">{i}</td>'
-            f'<td class="cls">{esc(cls)}</td>'
+            f'<td class="cls" title="{esc(cls_title)}">{esc(proposed_cls)}</td>'
             f'<td>{link}</td>'
             f'<td class="num"><strong>{cons:.2f}</strong></td>'
             f'<td class="num">{h["mu"]:.2f}</td>'
@@ -1436,7 +1471,7 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
 <title>{esc(config['title'])} — RallyRank</title>
-<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../styles.css?v={CSS_VERSION}">
 <style>{_ROSTER_PAGE_CSS}</style>
 </head>
 <body>

@@ -178,6 +178,17 @@ def fuzzy_candidates(cur: sqlite3.Cursor, name: str, limit: int = 3) -> list[str
     return difflib.get_close_matches(name, all_names, n=limit, cutoff=0.6)
 
 
+def proposed_class_label(rank_idx: int, group_size: int = 6, slots_per_tier: int = 4) -> str:
+    """A1, A2, ..., A4, B1, ..., B4, C1, ... from 0-indexed rank.
+
+    With 6 captains: 6 players share each slot, slot advances every 6 ranks,
+    tier advances every 24 ranks.
+    """
+    slot_idx = rank_idx // group_size
+    tier_idx = slot_idx // slots_per_tier
+    return f"{chr(ord('A') + tier_idx)}{(slot_idx % slots_per_tier) + 1}"
+
+
 def print_section(title: str, hits: list[dict], misses: list[tuple[str, list[str]]]) -> None:
     print(f"\n{'=' * 96}\n{title}\n{'=' * 96}")
 
@@ -198,7 +209,7 @@ def print_section(title: str, hits: list[dict], misses: list[tuple[str, list[str
         print("  " + "-" * 90)
         for i, h in enumerate(rated, 1):
             cons = h["mu"] - 3 * h["sigma"]
-            cls = h["class"] or "—"
+            cls = proposed_class_label(i - 1)
             via = "" if h["roster_name"].lower() == h["canonical"].lower() else f"({h['match_kind']})"
             print(
                 f"  {i:>3}  {cls:<6}  {h['canonical'][:28]:<28}  "
@@ -296,7 +307,12 @@ def _render_rated_table(rated: list[dict]) -> str:
     body = []
     for i, h in enumerate(rated, 1):
         cons = h["mu"] - 3 * h["sigma"]
-        cls = h["class"] or "—"
+        cls = proposed_class_label(i - 1)
+        prev_cls = h["class"]
+        cls_title = (
+            f"previous tournament class: {prev_cls}" if prev_cls
+            else "no prior captain class on record"
+        )
         link = (
             f'<a class="player-link" href="{PLAYER_PAGE_BASE}/{h["id"]}.html" '
             f'target="_blank" rel="noopener">{_esc(h["canonical"])}</a>'
@@ -308,7 +324,7 @@ def _render_rated_table(rated: list[dict]) -> str:
         body.append(
             f'<tr>'
             f'<td class="num">{i}</td>'
-            f'<td class="cls">{_esc(cls)}</td>'
+            f'<td class="cls" title="{_esc(cls_title)}">{_esc(cls)}</td>'
             f'<td>{link}</td>'
             f'<td class="num"><strong>{cons:.2f}</strong></td>'
             f'<td class="num">{h["mu"]:.2f}</td>'
