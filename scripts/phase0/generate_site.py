@@ -288,6 +288,90 @@ footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px
   border: 1px dashed var(--border); border-radius: 8px;
 }
 
+/* --- How it works page --- */
+.hwr { max-width: 760px; }
+.hwr .lead { color: var(--muted); font-size: 14px; margin: 0 0 18px 0; }
+.hwr section { margin: 26px 0; }
+.hwr h2 {
+  font-size: 17px; margin: 0 0 8px 0;
+  border-bottom: 1px solid var(--border); padding-bottom: 4px;
+}
+.hwr p { font-size: 14px; line-height: 1.55; margin: 8px 0; }
+.hwr ul { font-size: 14px; line-height: 1.55; margin: 8px 0; padding-left: 20px; }
+.hwr li { margin: 4px 0; }
+.hwr code, .hwr .code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px; background: var(--card); padding: 1px 5px; border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.hwr .callout {
+  background: var(--card); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent); border-radius: 6px;
+  padding: 10px 14px; margin: 14px 0; font-size: 13.5px;
+}
+.hwr .callout strong { color: var(--accent); }
+.hwr .diagram {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin: 14px 0;
+  text-align: center;
+}
+.hwr .diagram svg { max-width: 100%; height: auto; }
+.hwr .diagram-caption {
+  color: var(--muted); font-size: 12px; margin-top: 8px;
+  font-style: italic;
+}
+/* --- Calculator --- */
+.hwr .calc {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px; margin: 14px 0;
+}
+.hwr .calc-pair {
+  display: grid; grid-template-columns: 90px 1fr 1fr; gap: 8px 12px;
+  align-items: center; margin: 8px 0;
+}
+.hwr .calc-pair .pair-label {
+  font-size: 12px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.hwr .calc input {
+  background: var(--bg); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 6px 10px; font-size: 13px; width: 100%;
+}
+.hwr .calc input:focus { outline: none; border-color: var(--accent); }
+.hwr .calc input.invalid { border-color: var(--loss); }
+.hwr .calc .calc-vs {
+  text-align: center; color: var(--muted); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.08em; margin: 6px 0;
+}
+.hwr .calc-out {
+  margin-top: 14px; padding: 14px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  font-size: 13.5px; line-height: 1.55;
+}
+.hwr .calc-out.placeholder { color: var(--muted); font-style: italic; }
+.hwr .calc-bar {
+  display: flex; height: 22px; border-radius: 4px; overflow: hidden;
+  border: 1px solid var(--border); margin: 8px 0;
+  font-size: 11px; font-weight: 600; color: #0b1220;
+}
+.hwr .calc-bar .a { background: var(--win); display: flex; align-items: center; justify-content: center; }
+.hwr .calc-bar .b { background: var(--loss); display: flex; align-items: center; justify-content: center; }
+.hwr .calc-table {
+  display: grid; grid-template-columns: 1fr auto auto auto; gap: 4px 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; margin-top: 10px;
+}
+.hwr .calc-table .calc-th {
+  color: var(--muted); text-transform: uppercase; font-size: 10.5px;
+  letter-spacing: 0.06em; border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.hwr .calc-table .num { text-align: right; }
+@media (max-width: 600px) {
+  .hwr .calc-pair { grid-template-columns: 1fr; }
+  .hwr .calc-pair .pair-label { margin-top: 8px; }
+}
+
 /* --- Match-impact expansion (All-matches + Player pages) --- */
 /* Tiny rank badge shown next to every player name in match listings,
    reflecting that player's rank in their gender bucket AT THE TIME of
@@ -417,7 +501,7 @@ def render_nav(rel_root: str, active: str) -> str:
 
     rel_root  -- prefix for hrefs ('' from index, '../' from sub-pages).
     active    -- which entry to highlight: 'index', 'matches', 'changelog',
-                 or 'tournament:<slug>'.
+                 'how-it-works', 'aliases', or 'tournament:<slug>'.
     """
     parts: list[str] = []
     cls_index = ' class="active"' if active == "index" else ""
@@ -425,6 +509,14 @@ def render_nav(rel_root: str, active: str) -> str:
     parts.append('<span class="sep">·</span>')
     cls_matches = ' class="active"' if active == "matches" else ""
     parts.append(f'<a href="{rel_root}matches.html"{cls_matches}>All matches</a>')
+    parts.append('<span class="sep">·</span>')
+    cls_dis = ' class="active"' if active == "disagreements" else ""
+    parts.append(
+        f'<a href="{rel_root}disagreements.html"{cls_dis} '
+        f'title="Matches where vanilla PL and Decay-365 models predicted '
+        f'different outcomes — where captain knowledge matters most.">'
+        f'Model gaps</a>'
+    )
     for t in TOURNAMENT_ROSTERS:
         slug = t["slug"]
         label = t["menu_label"]
@@ -437,6 +529,9 @@ def render_nav(rel_root: str, active: str) -> str:
     parts.append('<span class="sep">·</span>')
     cls_cl = ' class="active"' if active == "changelog" else ""
     parts.append(f'<a href="{rel_root}changelog.html"{cls_cl}>What’s new</a>')
+    parts.append('<span class="sep">·</span>')
+    cls_hw = ' class="active"' if active == "how-it-works" else ""
+    parts.append(f'<a href="{rel_root}how-it-works.html"{cls_hw}>How it works</a>')
     return f'<nav class="topnav">{"".join(parts)}</nav>'
 
 
@@ -3440,6 +3535,313 @@ def build_aliases_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
 """
 
 
+# --- How it works page -------------------------------------------------------
+
+
+HOW_IT_WORKS_MODEL = "openskill_pl_decay365"
+
+
+def build_how_it_works_page(conn: sqlite3.Connection) -> str:
+    """ELI5 explainer + bell-curve diagram + match-prediction calculator.
+
+    Calculator data is the production rating set (decay-weighted) embedded
+    as JSON at build time — no API call, no stale numbers.
+    """
+    rows = conn.execute(
+        """
+        SELECT p.id, p.canonical_name, p.gender, r.mu, r.sigma, r.n_matches
+        FROM players p
+        JOIN ratings r ON r.player_id = p.id
+        WHERE p.merged_into_id IS NULL
+          AND r.model_name = ?
+        """,
+        (HOW_IT_WORKS_MODEL,),
+    ).fetchall()
+    # Strip players who never actually played (no rating-history rows ⇒
+    # their μ is the seed value and a calculator pick on them is misleading).
+    players_data = [
+        {
+            "id": pid,
+            "name": name,
+            "g": gender or "",
+            "mu": round(mu, 4),
+            "sigma": round(sigma, 4),
+            "n": n,
+        }
+        for pid, name, gender, mu, sigma, n in rows
+        if n and n > 0
+    ]
+    players_json = json.dumps(players_data)
+
+    # Inline bell-curve SVG: two players overlapping. Player A is experienced
+    # (narrow + tall = low σ); Player B is newer (wide + low = high σ but
+    # similar μ). Visually conveys "the more matches you play, the sharper
+    # the system's estimate becomes."
+    bell_svg = """
+<svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Two bell curves showing two players' rating distributions.">
+  <defs>
+    <linearGradient id="hwr-a" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#46c281" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#46c281" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="hwr-b" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#4ea1ff" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#4ea1ff" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+  <!-- baseline axis -->
+  <line x1="40" y1="200" x2="560" y2="200" stroke="#2a3242" stroke-width="1"/>
+  <text x="40" y="220" fill="#8b96a8" font-size="11" font-family="system-ui">weaker</text>
+  <text x="525" y="220" fill="#8b96a8" font-size="11" font-family="system-ui">stronger</text>
+  <text x="295" y="220" fill="#8b96a8" font-size="11" font-family="system-ui" text-anchor="middle">skill →</text>
+
+  <!-- Player A: narrow, tall (experienced, low σ) -->
+  <!-- Approximate Gaussian with a smooth Bezier "hill" -->
+  <path d="M 200,200 C 240,200 260,30 300,30 C 340,30 360,200 400,200 Z"
+        fill="url(#hwr-a)" stroke="#46c281" stroke-width="1.5"/>
+  <!-- mu marker -->
+  <line x1="300" y1="30" x2="300" y2="200" stroke="#46c281" stroke-dasharray="3 3" stroke-width="1"/>
+  <text x="300" y="22" fill="#46c281" font-size="11" font-family="system-ui" text-anchor="middle" font-weight="600">μ (Avery — many matches)</text>
+
+  <!-- Player B: wide, lower peak (newer, high σ) -->
+  <path d="M 100,200 C 170,200 220,80 320,80 C 420,80 470,200 540,200 Z"
+        fill="url(#hwr-b)" stroke="#4ea1ff" stroke-width="1.5"/>
+  <line x1="320" y1="80" x2="320" y2="200" stroke="#4ea1ff" stroke-dasharray="3 3" stroke-width="1"/>
+  <text x="320" y="72" fill="#4ea1ff" font-size="11" font-family="system-ui" text-anchor="middle" font-weight="600">μ (Blake — new player)</text>
+
+  <!-- σ width brackets -->
+  <line x1="200" y1="208" x2="400" y2="208" stroke="#46c281" stroke-width="1"/>
+  <text x="300" y="180" fill="#46c281" font-size="10" font-family="system-ui" text-anchor="middle">narrow σ ⇒ confident</text>
+  <line x1="100" y1="216" x2="540" y2="216" stroke="#4ea1ff" stroke-width="1" opacity="0.7"/>
+  <text x="320" y="135" fill="#4ea1ff" font-size="10" font-family="system-ui" text-anchor="middle">wide σ ⇒ unsure</text>
+</svg>
+"""
+
+    body = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v={CSS_VERSION}">
+</head>
+<body>
+{render_nav("", "how-it-works")}
+<header>
+  <h1>How RallyRank works</h1>
+  <p>Plain English. No jargon. With a calculator at the bottom you can poke at.</p>
+</header>
+
+<main class="hwr">
+  <p class="lead">Reading time: about 90 seconds. Skip to the calculator if you just want to play.</p>
+
+  <section>
+    <h2>The big idea</h2>
+    <p>We don't just count wins. After every match, the system updates <em>both</em> a guess of how good you are <em>and</em> how confident it is in that guess. Two numbers per player, refined every time you step on court.</p>
+  </section>
+
+  <section>
+    <h2>Two numbers: μ (skill) and σ (uncertainty)</h2>
+    <p>Every player has two numbers behind their name:</p>
+    <ul>
+      <li><span class="code">μ</span> ("mu") — the system's best guess of your skill. Higher = stronger.</li>
+      <li><span class="code">σ</span> ("sigma") — how unsure the system is. Higher = less confident. Shrinks as you play more matches.</li>
+    </ul>
+    <p>You can picture each player as a bell curve: μ is the peak, σ is the width. The wider the curve, the less the system trusts the number yet.</p>
+
+    <div class="diagram">
+      {bell_svg}
+      <div class="diagram-caption">Avery has played a lot — narrow bell, system is confident. Blake is new — wide bell, system is hedging until they play more.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why the leaderboard sorts by μ − 3σ</h2>
+    <p>If we ranked by μ alone, a brand-new player who happened to win their first match would shoot to the top. So we use a <em>conservative</em> number: <span class="code">μ − 3σ</span>. It's roughly "the lowest skill we're 99% sure this player is at least as strong as."</p>
+    <p>Practical effect: new players start near the bottom and climb as their σ shrinks. Once you've played ~15+ matches, σ has shrunk enough that μ − 3σ is close to your real skill estimate.</p>
+  </section>
+
+  <section>
+    <h2>What changes a rating after a match</h2>
+    <p>Win or lose, both teams' ratings move. Bigger upset ⇒ bigger move. Five things tune how big:</p>
+    <ul>
+      <li><strong>Game volume</strong> — a 26-game battle is more informative than a 6-0 6-0 blowout, so it changes ratings more.</li>
+      <li><strong>Division</strong> — a Div 1 win moves your rating more than a Div 4 win.</li>
+      <li><strong>Partner weighting</strong> — within a winning pair, the stronger partner's rating moves a bit more (they probably contributed more).</li>
+      <li><strong>Time decay</strong> — matches from two years ago count for less than matches from last month. Recent form weighs heavier.</li>
+      <li><strong>Walkovers</strong> — counted, but at half weight (the win was real, the play wasn't).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Captain's say sits on top</h2>
+    <p>For tournaments where captains pre-assign players to A/B/C/D teams, the leaderboard groups by that captain choice <em>first</em>, then ranks by μ − 3σ <em>within</em> the group. Math knows numbers; captains know things math can't see (chemistry, injury, attitude). Both views are visible — the default respects captains, and a "raw" sort shows pure math.</p>
+  </section>
+
+  <section class="calc-section">
+    <h2>Try it: predict the next match</h2>
+    <p>Pick four players (start typing — the box autocompletes from real RallyRank players). The calculator shows who's favoured and by how much, using the production decay-weighted ratings.</p>
+
+    <div class="calc">
+      <div class="calc-pair">
+        <span class="pair-label">Pair A</span>
+        <input type="text" id="hwr-a1" list="hwr-players" placeholder="Player 1 name" autocomplete="off">
+        <input type="text" id="hwr-a2" list="hwr-players" placeholder="Player 2 name" autocomplete="off">
+      </div>
+      <div class="calc-vs">vs</div>
+      <div class="calc-pair">
+        <span class="pair-label">Pair B</span>
+        <input type="text" id="hwr-b1" list="hwr-players" placeholder="Player 3 name" autocomplete="off">
+        <input type="text" id="hwr-b2" list="hwr-players" placeholder="Player 4 name" autocomplete="off">
+      </div>
+      <datalist id="hwr-players"></datalist>
+      <div id="hwr-out" class="calc-out placeholder">
+        Pick four different players to see a prediction.
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Heads up:</strong> the prediction assumes both pairs play their typical level on the day. Tennis is a contact-with-a-ball sport — surface, weather, fatigue, and a bad decision in a tiebreak all swing real outcomes. Treat this as "what should happen on average," not a guaranteed result.
+    </div>
+  </section>
+
+  <section>
+    <h2>Want more depth?</h2>
+    <p>The full algorithm is <a href="https://openskill.me/" target="_blank" rel="noopener">OpenSkill (Plackett-Luce)</a> with a time-decay weight, partner-weighted updates, and division-aware K. Engineering details live in the project's <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/PLAN.md" target="_blank" rel="noopener">PLAN.md</a> on GitHub.</p>
+  </section>
+</main>
+
+<script>
+(function() {{
+  const PLAYERS = {players_json};
+  // BETA controls the spread of skill->probability. 25/6 is the OpenSkill
+  // default; we keep it for consistency with the engine's predict_win.
+  const BETA = 25 / 6;
+
+  // Index by lowercase canonical name for typeahead lookup.
+  const byName = new Map();
+  for (const p of PLAYERS) byName.set(p.name.toLowerCase(), p);
+
+  // Populate the shared <datalist>.
+  const dl = document.getElementById('hwr-players');
+  // Sort alphabetically for the dropdown.
+  const sorted = PLAYERS.slice().sort((a, b) => a.name.localeCompare(b.name));
+  for (const p of sorted) {{
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    dl.appendChild(opt);
+  }}
+
+  // Abramowitz-Stegun erf approximation (max error ~1.5e-7).
+  function erf(x) {{
+    const sign = x < 0 ? -1 : 1;
+    x = Math.abs(x);
+    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+    const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-x*x);
+    return sign * y;
+  }}
+  function normalCdf(z) {{ return 0.5 * (1 + erf(z / Math.SQRT2)); }}
+
+  function lookup(inputId) {{
+    const el = document.getElementById(inputId);
+    const v = el.value.trim().toLowerCase();
+    if (!v) {{ el.classList.remove('invalid'); return null; }}
+    const p = byName.get(v);
+    el.classList.toggle('invalid', !p);
+    return p || null;
+  }}
+
+  function compute() {{
+    const a1 = lookup('hwr-a1');
+    const a2 = lookup('hwr-a2');
+    const b1 = lookup('hwr-b1');
+    const b2 = lookup('hwr-b2');
+    const out = document.getElementById('hwr-out');
+
+    const all = [a1, a2, b1, b2].filter(Boolean);
+    if (all.length < 4) {{
+      out.classList.add('placeholder');
+      out.innerHTML = 'Pick four different players to see a prediction.';
+      return;
+    }}
+    // Reject duplicates.
+    const ids = all.map(p => p.id);
+    const unique = new Set(ids);
+    if (unique.size !== 4) {{
+      out.classList.add('placeholder');
+      out.innerHTML = 'Pair A and Pair B must be four different players.';
+      return;
+    }}
+
+    const muA = a1.mu + a2.mu;
+    const muB = b1.mu + b2.mu;
+    const varA = a1.sigma * a1.sigma + a2.sigma * a2.sigma;
+    const varB = b1.sigma * b1.sigma + b2.sigma * b2.sigma;
+    const c = Math.sqrt(2 * BETA * BETA + varA + varB);
+    const pA = normalCdf((muA - muB) / c);
+    const pB = 1 - pA;
+
+    const fav = pA >= pB ? 'A' : 'B';
+    const favPct = Math.max(pA, pB);
+    const favText = fav === 'A'
+      ? `Pair A (${{a1.name}} + ${{a2.name}})`
+      : `Pair B (${{b1.name}} + ${{b2.name}})`;
+
+    let verdict;
+    if (favPct >= 0.85) verdict = 'a heavy favourite — an upset would be a real surprise.';
+    else if (favPct >= 0.65) verdict = 'the favourite, but the underdog has a real chance.';
+    else if (favPct >= 0.55) verdict = 'a slight edge — close to a coin flip.';
+    else verdict = 'about a coin flip on paper.';
+
+    const aPctRound = Math.round(pA * 100);
+    const bPctRound = 100 - aPctRound;
+
+    function row(p, side) {{
+      const conf = p.sigma < 4 ? 'high'
+                 : p.sigma < 6 ? 'medium' : 'low';
+      return `
+        <div>${{p.name}} <span style="color: var(--muted);">(${{side}})</span></div>
+        <div class="num">${{p.mu.toFixed(2)}}</div>
+        <div class="num">${{p.sigma.toFixed(2)}}</div>
+        <div class="num" style="color: var(--muted);">${{conf}} conf · ${{p.n}} m</div>
+      `;
+    }}
+
+    out.classList.remove('placeholder');
+    out.innerHTML = `
+      <p><strong>${{favText}}</strong> is ${{verdict}}</p>
+      <div class="calc-bar">
+        <div class="a" style="width: ${{Math.max(aPctRound, 6)}}%;">A · ${{aPctRound}}%</div>
+        <div class="b" style="width: ${{Math.max(bPctRound, 6)}}%;">B · ${{bPctRound}}%</div>
+      </div>
+      <div class="calc-table">
+        <div class="calc-th">Player</div>
+        <div class="calc-th num">μ</div>
+        <div class="calc-th num">σ</div>
+        <div class="calc-th num">Confidence</div>
+        ${{row(a1, 'A')}}
+        ${{row(a2, 'A')}}
+        ${{row(b1, 'B')}}
+        ${{row(b2, 'B')}}
+      </div>
+    `;
+  }}
+
+  ['hwr-a1','hwr-a2','hwr-b1','hwr-b2'].forEach(id => {{
+    document.getElementById(id).addEventListener('input', compute);
+    document.getElementById(id).addEventListener('change', compute);
+  }});
+}})();
+</script>
+</body>
+</html>
+"""
+    return body
+
+
 # --- Main --------------------------------------------------------------------
 
 
@@ -3526,6 +3928,10 @@ def main() -> int:
         if changelog_html:
             write(OUT_DIR / "changelog.html", changelog_html)
             print(f"Wrote {OUT_DIR / 'changelog.html'}")
+
+        # How it works (ELI5 explainer + bell-curve + calculator)
+        write(OUT_DIR / "how-it-works.html", build_how_it_works_page(conn))
+        print(f"Wrote {OUT_DIR / 'how-it-works.html'}")
 
         # Mapping & merges (full identity-resolution transparency)
         write(OUT_DIR / "aliases.html", build_aliases_page(conn, name_lookup))
