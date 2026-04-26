@@ -113,11 +113,12 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 | State | Tasks |
 |---|---|
 | `in-progress` | (none) |
-| `up next — site / data hygiene` | T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-017 (non-case alias variants like `Mangion AnnMarie` ↔ `Annmarie Mangion`); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
+| `decision pending` | T-P0.5-011 (promote `openskill_pl_decay365` to `CHAMPION_MODEL` or keep vanilla — backtest data already in hand) |
+| `up next — site / data hygiene` | T-P0.5-012 (μ-Nσ display-metric tuning); T-P0.5-013 (gh-pages orphan-player-file cleanup); T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-017 (non-case alias variants like `Mangion AnnMarie` ↔ `Annmarie Mangion`); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
 | `up next — pre-launch gates` | T-P1-019 (draft trust + legality ADRs 002-006); T-P1-020 (public-launch checklist — privacy notice, takedown channel, robots.txt) |
-| `up next — Phase 1 platform` | T-P1-001 (Postgres port); T-P1-008 (fuzzy-match merge CLI); T-P1-009 (Modified Glicko-2 challenger); T-P1-002 (migration tooling) |
+| `up next — Phase 1 platform` | T-P1-001 (Postgres port); T-P1-008 (fuzzy-match merge CLI); T-P1-009 (Modified Glicko-2 challenger — **harness now ready**, see T-P0.5-010); T-P1-002 (migration tooling) |
 | `blocked` | T-P1-020 (public-launch checklist) — depends on T-P1-019 ADR decisions |
-| `recently done` | **Phase 0.5 interim** — multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
+| `recently done` | **Phase 0.5 interim** — multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed, **model-evaluation suite (T-P0.5-010): backtest harness + time-decay challenger + per-player calibration + Model gaps page**. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
 
 ## ✅ Phase 0 — COMPLETE (2026-04-26)
 
@@ -671,9 +672,47 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
   - Top dataset disagreement is a 70% gap (PL said 2%, Decay said 71%); these matches are the highest-leverage targets for captain input.
 - **Foreshadows T-P1-009.** Glicko-2 (or any other) challenger now plug-and-play — drop a class into `ENGINES`, run backtest, compare.
 
----
+### T-P0.5-011 — Decision: promote `openskill_pl_decay365` to `CHAMPION_MODEL`?
 
-## Phase 1 — Data foundation (stubs, not yet actionable)
+- **Status:** `decision pending`
+- **Phase:** 0.5
+- **Spawned by:** T-P0.5-010
+- **Goal:** Decide whether to make Decay-365 the default sort/display model, or leave it as a parallel challenger surfaced via the Decay # columns.
+- **Evidence already in hand** (see `_ANALYSIS_/model_evaluation/SUMMARY.md`):
+  - Decay-365 log-loss 0.6147 vs vanilla 0.6526 on 888 held-out matches (5.8% improvement).
+  - Decay-365 Brier 0.2134 vs vanilla 0.2186; accuracy roughly tied (64.98% vs 65.99%).
+  - Vanilla is overconfident at both probability extremes; decay nearly fixes the low extreme.
+  - Lonia agreement *worsens* under decay (men ρ 0.704 → 0.600). Captain mental model favours long-running impressions; the data favours recent form.
+  - Per-player heterogeneity: Manuel Bonello's matches predicted better by vanilla; Cory Greenland's by decay.
+- **What "done" looks like:** either a one-line change in `scripts/phase0/rating.py:32` (`CHAMPION_MODEL = "openskill_pl_decay365"`) + recompute + re-deploy, OR a written rationale in PLAN.md §5.2 for keeping vanilla as champion. Reversible either way via the model-name-keyed schema.
+- **What's needed before deciding:**
+  - Eyeball the live `Decay #` columns and the Model gaps page for a few days.
+  - Spot-check 5-10 specific players where the two models disagree on a profile page; sanity-check whether the decay model's view "feels right" to a tennis-knowledgeable observer.
+  - Optionally consult `rating-engine-expert` agent with the per-player heterogeneity data.
+- **Acceptance:** Either CHAMPION_MODEL flipped + ADR/PLAN entry, or PLAN.md §5.2 updated to document the deliberate decision to keep vanilla as default and use decay as an exposed challenger.
+
+### T-P0.5-012 — Tune the σ multiplier in the leaderboard display metric
+
+- **Status:** `up next`
+- **Phase:** 0.5
+- **Spawned by:** T-P0.5-010 (H4 experiment)
+- **Goal:** Replace `μ-3σ` with a less aggressive penalty (`μ-2σ`, `μ-σ`, etc.) on the public leaderboard display.
+- **Evidence already in hand:**
+  - Spearman ρ vs Lonia under each metric (champion model):
+    - Men: μ-3σ 0.704, μ-2σ 0.717, μ-σ 0.731, μ-0.5σ **0.745**.
+    - Ladies: μ-3σ 0.572, μ-1.5σ **0.587**, μ-σ 0.563, μ-0σ 0.538.
+  - Lonia is one captain, not ground truth — but the calibration data from T-P0.5-010 ALSO supports loosening the σ penalty (vanilla PL is overconfident at the low end; the high σ-penalty exaggerates that).
+- **Acceptance:** Pick a single multiplier (likely **μ-2σ** as a compromise — beats μ-3σ on both ρ and calibration, not a wild swing). Update display-only logic in `generate_site.py` (the column header, the cell formatting, and any sort key). The DB still stores μ + σ; this is a presentation change only. Validate that the leaderboard order doesn't shift dramatically (top players should be roughly stable).
+- **Risk:** None — purely cosmetic, fully reversible, no data changes.
+
+### T-P0.5-013 — Clean up gh-pages orphan player files
+
+- **Status:** `up next` (low priority, ~10 min)
+- **Phase:** 0.5
+- **Goal:** Stop shipping ~793 stale `site/players/<id>.html` files for player IDs that have been merged out of the active set.
+- **What's there now:** `generate_site.py` writes player pages for currently-eligible players but doesn't delete pages for players who are no longer eligible (merged into another canonical record). The orphan files persist on disk and ship to gh-pages on every deploy.
+- **What's the user impact:** None today (orphans aren't linked from anywhere live), but they inflate the deployed bundle and a stale URL might surface via Google indexing or saved bookmarks showing pre-merge data.
+- **Fix:** Add `shutil.rmtree(OUT_DIR / "players", ignore_errors=True)` before the per-player render loop in `main()`. ~1 line. Run + deploy verifies orphans are gone.
 
 Tasks below are intentionally sketchy until Phase 0 lands and we know what concrete shape Phase 1 takes. Don't expand to acceptance-criteria detail before Phase 0's retrospective informs them.
 
@@ -685,7 +724,7 @@ Tasks below are intentionally sketchy until Phase 0 lands and we know what concr
 - **T-P1-006** — Hand-written parser: Samsung Rennie Tonna / TCK / San Michel team formats
 - **T-P1-007** — Bulk-load all VLTC files
 - **T-P1-008** — Player alias / merge CLI (Phase 1 fuzzy-match + propose; admin confirms)
-- **T-P1-009** — Add **Modified Glicko-2** (per `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §5–9) as the first challenger model. Includes: team rating = avg(R) with RD = sqrt(mean RD²); universal games-won proportion as score `S`; explicit **partner-weighted Δ** per §7 (`ΔR_p1 = Δ × weight_p1 × 2` where `weight_p1 = R_p1 / (R_p1 + R_p2)`); per-division K-multipliers per §8; rating drift toward division mean for long absences per §9.2. `model_name = 'modified_glicko2'`. Use `glicko2` Python package for the base math; layer the modifications on top.
+- **T-P1-009** — Add **Modified Glicko-2** (per `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §5–9) as the first challenger model. Includes: team rating = avg(R) with RD = sqrt(mean RD²); universal games-won proportion as score `S`; explicit **partner-weighted Δ** per §7 (`ΔR_p1 = Δ × weight_p1 × 2` where `weight_p1 = R_p1 / (R_p1 + R_p2)`); per-division K-multipliers per §8; rating drift toward division mean for long absences per §9.2. `model_name = 'modified_glicko2'`. Use `glicko2` Python package for the base math; layer the modifications on top. **Backtest harness ready** (T-P0.5-010): drop a `Glicko2Engine` class into `scripts/phase0/backtest.py:ENGINES`, run `python3 scripts/phase0/backtest.py --engine modified_glicko2 --cutoff 2025-07-01`, compare log-loss + calibration vs `openskill_pl_vanilla` (0.6526) and `openskill_pl_decay365` (0.6147). The "Model gaps" page becomes a 3-way comparison after a few small tweaks to `build_disagreements_page`.
 - **T-P1-010** — HITL: player merge channel (per §5.8)
 - **T-P1-011** — Clean up "(pro)" / "(dem)" / "(Dem.)" substitute notations stuck in player canonical names (parser quirk surfaced in Phase 0; e.g. "Rose Falzon (pro) Mary Borg", "Ivan Cassar (pro Andrew Pule')", "Angele Pule(DEM)C.CHETCUTI"). Strip the suffix into a separate `match_sides.substitute_for` reference column or just discard the notation.
 - **T-P1-012** — Dedupe `tournaments` rows on re-load (use `source_files.sha256`). Phase 0 created duplicates which the rating engine ignores (filters by active matches), but it's clutter.
