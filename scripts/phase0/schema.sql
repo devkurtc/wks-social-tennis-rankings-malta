@@ -155,6 +155,32 @@ CREATE INDEX IF NOT EXISTS idx_rating_history_player_model
     ON rating_history (player_id, model_name, computed_at);
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Captain-assigned team-tournament classifications (v2)
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Each row: a captain assigned a player to slot X-N (e.g. 'A1', 'B3', 'C2',
+-- 'D1') in tournament T. Multiple players share the same class label per
+-- tournament (one per team). A player accumulates one row per team-tournament
+-- they participated in; the most-recent assignment is their CURRENT class.
+--
+-- For tournaments without team assignment (division round-robin), no rows
+-- here — current class is derived from primary division as a fallback.
+
+CREATE TABLE IF NOT EXISTS player_team_assignments (
+    tournament_id   INTEGER NOT NULL REFERENCES tournaments(id),
+    player_id       INTEGER NOT NULL REFERENCES players(id),
+    team_letter     TEXT,                       -- 'A' .. 'F' typically
+    captain_name    TEXT,                       -- as recorded in source
+    class_label     TEXT NOT NULL,              -- 'A1', 'A2', ..., 'D3'
+    tier_letter     TEXT NOT NULL,              -- 'A', 'B', 'C', 'D' (extracted from class_label)
+    slot_number     INTEGER NOT NULL,           -- 1, 2, 3, ... (extracted)
+    gender          TEXT CHECK (gender IN ('M', 'F') OR gender IS NULL),
+    PRIMARY KEY (tournament_id, player_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pta_player ON player_team_assignments (player_id);
+CREATE INDEX IF NOT EXISTS idx_pta_tier ON player_team_assignments (tier_letter, slot_number);
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Audit (semantic actions per §5.5)
 -- ─────────────────────────────────────────────────────────────────────────────
 

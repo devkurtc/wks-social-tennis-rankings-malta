@@ -333,7 +333,34 @@ def cmd_rank(args: argparse.Namespace) -> int:
                 JOIN match_sides opp ON opp.match_id = ms.match_id AND opp.side <> ms.side
                 WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
                   AND m.superseded_by_run_id IS NULL
-            ) AS games_lost
+            ) AS games_lost,
+            -- v2: captain-assigned class label from most recent team tournament.
+            -- NULL if player has no team-tournament assignments — fallback to
+            -- derived class from primary division in display logic.
+            (
+                SELECT pta.class_label
+                FROM player_team_assignments pta
+                JOIN tournaments t ON t.id = pta.tournament_id
+                WHERE pta.player_id = p.id
+                ORDER BY t.year DESC, t.id DESC
+                LIMIT 1
+            ) AS captain_class,
+            (
+                SELECT pta.tier_letter
+                FROM player_team_assignments pta
+                JOIN tournaments t ON t.id = pta.tournament_id
+                WHERE pta.player_id = p.id
+                ORDER BY t.year DESC, t.id DESC
+                LIMIT 1
+            ) AS captain_tier,
+            (
+                SELECT pta.slot_number
+                FROM player_team_assignments pta
+                JOIN tournaments t ON t.id = pta.tournament_id
+                WHERE pta.player_id = p.id
+                ORDER BY t.year DESC, t.id DESC
+                LIMIT 1
+            ) AS captain_slot
         FROM ratings r
         JOIN players p ON p.id = r.player_id
         WHERE r.model_name = ?
@@ -344,6 +371,7 @@ def cmd_rank(args: argparse.Namespace) -> int:
         sql += " AND p.gender = 'M'"
     elif args.gender == "ladies":
         sql += " AND p.gender = 'F'"
+    # Default: sort by μ-3σ; we re-sort in Python for class-mode
     sql += " ORDER BY (r.mu - 3 * r.sigma) DESC"
 
     conn = db.init_db()
@@ -367,6 +395,55 @@ def cmd_rank(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 0
+
+    # v2: compute resolved class for each row (captain-assigned > derived from
+    # primary division > '?'), and sort accordingly.
+    TIER_ORDER = {"A": 0, "B": 1, "C": 2, "D": 3, "?": 9}
+
+    def _resolve_class(row):
+        """Return (class_label, tier_letter, slot_number, source) for sorting.
+        SQL row indices: 0=name, 1=gender, 2=mu, 3=sigma, 4=n, 5=last,
+        6=primary_div, 7=wins, 8=games_won, 9=games_lost,
+        10=captain_class, 11=captain_tier, 12=captain_slot."""
+        captain_class = row[10]
+        captain_tier = row[11]
+        captain_slot = row[12]
+        if captain_class:
+            return captain_class, captain_tier, captain_slot, "captain"
+        # Fallback: derive from primary division
+        primary = row[6]
+        if primary:
+            norm = rating.normalize_division(primary)
+            tier_map = {
+                "Men Div 1": "A", "Men A": "A", "Lad Div 1": "A", "Lad A": "A",
+                "Men Div 2": "B", "Men B": "B", "Lad Div 2": "B", "Lad B": "B",
+                "Men Div 3": "C", "Men C": "C", "Lad Div 3": "C", "Lad C": "C",
+                "Men Div 4": "D", "Men D": "D", "Lad D": "D",
+            }
+            tier = tier_map.get(norm)
+            if tier:
+                # Derived class: tier letter + '?' (no slot known)
+                return f"{tier}?", tier, 99, "derived"
+        return "?", "?", 99, "unknown"
+
+    # Annotate rows with resolved class info: (..., class_label, tier, slot, source)
+    rows_annotated = []
+    for r in rows:
+        cls, tier, slot, source = _resolve_class(r)
+        rows_annotated.append((*r, cls, tier, slot, source))
+
+    if args.sort == "class":
+        # Sort: tier letter, slot number, then -μ-3σ (higher first within class)
+        rows_annotated.sort(
+            key=lambda r: (
+                TIER_ORDER.get(r[11], 9),
+                r[12],  # slot
+                -(r[2] - 3 * r[3]),  # -μ-3σ
+            )
+        )
+    # else 'raw': already sorted by μ-3σ in SQL
+
+    rows = rows_annotated
 
     if args.by_category:
         # Group by TIER (per Kurt's domain knowledge: Men A ≡ Men Div 1,
@@ -444,29 +521,52 @@ def cmd_rank(args: argparse.Namespace) -> int:
 
 
 def _print_rank_table(rows: list) -> None:
-    """Print the standard rank table for a list of rows from cmd_rank's SQL.
+    """Print the standard rank table.
 
-    Columns:
-      Rank  Player  G  PrimaryDiv  mu  σ  μ-3σ  n  W-L  win%  gW-gL  gWin%  last
+    Columns (v2):
+      Rank  Class  Player  G  Primary  μ  σ  μ-3σ  n  W-L  win%  gW-gL  gW%  last
+
+    Row formats supported:
+    - 17 elements (annotated v2): SQL 13 fields + cls + tier + slot + source
+    - 13 elements (raw v2 SQL):    13 SQL fields, no class resolution yet
+    - 10 elements (legacy):         old format pre-class
     """
     print(
-        f"{'Rank':>4}  {'Player':<24}  {'G':1}  {'PrimaryDiv':<11}  "
+        f"{'Rank':>4}  {'Class':<6}  {'Player':<22}  {'G':1}  {'Primary':<10}  "
         f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'n':>4}  "
         f"{'W':>3}-{'L':<3}  {'win%':>4}  "
         f"{'gW':>4}-{'gL':<4}  {'gW%':>4}  {'last':<10}"
     )
-    print("-" * 124)
+    print("-" * 132)
     for i, row in enumerate(rows, 1):
-        (name, gender, mu, sigma, n, last, primary_div,
-         wins, games_won, games_lost) = row
+        if len(row) >= 17:
+            # Annotated: 13 SQL + (cls, tier, slot, source)
+            name = row[0]; gender = row[1]; mu = row[2]; sigma = row[3]
+            n = row[4]; last = row[5]; primary_div = row[6]
+            wins = row[7]; games_won = row[8]; games_lost = row[9]
+            cls = row[13]; source = row[16]
+        elif len(row) >= 13:
+            # Raw v2 SQL (no annotation): show captain_class directly
+            name = row[0]; gender = row[1]; mu = row[2]; sigma = row[3]
+            n = row[4]; last = row[5]; primary_div = row[6]
+            wins = row[7]; games_won = row[8]; games_lost = row[9]
+            cls = row[10] or "?"
+            source = "captain" if row[10] else ""
+        else:
+            # Legacy 10-element format (pre-class)
+            (name, gender, mu, sigma, n, last, primary_div,
+             wins, games_won, games_lost) = row
+            cls = "—"
+            source = ""
+
         cons = mu - 3 * sigma
         losses = n - wins
         win_pct = (wins / n * 100) if n > 0 else 0
         total_games = games_won + games_lost
         gw_pct = (games_won / total_games * 100) if total_games > 0 else 0
         print(
-            f"{i:>4}  {name[:24]:<24}  {gender or '?':1}  "
-            f"{(primary_div or '?')[:11]:<11}  "
+            f"{i:>4}  {cls:<6}  {name[:22]:<22}  {gender or '?':1}  "
+            f"{(primary_div or '?')[:10]:<10}  "
             f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  {n:>4}  "
             f"{wins:>3}-{losses:<3}  {win_pct:>3.0f}%  "
             f"{games_won:>4}-{games_lost:<4}  {gw_pct:>3.0f}%  {last or '?':<10}"
@@ -657,6 +757,16 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Group output by primary division/category — separate top-N per "
             "Men A / Men B / ... / Lad A / Lad B / ... etc."
+        ),
+    )
+    p_rank.add_argument(
+        "--sort",
+        choices=["class", "raw"],
+        default="class",
+        help=(
+            "Sort method. 'class' (default, v2): captain-assigned class label "
+            "(A1, A2, ..., D3) primary; μ-3σ secondary within class. "
+            "'raw': μ-3σ only (math-view; ignores class)."
         ),
     )
     p_rank.set_defaults(func=cmd_rank)

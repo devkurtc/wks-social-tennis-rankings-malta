@@ -239,12 +239,13 @@ class TestDivisionHelpers(unittest.TestCase):
     def test_division_k_multiplier_per_tier(self):
         # Per Kurt's domain knowledge, Men A ≡ Men Div 1 (same tier),
         # Men B ≡ Men Div 2, etc. Tier values must match within a tier.
+        # v2 spread (post-cap-removal): 1.00 / 0.85 / 0.70 / 0.55
         self.assertEqual(rating.division_k_multiplier("Men Div 1"), 1.00)
         self.assertEqual(rating.division_k_multiplier("Men A"), 1.00)
         self.assertEqual(rating.division_k_multiplier("Men Div 2"), 0.85)
         self.assertEqual(rating.division_k_multiplier("Men B"), 0.85)
-        self.assertEqual(rating.division_k_multiplier("Men Div 4"), 0.60)
-        self.assertEqual(rating.division_k_multiplier("Men D"), 0.60)
+        self.assertEqual(rating.division_k_multiplier("Men Div 4"), 0.55)
+        self.assertEqual(rating.division_k_multiplier("Men D"), 0.55)
         self.assertEqual(rating.division_k_multiplier("Lad Div 3"), 0.70)
         self.assertEqual(rating.division_k_multiplier("Lad C"), 0.70)
 

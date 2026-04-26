@@ -77,52 +77,30 @@ DIVISION_STARTING_MU: dict[str, float] = {
 # ceiling, regardless of how dominant their wins are. This is the friend's
 # research doc §8.1, §8.2 approach: Div 2 player capped below where Div 1
 # starts. Strictly enforces cross-division ordering. None = no ceiling.
-DIVISION_MU_CEILING: dict[str, float | None] = {
-    # Tier 1 — top of pyramid, no ceiling
-    "Men A": None, "Men Div 1": None,
-    # Tier 2 — ceiling below Tier 1's starting (33)
-    "Men B": 32.0, "Men Div 2": 32.0,
-    "Men C": 27.0, "Men Div 3": 27.0,
-    "Men D": 22.0, "Men Div 4": 22.0,
-    "Lad A": None, "Lad Div 1": None,
-    "Lad B": 30.0, "Lad Div 2": 30.0,
-    "Lad C": 25.0, "Lad Div 3": 25.0,
-    "Lad D": 20.0,
-}
-
-# Per-division μ floors — a player CANNOT drop below their division's
-# floor. Prevents a slumping Div 1 player from numerically appearing
-# below a top Div 2 player.
-DIVISION_MU_FLOOR: dict[str, float | None] = {
-    # Tier 1 — floor at Tier 2 starting (28)
-    "Men A": 28.0, "Men Div 1": 28.0,
-    "Men B": 23.0, "Men Div 2": 23.0,
-    "Men C": 18.0, "Men Div 3": 18.0,
-    "Men D": None, "Men Div 4": None,
-    "Lad A": 26.0, "Lad Div 1": 26.0,
-    "Lad B": 21.0, "Lad Div 2": 21.0,
-    "Lad C": 16.0, "Lad Div 3": 16.0,
-    "Lad D": None,
-}
+# v2 (2026-04-26): CAPS REMOVED. Math is honest — μ flows freely with results.
+# Tier ordering is preserved by class-based DISPLAY sort (captain-assigned class
+# label sorts above raw μ). See player_team_assignments + cmd_rank for the
+# class-sort logic. The empty dicts here are kept for back-compat with
+# `clip_mu_to_division` which now becomes a no-op when both are empty.
+DIVISION_MU_CEILING: dict[str, float | None] = {}
+DIVISION_MU_FLOOR: dict[str, float | None] = {}
 
 # Per-division K-multiplier — scales how much a single match moves a
 # player's rating. Higher-division matches count more (encoding "harder
 # competition = more meaningful rating change").
 # Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §8.1, §8.2
 DIVISION_K: dict[str, float] = {
-    # Tier 1
+    # v2 (2026-04-26): kept moderate spread (1.00/0.85/0.70/0.55) instead of
+    # aggressive 1.00/0.75/0.50/0.30 — Doubt #3 mitigation per Kurt's review.
+    # Lower-tier matches still count substantially; we just downweight modestly.
     "Men A": 1.00, "Men Div 1": 1.00,
-    # Tier 2
     "Men B": 0.85, "Men Div 2": 0.85,
-    # Tier 3
     "Men C": 0.70, "Men Div 3": 0.70,
-    # Tier 4
-    "Men D": 0.60, "Men Div 4": 0.60,
-    # Ladies
+    "Men D": 0.55, "Men Div 4": 0.55,
     "Lad A": 1.00, "Lad Div 1": 1.00,
     "Lad B": 0.85, "Lad Div 2": 0.85,
     "Lad C": 0.70, "Lad Div 3": 0.70,
-    "Lad D": 0.60,
+    "Lad D": 0.55,
 }
 
 # Game-volume K-multiplier baseline: a "typical" 2-set match has ~18
@@ -190,6 +168,94 @@ def division_k_multiplier(division: str | None) -> float:
     if norm is None:
         return 1.0
     return DIVISION_K.get(norm, 1.0)
+
+
+# v2: mixed-doubles "Division N" matches don't carry tier info. Look up
+# the player's gendered-primary tier and use that K instead of defaulting
+# to 1.0. Returns the K, or None if no gendered primary exists.
+def division_k_multiplier_for_match(
+    db_conn: sqlite3.Connection,
+    match_division: str | None,
+    player_id: int,
+) -> float:
+    """Per-match K. For mixed-doubles ungendered 'Division N' matches, look up
+    the player's gendered primary and use THAT tier's K. Otherwise use the
+    match's own division.
+    """
+    norm = normalize_division(match_division)
+    if norm and norm in DIVISION_K:
+        return DIVISION_K[norm]
+
+    # Match division isn't recognized → check if it's a mixed-doubles
+    # "Division N" pattern (no gender prefix). If so, find the player's
+    # most-common GENDERED division and use that.
+    raw = (match_division or "").strip()
+    if raw.lower().startswith("division") or raw.startswith("Mxd") or raw.startswith("MXD"):
+        row = db_conn.execute(
+            """
+            SELECT m.division, COUNT(*) AS n
+            FROM matches m
+            JOIN match_sides ms ON ms.match_id = m.id
+            WHERE (ms.player1_id = ? OR ms.player2_id = ?)
+              AND m.superseded_by_run_id IS NULL
+              AND m.division IS NOT NULL
+              AND (m.division LIKE 'Men%' OR m.division LIKE 'Lad%' OR m.division LIKE 'Ladies%')
+            GROUP BY m.division
+            ORDER BY n DESC
+            LIMIT 1
+            """,
+            (player_id, player_id),
+        ).fetchone()
+        if row:
+            gendered = normalize_division(row[0])
+            if gendered in DIVISION_K:
+                return DIVISION_K[gendered]
+    # Final fallback
+    return 1.0
+
+
+# v2: partner-weighted Δμ (per `_RESEARCH_/...` §7).
+# Stronger partner moves more (gains/loses more); weaker partner moves less.
+# Net team rating change is preserved.
+PARTNER_WEIGHT_ENABLED = True
+
+
+def apply_partner_weighting(
+    p1_old_mu: float, p2_old_mu: float,
+    p1_new_mu: float, p2_new_mu: float,
+) -> tuple[float, float]:
+    """Redistribute the team's net Δμ between partners by current-skill weight.
+
+    Returns (new_mu_p1_weighted, new_mu_p2_weighted) — same team total Δμ as
+    OpenSkill produced, but apportioned so the higher-rated partner moves more.
+
+    Formula (per friend's research §7):
+        team_total_delta = (p1_new - p1_old) + (p2_new - p2_old)
+        weight_p1 = p1_old / (p1_old + p2_old)
+        weight_p2 = p2_old / (p1_old + p2_old)
+        delta_p1' = team_total_delta × weight_p1 × 2
+        delta_p2' = team_total_delta × weight_p2 × 2
+        (×2 because weights sum to 1; preserves team-total when averaged)
+
+    If both partners have μ=0 (shouldn't happen but defensive), splits 50/50.
+    """
+    team_total_delta = (p1_new_mu - p1_old_mu) + (p2_new_mu - p2_old_mu)
+    sum_mu = p1_old_mu + p2_old_mu
+    if sum_mu <= 0:
+        # Defensive: can't compute weight; return unchanged
+        return p1_new_mu, p2_new_mu
+
+    w1 = p1_old_mu / sum_mu
+    w2 = p2_old_mu / sum_mu
+
+    # ×2 distributes the total (not the half) per partner; sum back to total
+    delta_p1_new = team_total_delta * w1 * 2 / (w1 + w2 + w1 + w2)
+    delta_p2_new = team_total_delta * w2 * 2 / (w1 + w2 + w1 + w2)
+    # That simplifies to: delta_p1_new = team_total_delta × w1
+    #                     delta_p2_new = team_total_delta × w2
+    # (verify: w1 + w2 = 1, so delta_p1_new + delta_p2_new = team_total_delta ✓)
+
+    return p1_old_mu + delta_p1_new, p2_old_mu + delta_p2_new
 
 
 def division_starting_mu(division: str | None) -> float:
@@ -491,9 +557,17 @@ def recompute_all(
             # OpenSkill rate: higher score = better outcome
             new_a, new_b = model.rate([team_a, team_b], scores=[s_a, s_b])
 
-            # Combined K-multiplier (T-P0-011 + T-P0-012 + upset amp):
+            # Combined K-multiplier (T-P0-011 + T-P0-012 + upset amp + v2):
             # K = K_division × K_volume × K_upset
-            k_div = division_k_multiplier(m.division)
+            # v2: K_division is per-PLAYER (mixed-doubles "Division N" matches
+            # use each player's gendered-primary tier instead of defaulting to 1.0).
+            # We average across the 4 players for a single K_div per match
+            # (simple; could also do per-player if needed).
+            k_div_per_player = [
+                division_k_multiplier_for_match(db_conn, m.division, pid)
+                for pid in player_ids
+            ]
+            k_div = sum(k_div_per_player) / 4.0
             total_games = m.side_a_games + m.side_b_games
             k_vol = volume_k_multiplier(total_games, walkover=m.walkover)
             k_ups = upset_k_multiplier(s_a, e_a)
@@ -511,17 +585,41 @@ def recompute_all(
             )
             new_objs = (new_a[0], new_a[1], new_b[0], new_b[1])
 
-            # Each player's division ceiling/floor is determined by their
-            # PRIMARY (most-common) division, cached at first appearance.
-            # Using primary not first ensures career-D players get capped
-            # at Men D ceiling even if their first match was elsewhere.
-            scaled_objs = []
+            # v2: NO clipping (caps removed). Math flows free; class-based
+            # display sort handles tier ordering.
+            # Step 1: scale OpenSkill delta by K_combined.
+            scaled_pre = []
             for pid, old, new in zip(player_ids, old_objs, new_objs):
                 adj_mu = old.mu + k_combined * (new.mu - old.mu)
                 adj_sigma = old.sigma + k_combined * (new.sigma - old.sigma)
-                primary_div = player_primary_division.get(pid)
-                adj_mu = clip_mu_to_division(adj_mu, primary_div)
-                scaled_objs.append(model.rating(mu=adj_mu, sigma=adj_sigma))
+                scaled_pre.append((pid, old, adj_mu, adj_sigma))
+
+            # Step 2: apply partner-weighted Δμ within each team
+            # (per friend's research §7) — stronger partner moves more.
+            scaled_objs = []
+            if PARTNER_WEIGHT_ENABLED:
+                # Team A: side_a_player1 + side_a_player2
+                a1_pid, a1_old, a1_mu_pre, a1_sigma = scaled_pre[0]
+                a2_pid, a2_old, a2_mu_pre, a2_sigma = scaled_pre[1]
+                a1_mu_w, a2_mu_w = apply_partner_weighting(
+                    a1_old.mu, a2_old.mu, a1_mu_pre, a2_mu_pre
+                )
+                # Team B: side_b_player1 + side_b_player2
+                b1_pid, b1_old, b1_mu_pre, b1_sigma = scaled_pre[2]
+                b2_pid, b2_old, b2_mu_pre, b2_sigma = scaled_pre[3]
+                b1_mu_w, b2_mu_w = apply_partner_weighting(
+                    b1_old.mu, b2_old.mu, b1_mu_pre, b2_mu_pre
+                )
+
+                scaled_objs = [
+                    model.rating(mu=a1_mu_w, sigma=a1_sigma),
+                    model.rating(mu=a2_mu_w, sigma=a2_sigma),
+                    model.rating(mu=b1_mu_w, sigma=b1_sigma),
+                    model.rating(mu=b2_mu_w, sigma=b2_sigma),
+                ]
+            else:
+                for _, _, mu, sigma in scaled_pre:
+                    scaled_objs.append(model.rating(mu=mu, sigma=sigma))
 
             player_ratings[m.side_a_player1_id] = scaled_objs[0]
             player_ratings[m.side_a_player2_id] = scaled_objs[1]
