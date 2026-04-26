@@ -56,3 +56,6 @@ yarn-error.log*
 *.db
 .coverage
 coverage/
+
+# Generated static site (published to gh-pages branch via scripts/deploy-site.sh)
+/site/

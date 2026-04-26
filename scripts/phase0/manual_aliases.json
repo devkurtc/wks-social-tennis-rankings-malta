@@ -1,0 +1,238 @@
+{
+  "_comment": "Manual same-person merges that automated rules can't catch (surname changes after marriage, nicknames, abbreviated forms, etc). Each entry: 'winner' is the surviving record's canonical name; all 'losers' are merged into it. Names are matched against players.canonical_name; if a loser is already merged elsewhere, the chain is followed to its current surviving record. Idempotent — applying twice is a no-op.",
+  "merges": [
+    {
+      "winner": "Leanne Vassallo",
+      "losers": ["Leanne Schembri", "SCHEMBRI LEANNE"],
+      "reason": "Same person; surname change after marriage"
+    },
+    {
+      "winner": "Alexia Spiteri Willets",
+      "losers": [
+        "Alexia Spiteri",
+        "SPITERI WILLETTS ALEXIA",
+        "Alexia Carabott"
+      ],
+      "reason": "Same person; surname history Carabott → Spiteri → Spiteri Willets"
+    },
+    {
+      "winner": "Christine Seychell",
+      "losers": ["Christine Seychelle"],
+      "reason": "Spelling typo — same person"
+    },
+    {
+      "winner": "Aaron Micallef Piccione",
+      "losers": ["Aaron Micallef Piccone"],
+      "reason": "Spelling typo (Piccione vs Piccone)"
+    },
+    {
+      "winner": "Kaydee Azzopardi Magri",
+      "losers": ["Kaydee Azzopard Magri"],
+      "reason": "Spelling typo (missing 'i' in Azzopardi)"
+    },
+    {
+      "winner": "Lucienne Meli Bellizzi",
+      "losers": ["Lucienne Meli Belizzi"],
+      "reason": "Spelling typo (Bellizzi vs Belizzi)"
+    },
+    {
+      "winner": "Lillian Baldacchino",
+      "losers": ["Lillian Badacchino"],
+      "reason": "Spelling typo (missing 'l')"
+    },
+    {
+      "winner": "Baldacchino Ylenia",
+      "losers": ["BALDACHINO YLENIA"],
+      "reason": "Caps + spelling variant (one vs two l's)"
+    },
+    {
+      "winner": "Annmarie Mangion",
+      "losers": ["Annemarie Mangion", "Ann Marie Mangion"],
+      "reason": "Same name, three orthographic variants"
+    },
+    {
+      "winner": "Daryl John Ellul",
+      "losers": ["Darryl John Ellul"],
+      "reason": "Spelling variant (one vs two r's)"
+    },
+    {
+      "winner": "Degiorgio Matthew",
+      "losers": ["DEGIORGIO MATTEW", "DEGIORGO MATTEW"],
+      "reason": "Caps + multiple spelling typos"
+    },
+    {
+      "winner": "Jayboy Lastimosa",
+      "losers": ["JAYBOY LASTIMOS"],
+      "reason": "Caps + truncated surname"
+    },
+    {
+      "winner": "Baldacchino Luke",
+      "losers": ["BALDACHINO LUKE"],
+      "reason": "Caps + spelling variant"
+    },
+    {
+      "winner": "Fotios Evangelou",
+      "losers": ["Fotis Evangelou", "Fotios Evangelov"],
+      "reason": "Same name, three transliteration variants"
+    },
+    {
+      "winner": "Ann Marie Attard",
+      "losers": ["Annmarie Attard", "Ann-Marie Attard"],
+      "reason": "Same name, three spacing/hyphen variants"
+    },
+    {
+      "winner": "Javier Viloria",
+      "losers": ["Javier Villoria"],
+      "reason": "Spelling typo (one vs two l's)"
+    },
+    {
+      "winner": "Natasha Hedley",
+      "losers": ["Natasha Headley"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "Jesmond Pule'",
+      "losers": ["Jesmond Pule"],
+      "reason": "Missing apostrophe (Maltese surname)"
+    },
+    {
+      "winner": "Andrew Pule'",
+      "losers": ["Andrew Pule"],
+      "reason": "Missing apostrophe (Maltese surname)"
+    },
+    {
+      "winner": "Darrell Pace",
+      "losers": ["Darrel Pace", "Darell Pace"],
+      "reason": "Same name, three spelling variants"
+    },
+    {
+      "winner": "Angele Pule'",
+      "losers": ["Angele Pule"],
+      "reason": "Missing apostrophe (Maltese surname)"
+    },
+    {
+      "winner": "Micky Mitic",
+      "losers": ["Mickey Mitic"],
+      "reason": "Nickname spelling variant"
+    },
+    {
+      "winner": "Borg Reuben",
+      "losers": ["BORG RUBEN"],
+      "reason": "Caps + missing 'e'"
+    },
+    {
+      "winner": "Christabelle Chetcuti",
+      "losers": ["Christabel Chetcuti"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "Francesca Sciortino",
+      "losers": ["FRANCESCA SCHORTINO"],
+      "reason": "Caps + spelling typo"
+    },
+    {
+      "winner": "Brigniano Charmaine",
+      "losers": ["BRIGNIANI CHARMAINE"],
+      "reason": "Caps + spelling typo"
+    },
+    {
+      "winner": "Simone Re",
+      "losers": ["SIMON RE"],
+      "reason": "Caps + spelling variant"
+    },
+    {
+      "winner": "DECOLONGON DONALD",
+      "losers": ["DECOLOGNON DONALD"],
+      "reason": "Spelling typo"
+    },
+    {
+      "winner": "Christina Bonett",
+      "losers": ["Christine Bonett"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "Luisa Andreozzi",
+      "losers": ["Luiza Andreozzi"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "Renette Magro",
+      "losers": ["Renette Magra"],
+      "reason": "Spelling typo"
+    },
+    {
+      "winner": "Anna Buhagiar",
+      "losers": ["Anne Buhagiar"],
+      "reason": "Spelling variant (Anna/Anne)"
+    },
+    {
+      "winner": "Deborah Farrugia",
+      "losers": ["Deborah Farruiga"],
+      "reason": "Spelling typo"
+    },
+    {
+      "winner": "Emman Xuereb",
+      "losers": ["Emann Xuereb"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "ANASTAZI MAX",
+      "losers": ["ANASTAXI MAX"],
+      "reason": "Spelling typo (X vs Z)"
+    },
+    {
+      "winner": "Clint Agius",
+      "losers": ["Clint Aguis"],
+      "reason": "Spelling typo"
+    },
+    {
+      "winner": "Yanika Pace",
+      "losers": ["Yanica Pace"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "BOJAN TASIC",
+      "losers": ["BOSAN TASIC"],
+      "reason": "Spelling typo (J vs S)"
+    },
+    {
+      "winner": "Jean Carl Azzopardi",
+      "losers": [
+        "JeanCarl Azzopardi",
+        "Jean Azzopardi",
+        "Jean Karl Azzopardi"
+      ],
+      "reason": "Spacing variants, K/C variant, truncated 2-token form. (John Azzopardi REMOVED — different person.)"
+    },
+    {
+      "winner": "Michelle Braddick-Southgate",
+      "losers": ["Michelle Braddick Southgate"],
+      "reason": "Hyphen vs space variant"
+    },
+    {
+      "winner": "Marcos Gio",
+      "losers": ["MARCUS GIO"],
+      "reason": "Caps + spelling variant"
+    },
+    {
+      "winner": "Joseph Randich",
+      "losers": ["Joe Randich"],
+      "reason": "Joe is nickname for Joseph"
+    },
+    {
+      "winner": "Braydon Galea",
+      "losers": ["Braden Galea"],
+      "reason": "Spelling variant"
+    },
+    {
+      "winner": "Joyce Xerri",
+      "losers": ["Joyce Scerri"],
+      "reason": "Maltese surname variant (X/S phonetic equivalence)"
+    },
+    {
+      "winner": "Naomi Zammit Ciantar",
+      "losers": ["Naomi M. Zammit Ciantar"],
+      "reason": "Same person; one record carries middle initial"
+    }
+  ]
+}

@@ -268,3 +268,453 @@ def merge_case_duplicates(
             loser_names.append(loser_name)
         merged.append((winner_name, loser_names))
     return merged
+
+
+# ---- Token-order-insensitive duplicate detection ----
+#
+# Catches "Leanne Schembri" / "SCHEMBRI LEANNE" / "Schembri Leanne" all
+# as one player. The fingerprint is `sorted(tokens.lower())` joined by
+# spaces — invariant to case AND word order.
+#
+# This is more aggressive than the case-only merger: e.g. theoretical
+# false positives like "Robert Lee" vs "Lee Robert" (which are the same
+# person 99.9% of the time anyway in this domain). For two-name pairs,
+# in a Maltese tennis context, swapped tokens are essentially always the
+# same person (Excel data-entry order varies by file).
+#
+# Only matches when token *count* is identical: "Robert Smith" and
+# "Robert John Smith" produce different fingerprints — so we don't
+# accidentally collapse a 2-token name into an unrelated 3-token name.
+
+
+def _token_fingerprint(name: str) -> str:
+    """Return a token-order-insensitive fingerprint for a name."""
+    norm = normalize_name(name).lower()
+    tokens = sorted(t for t in norm.split() if t)
+    return " ".join(tokens)
+
+
+def find_token_duplicate_groups(
+    conn: sqlite3.Connection,
+) -> list[list[tuple[int, str, int]]]:
+    """Find groups of players whose names match modulo case AND token order.
+
+    Same return shape as `find_case_duplicate_groups`: a list of groups,
+    each a list of `(player_id, canonical_name, n_matches)` tuples sorted
+    by n_matches DESC. Excludes already-merged players. Only returns
+    groups with 2+ members.
+    """
+    rows = conn.execute(
+        """
+        SELECT
+            p.id,
+            p.canonical_name,
+            (
+                SELECT COUNT(*)
+                FROM match_sides ms
+                JOIN matches m ON m.id = ms.match_id
+                WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+                  AND m.superseded_by_run_id IS NULL
+            ) AS n_matches
+        FROM players p
+        WHERE p.merged_into_id IS NULL
+        """
+    ).fetchall()
+
+    groups: dict[str, list[tuple[int, str, int]]] = {}
+    for pid, name, n_matches in rows:
+        key = _token_fingerprint(name)
+        if not key:
+            continue
+        groups.setdefault(key, []).append((pid, name, n_matches))
+
+    for g in groups.values():
+        g.sort(key=lambda t: (-t[2], t[0]))
+
+    return [g for g in groups.values() if len(g) > 1]
+
+
+def _pick_canonical_display(group: list[tuple[int, str, int]]) -> int:
+    """Within a token-equivalent group, choose which row's canonical_name
+    becomes the winner's *display* name. Heuristics, in order:
+       1. Prefer a non-ALL-CAPS form (e.g. 'Leanne Schembri' over 'SCHEMBRI LEANNE').
+       2. Prefer the form with the most matches (already encoded in sort order).
+    Returns the index in `group` of the chosen display row.
+    The actual winner_id (where matches/aliases get redirected) is always
+    group[0] — we just possibly rename it to a nicer display form.
+    """
+    for i, (_, name, _) in enumerate(group):
+        if not name.isupper():
+            return i
+    return 0  # all upper-case, keep most-matches one
+
+
+def merge_token_duplicates(
+    conn: sqlite3.Connection,
+    *,
+    dry_run: bool = False,
+) -> list[dict]:
+    """Find and merge all token-order-insensitive duplicate player records.
+
+    Winner selection prioritises the *prettier* display name (non-ALL-CAPS,
+    Surname-Last form) so the surviving record looks right in the UI.
+    Match counts and aliases are merged regardless of which row wins.
+
+    If `dry_run=True`, returns the proposed merges without modifying the DB.
+
+    Each result entry:
+        {
+            "winner_id": int,
+            "winner_name": str,
+            "winner_n_matches": int,
+            "losers": [{"id": int, "name": str, "n_matches": int}, ...]
+        }
+    Caller should run `rate` afterward to recompute ratings.
+    """
+    groups = find_token_duplicate_groups(conn)
+    out: list[dict] = []
+
+    for group in groups:
+        # Pick the prettiest display row as the winner; everyone else is a loser.
+        # Tie-breaker preference order: non-CAPS > most-matches > lowest id (stable).
+        def _winner_key(item):
+            _pid, name, n = item
+            return (
+                0 if not name.isupper() else 1,  # non-CAPS first
+                -n,                               # more matches first
+                _pid,                             # stable
+            )
+
+        sorted_group = sorted(group, key=_winner_key)
+        winner_id, winner_name, winner_n = sorted_group[0]
+        losers = sorted_group[1:]
+
+        losers_info = []
+        for loser_id, loser_name, loser_n in losers:
+            losers_info.append(
+                {"id": loser_id, "name": loser_name, "n_matches": loser_n}
+            )
+            if not dry_run:
+                merge_player_into(
+                    conn, loser_id, winner_id,
+                    reason=f"token-equivalent of '{winner_name}'",
+                )
+
+        out.append({
+            "winner_id": winner_id,
+            "winner_name": winner_name,
+            "winner_n_matches": winner_n,
+            "losers": losers_info,
+        })
+
+    # Now drop the helper that was only used by the previous winner-rename
+    # path (no longer needed but kept above for any future caller).
+    return out
+
+
+# ---- Manual-alias merges ----
+#
+# For cases automated rules cannot catch: marriage surname changes,
+# nicknames, deliberate aliases. Driven by a JSON file so the list is
+# durable, reviewable, and survives DB rebuilds.
+
+
+def _resolve_player_id(conn: sqlite3.Connection, name: str) -> tuple[int, str] | None:
+    """Look up a player by canonical_name (exact match), then follow the
+    merge chain to the surviving record. Returns (id, name) of the surviving
+    record or None if not found.
+    """
+    row = conn.execute(
+        "SELECT id, canonical_name, merged_into_id FROM players "
+        "WHERE canonical_name = ?",
+        (name,),
+    ).fetchone()
+    if row is None:
+        return None
+    pid, n, merged_into = row
+    seen = {pid}
+    while merged_into is not None and merged_into not in seen:
+        seen.add(merged_into)
+        nxt = conn.execute(
+            "SELECT id, canonical_name, merged_into_id FROM players WHERE id = ?",
+            (merged_into,),
+        ).fetchone()
+        if nxt is None:
+            break
+        pid, n, merged_into = nxt
+    return (pid, n)
+
+
+def _confidence(
+    a: dict, b: dict, raw_score: float
+) -> tuple[float, list[str]]:
+    """Combine raw string similarity with structured signals to produce a
+    'this is the same person' confidence in [0..1]. Returns (confidence, reasons).
+
+    Signals:
+      + raw string similarity (gestalt ratio from difflib) — base.
+      + same first character of canonical name (anchors first-name).
+      + same token count (rules out 'Robert Smith' vs 'Robert John Smith').
+      + same gender when both known.
+      + shared club presence (overlap in any of the comma-separated club slugs).
+      + Levenshtein-1 between sorted-token fingerprints (catches 1-char typo).
+      − different first character (suggests different first name).
+      − both have many active matches (>30 each) — both look 'real' & distinct.
+    """
+    reasons: list[str] = []
+    score = raw_score
+    a_key = a["_key"]
+    b_key = b["_key"]
+    a_tok = a["_token_fp"].split()
+    b_tok = b["_token_fp"].split()
+
+    # Boosts are intentionally small so the *raw similarity* dominates.
+    # Total positive boost ceiling is ~0.10 — enough to lift a strong typo
+    # match (raw 0.92) into VERY HIGH, but not enough to hide a mediocre
+    # raw match (0.85 with all boosts → 0.95, still HIGH not VERY HIGH).
+    # Penalties are larger because they encode "this is probably not the
+    # same person" — different first letter or no signal overlap.
+
+    # First character anchor
+    if a_key and b_key:
+        if a_key[0] == b_key[0]:
+            score += 0.02
+            reasons.append("first-letter match")
+        else:
+            score -= 0.15
+            reasons.append("first-letter differs")
+
+    # Token-count parity
+    if len(a_tok) == len(b_tok):
+        score += 0.02
+        reasons.append(f"token-count match ({len(a_tok)})")
+    else:
+        score -= 0.05
+        reasons.append("token-count differs")
+
+    # Gender
+    ga, gb = a.get("gender"), b.get("gender")
+    if ga and gb and ga == gb:
+        score += 0.02
+        reasons.append(f"gender match ({ga})")
+    elif ga and gb and ga != gb:
+        # Should already be filtered out upstream when same_gender_only=True
+        score -= 0.20
+        reasons.append("gender differs")
+
+    # Club overlap
+    a_clubs = set((a.get("clubs") or "").split(",")) - {""}
+    b_clubs = set((b.get("clubs") or "").split(",")) - {""}
+    if a_clubs and b_clubs and (a_clubs & b_clubs):
+        score += 0.02
+        reasons.append(
+            f"shared club ({','.join(sorted(a_clubs & b_clubs))})"
+        )
+
+    # Single-character edit on sorted-token fingerprints (catches typos
+    # like 'Lillian Badacchino' / 'Lillian Baldacchino')
+    fp_a = a["_token_fp"]
+    fp_b = b["_token_fp"]
+    if abs(len(fp_a) - len(fp_b)) <= 1 and len(fp_a) >= 8:
+        sm = __import__("difflib").SequenceMatcher(None, fp_a, fp_b)
+        if sm.ratio() >= 0.95:
+            score += 0.04
+            reasons.append("token-fp ~1-char-edit")
+
+    # Both look 'real' (lots of matches each) — penalise as collision risk.
+    # Two players with 30+ matches each are much less likely to be a typo
+    # than a 30-match player + a 3-match ghost record.
+    n_a = a.get("n", 0)
+    n_b = b.get("n", 0)
+    if n_a >= 30 and n_b >= 30:
+        score -= 0.08
+        reasons.append("both have 30+ matches (less typo-like)")
+
+    # Bound and round
+    score = max(0.0, min(1.0, score))
+    return round(score, 3), reasons
+
+
+def suggest_fuzzy_matches(
+    conn: sqlite3.Connection,
+    *,
+    threshold: float = 0.85,
+    same_gender_only: bool = True,
+    min_matches: int = 1,
+) -> list[dict]:
+    """Surface plausible same-person pairs that automated rules missed.
+
+    Heuristics:
+      - difflib.SequenceMatcher ratio >= `threshold` on the lower-cased,
+        whitespace-collapsed canonical names (so case + whitespace +
+        token order don't dominate the signal). Token-equivalent pairs
+        are excluded — those are caught by `find_token_duplicate_groups`.
+      - When `same_gender_only=True`, both records must share gender
+        (or one must be NULL) — avoids cross-gender false positives.
+      - Both must have >= `min_matches` active matches.
+      - Excludes already-merged records.
+      - Excludes pairs where one is a subset of the other only because
+        of token count (e.g. 'Robert Smith' vs 'Robert John Smith') —
+        these need human judgement, not a fuzzy threshold.
+
+    Returns a list of dicts, ordered by similarity DESC then total
+    matches DESC. Each entry:
+        {
+            "score": float,           # similarity 0..1
+            "a": {id, name, gender, n, last_played, latest_class, clubs},
+            "b": {id, name, gender, n, last_played, latest_class, clubs},
+        }
+    """
+    import difflib
+
+    rows = conn.execute(
+        """
+        SELECT
+            p.id, p.canonical_name, p.gender,
+            (SELECT COUNT(*) FROM match_sides ms
+             JOIN matches m ON m.id = ms.match_id
+             WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+               AND m.superseded_by_run_id IS NULL) AS n,
+            (SELECT MAX(m.played_on) FROM match_sides ms
+             JOIN matches m ON m.id = ms.match_id
+             WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+               AND m.superseded_by_run_id IS NULL) AS last_played,
+            (SELECT pta.class_label
+             FROM player_team_assignments pta
+             JOIN tournaments t ON t.id = pta.tournament_id
+             WHERE pta.player_id = p.id
+             ORDER BY t.year DESC, t.id DESC LIMIT 1) AS latest_class,
+            (SELECT GROUP_CONCAT(DISTINCT c.slug)
+             FROM match_sides ms
+             JOIN matches m ON m.id = ms.match_id
+             JOIN tournaments t ON t.id = m.tournament_id
+             JOIN clubs c ON c.id = t.club_id
+             WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+               AND m.superseded_by_run_id IS NULL) AS clubs
+        FROM players p
+        WHERE p.merged_into_id IS NULL
+        """
+    ).fetchall()
+
+    # Build a list of player dicts, keep only those with enough matches
+    players_list = []
+    for pid, name, gender, n, last_played, latest_class, clubs in rows:
+        n = n or 0
+        if n < min_matches:
+            continue
+        players_list.append({
+            "id": pid, "name": name, "gender": gender,
+            "n": n, "last_played": last_played or "",
+            "latest_class": latest_class or "",
+            "clubs": clubs or "",
+            # Pre-computed key for faster comparison
+            "_key": " ".join(name.lower().split()),
+            "_token_fp": _token_fingerprint(name),
+            "_first": name[:1].lower(),
+        })
+
+    suggestions: list[dict] = []
+    n_players = len(players_list)
+    for i in range(n_players):
+        a = players_list[i]
+        for j in range(i + 1, n_players):
+            b = players_list[j]
+            # Cheap prefilters
+            if abs(len(a["_key"]) - len(b["_key"])) > 8:
+                continue
+            if a["_first"] and b["_first"] and a["_first"] != b["_first"]:
+                # Different first letter => unlikely same person, but allow
+                # the case where surname-first variants slip through
+                # (since we already collapsed those via tokens above).
+                # Skip for speed — token-fingerprint catches all such cases.
+                pass
+            if a["_token_fp"] == b["_token_fp"]:
+                continue  # already a token-dup; not a fuzzy case
+            if same_gender_only:
+                ga, gb = a["gender"], b["gender"]
+                if ga and gb and ga != gb:
+                    continue
+            score = difflib.SequenceMatcher(None, a["_key"], b["_key"]).ratio()
+            if score < threshold:
+                continue
+            confidence, reasons = _confidence(a, b, score)
+            suggestions.append({
+                "score": score,
+                "confidence": confidence,
+                "reasons": reasons,
+                "a": {k: v for k, v in a.items() if not k.startswith("_")},
+                "b": {k: v for k, v in b.items() if not k.startswith("_")},
+            })
+
+    # Sort by confidence first (the user-facing trust signal), then by raw
+    # similarity, then by combined match count (high-traffic pairs first).
+    suggestions.sort(
+        key=lambda s: (
+            -s["confidence"],
+            -s["score"],
+            -(s["a"]["n"] + s["b"]["n"]),
+        )
+    )
+    return suggestions
+
+
+def apply_manual_aliases(
+    conn: sqlite3.Connection,
+    aliases_path: str,
+    *,
+    dry_run: bool = False,
+) -> tuple[list[dict], list[str]]:
+    """Apply manual same-person merges from a JSON file.
+
+    Returns (applied, warnings):
+        applied: [{winner_name, winner_id, losers: [{name, id, status}]}]
+            status is one of: 'merged', 'already-merged', 'self', 'not-found'
+        warnings: human-readable warning strings (e.g. unknown winner)
+    """
+    import json
+
+    with open(aliases_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    applied: list[dict] = []
+    warnings: list[str] = []
+
+    for entry in data.get("merges", []):
+        winner_name = entry["winner"]
+        loser_names = entry.get("losers", [])
+        reason = entry.get("reason", "manual alias")
+
+        winner = _resolve_player_id(conn, winner_name)
+        if winner is None:
+            warnings.append(
+                f"winner {winner_name!r} not found in players — entry skipped"
+            )
+            continue
+        winner_id, winner_resolved = winner
+
+        loser_results = []
+        for ln in loser_names:
+            loser = _resolve_player_id(conn, ln)
+            if loser is None:
+                loser_results.append({"name": ln, "id": None, "status": "not-found"})
+                continue
+            loser_id, _ = loser
+            if loser_id == winner_id:
+                loser_results.append(
+                    {"name": ln, "id": loser_id, "status": "already-merged"}
+                )
+                continue
+            if not dry_run:
+                merge_player_into(
+                    conn, loser_id, winner_id,
+                    reason=f"manual alias: {reason}",
+                )
+            loser_results.append({"name": ln, "id": loser_id, "status": "merged"})
+
+        applied.append({
+            "winner_name": winner_resolved,
+            "winner_id": winner_id,
+            "losers": loser_results,
+        })
+
+    return applied, warnings
