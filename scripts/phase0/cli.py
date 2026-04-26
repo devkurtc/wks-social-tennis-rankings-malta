@@ -87,6 +87,12 @@ def cmd_load(args: argparse.Namespace) -> int:
         # both .xls and .xlsx). Auto-handles legacy Excel via xlrd.
         ("wilson autumn results", _wl.parse),
         ("wilson spring results", _wl.parse),
+        # TCK (Tennis Club Kordin) team tournaments — same modern Day-N
+        # template as VLTC's Antes/Tennis Trade/etc.
+        ("tck spring team tournament", _tt.parse),
+        ("tck autumn team tournament", _tt.parse),
+        # TCK Mixed Doubles — same flat-list shape as TCK Chosen 2024
+        ("tck mixed doubles", _tck.parse),
     ]
 
     parse_fn = None
@@ -108,10 +114,61 @@ def cmd_load(args: argparse.Namespace) -> int:
     conn = db.init_db()
     try:
         run_id = parse_fn(args.file, conn)
+        # v2 multi-club: parsers hard-code VLTC; reattribute to the correct
+        # club based on the file's `_DATA_/<CLUB>/...` path. Idempotent.
+        club_name = _detect_club_from_path(args.file)
+        if club_name and club_name != "VLTC":
+            club_id = _ensure_club(conn, club_name)
+            # Update source_files + tournaments for THIS run to point at the
+            # correct club.
+            sf_id_row = conn.execute(
+                "SELECT source_file_id FROM ingestion_runs WHERE id = ?",
+                (run_id,),
+            ).fetchone()
+            if sf_id_row:
+                sf_id = sf_id_row[0]
+                conn.execute(
+                    "UPDATE source_files SET club_id = ? WHERE id = ?",
+                    (club_id, sf_id),
+                )
+                conn.execute(
+                    "UPDATE tournaments SET club_id = ? WHERE source_file_id = ?",
+                    (club_id, sf_id),
+                )
+                conn.commit()
     finally:
         conn.close()
     print(f"Loaded ingestion_run_id={run_id} from {args.file}")
     return 0
+
+
+def _detect_club_from_path(path: str) -> str | None:
+    """Infer the club from a path like `_DATA_/VLTC/foo.xlsx` → 'VLTC'."""
+    import os
+    parts = os.path.normpath(path).split(os.sep)
+    # Walk backward from the file to find a directory that looks like a club code
+    for p in reversed(parts[:-1]):
+        if p == "_DATA_":
+            return None  # didn't find a club subdir
+        # Heuristic: club codes are SHORT all-caps tokens (e.g. VLTC, TCK, MARSA)
+        if 2 <= len(p) <= 8 and p.replace("_", "").isalpha() and p.isupper():
+            return p
+    return None
+
+
+def _ensure_club(conn, club_name: str) -> int:
+    """Get-or-create a club row; return its id. Idempotent."""
+    slug = club_name.lower()
+    row = conn.execute(
+        "SELECT id FROM clubs WHERE slug = ?", (slug,)
+    ).fetchone()
+    if row:
+        return row[0]
+    cur = conn.execute(
+        "INSERT INTO clubs (name, slug) VALUES (?, ?)",
+        (club_name, slug),
+    )
+    return cur.lastrowid
 
 
 def cmd_rate(args: argparse.Namespace) -> int:

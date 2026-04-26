@@ -25,8 +25,10 @@ from typing import Iterator
 
 import openpyxl
 
-# Class label pattern: letter (A-D) + digit
-_CLASS_RE = re.compile(r"^([A-D])(\d+)$", re.IGNORECASE)
+# Class label pattern: letter (A-D) + digit, with optional 'CAT ' prefix
+# (TCK uses 'CAT A1'; VLTC uses bare 'A1'). TCK also has 4-deep tiers
+# (e.g. 'CAT A4') vs VLTC's typical 3-deep.
+_CLASS_RE = re.compile(r"^(?:CAT\s+)?([A-D])(\d+)$", re.IGNORECASE)
 
 
 def _norm(cell) -> str:
@@ -101,14 +103,31 @@ def extract_team_selection(
     if not team_letter_cols:
         return []
 
-    # Find captain row (next non-empty row with 'CAPTAIN' in some col)
+    # Find captain row. Two layouts observed:
+    #   VLTC:  has explicit 'CAPTAIN' label cell, captains in team-letter cols
+    #   TCK:   no 'CAPTAIN' label — captains are simply in the next row after
+    #          team headers, in the team-letter columns
+    # Try labelled first; fall back to the next non-empty row in team-letter cols.
     captain_names: dict[str, str] = {}
-    for i in range(team_header_idx + 1, min(team_header_idx + 4, len(rows))):
+    for i in range(team_header_idx + 1, min(team_header_idx + 5, len(rows))):
         row = rows[i]
+        # First, check for explicit CAPTAIN label
         if any(c.upper() == "CAPTAIN" for c in row):
             for letter, col in team_letter_cols.items():
                 if col < len(row):
                     captain_names[letter] = row[col]
+            break
+        # Otherwise, if the team-letter cells in this row contain plausible names
+        # (non-empty, non-class-label, contains a space or > 4 chars),
+        # treat as captain row.
+        candidate = {}
+        for letter, col in team_letter_cols.items():
+            if col < len(row):
+                cell = row[col]
+                if cell and not _is_class_label(cell) and cell.upper() not in ("MEN", "LADIES"):
+                    candidate[letter] = cell
+        if len(candidate) >= 2:  # at least 2 captains found
+            captain_names = candidate
             break
 
     # Walk subsequent rows looking for class labels in any column;

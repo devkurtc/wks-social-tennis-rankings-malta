@@ -149,16 +149,21 @@ def _is_pair_string(value) -> bool:
 def _split_pair(pair_str: str) -> tuple[str, str]:
     """Split `'First Last/First Last'` into two raw player names.
 
+    Tolerant of multiple consecutive separators: `'Foo / Bar'`, `'Foo//Bar'`,
+    `'Foo / / Bar'` all split correctly into `('Foo', 'Bar')`. Some clubs
+    (e.g. TCK Mixed Doubles 2026) use `//` as the pair separator.
+
     Strips leading/trailing whitespace per half; preserves internal whitespace
     (last names like `Treeby Ward` are two-word). Does NOT normalize — that
     is `players.get_or_create_player`'s job.
     """
-    parts = pair_str.split("/")
+    # Split on one-or-more slashes, drop empty fragments
+    parts = [p.strip() for p in pair_str.split("/") if p.strip()]
     if len(parts) != 2:
-        # The spec verifies only one '/' per pair string in this file. If we
-        # hit something unexpected, fail loudly rather than guess.
-        raise ValueError(f"pair string did not split into exactly 2 names: {pair_str!r}")
-    return parts[0].strip(), parts[1].strip()
+        raise ValueError(
+            f"pair string did not split into exactly 2 names: {pair_str!r}"
+        )
+    return parts[0], parts[1]
 
 
 def _coerce_score(value) -> Optional[int]:

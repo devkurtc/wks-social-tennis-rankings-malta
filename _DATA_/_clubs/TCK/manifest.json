@@ -1,0 +1,79 @@
+{
+  "club": "Tennis Club Kordin (TCK)",
+  "source_url": "https://www.tennisclubkordin.com/tournament-archive",
+  "generated_at": "2026-04-26T06:44:24.781843+00:00",
+  "tournaments": [
+    {
+      "title": "TCK AUTUMN TEAM TOURNAMENT | 2025",
+      "year": 2025,
+      "sheet_id": "146SStSf0_JkjVLHf-Rpmy0-zi_noTpMAtVw7mvDUOkI",
+      "slug": "tck-autumn-team-tournament-2025",
+      "xlsx_path": "_DATA_/2025/TCK/tck-autumn-team-tournament-2025/TCK AUTUMN TEAM TOURNAMENT 2025.xlsx",
+      "sha256": "6fb569b7db9cdc92876b2814e0028ebbe45cf0e66ab76e0c6cb9523612a1b406",
+      "downloaded_at": "2026-04-26T06:44:26.768207+00:00"
+    },
+    {
+      "title": "PKF TEAM TOURNAMENT | 2025",
+      "year": 2025,
+      "sheet_id": "1RHe8GcDYEvRZFb4NAWATlQBV-ZlS2dTdGqeAWUQaESA",
+      "slug": "pkf-team-tournament-2025",
+      "xlsx_path": "_DATA_/2025/TCK/pkf-team-tournament-2025/PKF TEAM TOURNAMENT 2025.xlsx",
+      "sha256": "ce2c6ab1ca68315c36b4a0f522e95b4f686d8a3604c8fed9eab28236f9ca5eed",
+      "downloaded_at": "2026-04-26T06:44:29.271855+00:00"
+    },
+    {
+      "title": "SAN MICHEL TEAM TOURNAMENT | 2025",
+      "year": 2025,
+      "sheet_id": "12Q3amFJlIA4fxhIMj8ZwC5MTdELcCpnc6TD5CHREmAs",
+      "slug": "san-michel-team-tournament-2025",
+      "xlsx_path": "_DATA_/2025/TCK/san-michel-team-tournament-2025/SAN MICHEL TEAM TOURNAMENT 2025.xlsx",
+      "sha256": "a51588c8609c3b5906e7e4b5c1086058a462dd13d35ab5921afed0b1d744d4c9",
+      "downloaded_at": "2026-04-26T06:44:31.568166+00:00"
+    },
+    {
+      "title": "BAY STREET TEAM TOURNAMENT | 2024",
+      "year": 2024,
+      "sheet_id": "1YsxmshPylPArYAPnSGLlc0JeemiJiqMJzCWTjTEvWzM",
+      "slug": "bay-street-team-tournament-2024",
+      "xlsx_path": "_DATA_/2024/TCK/bay-street-team-tournament-2024/BAY STREET TEAM TOURNAMENT 2024.xlsx",
+      "sha256": "8fd00eb71a75fe9768dbb3ee3ff0bbbd0ffc60937d806e7b3460756083e64049",
+      "downloaded_at": "2026-04-26T06:44:33.404193+00:00"
+    },
+    {
+      "title": "BENNY VIDAL PKF TEAM TOURNAMENT | 2024",
+      "year": 2024,
+      "sheet_id": "12TiEdcUrwcbM-kl2gwiyg_4x4sAKGypZQQCxGUG_YYU",
+      "slug": "benny-vidal-pkf-team-tournament-2024",
+      "xlsx_path": "_DATA_/2024/TCK/benny-vidal-pkf-team-tournament-2024/BENNY VIDAL PKF TEAM TOURNAMENT 2024.xlsx",
+      "sha256": "66fe096a8a78ee98c976436d14926157a13cb75899de1132d6284e443183cdb8",
+      "downloaded_at": "2026-04-26T06:44:35.399420+00:00"
+    },
+    {
+      "title": "TENNIS TRADE TEAM TOURNAMENT | 2023",
+      "year": 2023,
+      "sheet_id": "1a86V0pyRIWafRwiy5PawvPwdyzlcPGJPA5k8gQMxEBA",
+      "slug": "tennis-trade-team-tournament-2023",
+      "xlsx_path": "_DATA_/2023/TCK/tennis-trade-team-tournament-2023/TENNIS TRADE TEAM TOURNAMENT 2023.xlsx",
+      "sha256": "a4c29c160ce866bd714421098f3b73c8a0a3fca8bce23c2e259dd371bbe1599e",
+      "downloaded_at": "2026-04-26T06:44:37.085508+00:00"
+    },
+    {
+      "title": "BENNY VIDAL PKF TEAM TOURNAMENT | 2023",
+      "year": 2023,
+      "sheet_id": "1sIpa6jQjsMvgZAoCW78qZ2qPOmr2Jnnl_tHj8wO901c",
+      "slug": "benny-vidal-pkf-team-tournament-2023",
+      "xlsx_path": "_DATA_/2023/TCK/benny-vidal-pkf-team-tournament-2023/BENNY VIDAL PKF TEAM TOURNAMENT 2023.xlsx",
+      "sha256": "13ed04cf184fbebc1393f6eebea44500e0ef68b642e6b2313c0e0b25e0204662",
+      "downloaded_at": "2026-04-26T06:44:38.988816+00:00"
+    },
+    {
+      "title": "SAN MICHEL TEAM TOURNAMENT | 2023",
+      "year": 2023,
+      "sheet_id": "1zLbBoQH-l-QkKjDCaAFeOaxXHN0ayjSBT71KA-BSKuw",
+      "slug": "san-michel-team-tournament-2023",
+      "xlsx_path": "_DATA_/2023/TCK/san-michel-team-tournament-2023/SAN MICHEL TEAM TOURNAMENT 2023.xlsx",
+      "sha256": "8ffb7193b867ca8d2532e8b7272546c89e14b4fed2c2a1c790acaa11278b56e0",
+      "downloaded_at": "2026-04-26T06:44:40.925665+00:00"
+    }
+  ]
+}
