@@ -39,23 +39,50 @@ def cmd_load(args: argparse.Namespace) -> int:
     from parsers import sports_experience_2025 as _se
     from parsers import mixed_doubles as _md
     from parsers import team_tournament as _tt
+    from parsers import team_tournament_legacy as _ttl
     from parsers import wilson as _wl
+    from parsers import elektra_2022 as _e22
+    from parsers import tck_chosen_2024 as _tck
 
     DISPATCH: list[tuple[str, callable]] = [
         # Sports Experience Chosen Doubles (2024 + 2025) — same template,
         # same sheet names ('Men Div 1'..'Lad Div 3') → original parser.
         ("sports experience chosen doubles", _se.parse),
+        # TCK Chosen Tournament Divisions 2024 — flat-list format
+        # (DATE/TIME/COURT/DIV/TEAM/VS/TEAM/RESULTS columns). Filename has
+        # the typo "TOUNAMENT" — match against that.
+        ("tck chosen tounament", _tck.parse),
         # VLTC Mixed Doubles (and same-template division-RR files) — sheets
         # are 'Division 1'..'Division N'. Dynamic sub-block discovery.
         ("ess mixed tournament div and results", _md.parse),
         ("elektra mixed tournament div and results", _md.parse),
+        # Elektra 2022 — cross-tab matrix variant (UNIQUE format: 'Draws and
+        # Results Elektra Mixed Doubles 2022.xlsx'). Must come BEFORE the
+        # generic 'elektra' substring check would fire.
+        ("draws and results elektra", _e22.parse),
         # VLTC Team Tournaments (modern "Day N" template) — Antes / Tennis
         # Trade / San Michel post-2024 / Samsung Rennie Tonna. Same family.
+        # IMPORTANT: list these BEFORE the legacy patterns below so the
+        # modern files (e.g. "Tennis Trade Team Tournament - Results.xlsx")
+        # don't get stolen by a less-specific legacy substring.
         ("antes insurance team tournament", _tt.parse),
         ("tennis trade team tournament", _tt.parse),
         ("results tennis trade team tournament", _tt.parse),
         ("san michel results", _tt.parse),
         ("samsung rennie tonna", _tt.parse),
+        # VLTC Team Tournaments (LEGACY single-sheet "DAY" template) —
+        # PKF 2023/2024, Tennis Trade 2023, San Michel 2023/2024/2025
+        # (uppercase). Filename patterns are distinctive: "pkf", uppercase
+        # "san michel team tournament" (the modern "san michel results"
+        # pattern above already matched all 2025+ files), the legacy
+        # "tennis trade  team tournament 2023" specifically (the modern
+        # "tennis trade team tournament" above already matched newer ones),
+        # and the bare " team tournament 2024" (San Michel 2024).
+        ("pkf  team tournament", _ttl.parse),
+        ("pkf team tournament", _ttl.parse),
+        ("san michel team tournament", _ttl.parse),
+        ("tennis trade  team tournament 2023", _ttl.parse),
+        (" team tournament 2024", _ttl.parse),
         # Wilson Autumn/Spring 2017-2021 (older team-tournament format,
         # both .xls and .xlsx). Auto-handles legacy Excel via xlrd.
         ("wilson autumn results", _wl.parse),

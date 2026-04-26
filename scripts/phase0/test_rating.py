@@ -307,6 +307,34 @@ class TestVolumeKMultiplier(unittest.TestCase):
         self.assertEqual(rating.volume_k_multiplier(0), rating.VOLUME_K_MIN)
 
 
+class TestUpsetKMultiplier(unittest.TestCase):
+    """Per Kurt's "losing to worse should drop more" feedback."""
+
+    def test_no_surprise_returns_one(self):
+        # E=0.5, S=0.5 (favored exactly to draw, drew) → no boost
+        self.assertEqual(rating.upset_k_multiplier(0.5, 0.5), 1.0)
+        # E=0.8, S=0.8 (heavy favorite, won as expected) → no boost
+        self.assertEqual(rating.upset_k_multiplier(0.8, 0.8), 1.0)
+
+    def test_total_upset_returns_max_boost(self):
+        # E=0.9, S=0.1 → surprise=0.8 → K = 1 + 1.0 × 0.8 = 1.8
+        self.assertAlmostEqual(rating.upset_k_multiplier(0.1, 0.9), 1.8, places=4)
+        # Symmetric: E=0.1, S=0.9 (underdog upset win) → same
+        self.assertAlmostEqual(rating.upset_k_multiplier(0.9, 0.1), 1.8, places=4)
+
+    def test_modest_surprise(self):
+        # E=0.7, S=0.3 → surprise=0.4 → K = 1.4
+        self.assertAlmostEqual(rating.upset_k_multiplier(0.3, 0.7), 1.4, places=4)
+
+    def test_alpha_zero_disables_amplification(self):
+        # alpha=0 means no upset amplification; always returns 1.0
+        self.assertEqual(rating.upset_k_multiplier(0.1, 0.9, alpha=0.0), 1.0)
+
+    def test_custom_alpha(self):
+        # alpha=2.0 means a 50% surprise gives 2x boost (1 + 2*0.5 = 2.0)
+        self.assertAlmostEqual(rating.upset_k_multiplier(0.0, 0.5, alpha=2.0), 2.0, places=4)
+
+
 class TestCombinedKBehavior(unittest.TestCase):
     """Integration: per-division K + game-volume K together affect rating
     deltas correctly. Uses TestRecomputeAll's setUp pattern."""
@@ -405,6 +433,43 @@ class TestCombinedKBehavior(unittest.TestCase):
         ).fetchone()[0]
         # Difference roughly approximates DIVISION_STARTING_MU['M1']-['M4']=9
         self.assertGreater(m1_winner - m4_winner, 5.0)
+
+    def test_upset_amplifies_rating_change(self):
+        """Per Kurt: losing to worse opponents should drop μ more than
+        losing to better opponents. Achieved via upset_k_multiplier
+        scaling K_combined.
+
+        Fixture: P1+P2 win 2 matches in a row (becoming the clear favorites),
+        then LOSE the 3rd to the same opponents (a true upset, since the
+        rating engine now expects them to win).
+        """
+        self._add_match(1, 1, 2, 3, 4, 12, 0, "Men Div 1")
+        self._add_match(2, 1, 2, 3, 4, 12, 0, "Men Div 1")  # 2nd win → P1/P2 = clear favorites
+        self._add_match(3, 1, 2, 3, 4, 0, 12, "Men Div 1")  # Upset loss
+
+        original_alpha = rating.UPSET_ALPHA
+        try:
+            rating.UPSET_ALPHA = 0.0
+            rating.recompute_all(self.conn, model_name="test_no_upset")
+            mu_no_upset = self.conn.execute(
+                "SELECT mu FROM ratings WHERE model_name = 'test_no_upset' AND player_id = 1"
+            ).fetchone()[0]
+
+            rating.UPSET_ALPHA = 1.0
+            rating.recompute_all(self.conn, model_name="test_with_upset")
+            mu_with_upset = self.conn.execute(
+                "SELECT mu FROM ratings WHERE model_name = 'test_with_upset' AND player_id = 1"
+            ).fetchone()[0]
+
+            # After 2 wins then upset loss, μ with amplification < μ without.
+            # The upset (3rd match) is more amplified than the routine wins
+            # (1st and 2nd matches), so the net effect is a lower final μ.
+            self.assertLess(mu_with_upset, mu_no_upset,
+                            f"Upset amplification should produce LOWER μ "
+                            f"after a favored loss (got {mu_with_upset:.2f} vs "
+                            f"{mu_no_upset:.2f} without amplification)")
+        finally:
+            rating.UPSET_ALPHA = original_alpha
 
 
 if __name__ == "__main__":

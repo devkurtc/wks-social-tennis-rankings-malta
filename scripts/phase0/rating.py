@@ -133,6 +133,17 @@ VOLUME_K_MIN = 0.5
 VOLUME_K_MAX = 1.5
 WALKOVER_VOLUME_K = 0.5  # walkovers carry minimal signal regardless of recorded score
 
+# Upset-amplification factor: when a match outcome diverges from expectation
+# (favorite loses; underdog wins), AMPLIFY the rating change for ALL four
+# players — losers drop more, winners rise more.
+# K_upset = 1 + UPSET_ALPHA × |S_actual - E_predicted|
+# Range: 1.0 (perfect prediction, no boost) to 1 + UPSET_ALPHA (total upset).
+# UPSET_ALPHA = 1.0 means a 50%-magnitude upset gives 1.5× boost.
+# Tunable per Kurt's "losing to worse should drop more" feedback.
+# Symmetric: applies equally to upset winners and upset losers, preserving
+# rating-system conservation (sum of all players' μ stays ~constant).
+UPSET_ALPHA = 1.0
+
 
 # ---- Pure helpers (no DB / no OpenSkill dependency — testable now) ----
 
@@ -228,6 +239,29 @@ def volume_k_multiplier(total_games: int, walkover: bool = False) -> float:
         return VOLUME_K_MIN  # defensive — shouldn't happen
     raw = total_games / VOLUME_K_BASELINE
     return max(VOLUME_K_MIN, min(VOLUME_K_MAX, raw))
+
+
+def upset_k_multiplier(s_actual: float, e_expected: float, alpha: float | None = None) -> float:
+    """K-multiplier from how surprising the outcome was.
+
+    Returns `1 + alpha * |s_actual - e_expected|`. Higher when the actual
+    score diverges from the model's prediction (an upset); 1.0 when the
+    prediction was exact.
+
+    Symmetric: a favored team that lost (s_actual << e_expected) and the
+    underdog that won (s_actual >> e_expected) both see the same boost.
+    Applied to ALL 4 players in the match so rating-system conservation
+    holds (sum of μ changes ≈ 0 within each match).
+
+    `alpha=None` (default) reads the current `UPSET_ALPHA` global at call
+    time so tests can monkey-patch it. Pass an explicit float to override.
+    Module default UPSET_ALPHA=1.0 means a 50%-gap upset gives 1.5× boost;
+    total upset (e.g. E=0.9, S=0.1) gives 1.8× boost.
+    """
+    if alpha is None:
+        alpha = UPSET_ALPHA
+    surprise = abs(s_actual - e_expected)
+    return 1.0 + alpha * surprise
 
 
 def universal_score(
@@ -443,15 +477,27 @@ def recompute_all(
             s_a = universal_score(m.side_a_games, m.side_b_games, walkover=m.walkover)
             s_b = 1.0 - s_a
 
+            # Predict expected outcome BEFORE the rate() call — needed for
+            # the upset-amplification multiplier. predict_win returns
+            # win-probability per team given current ratings.
+            try:
+                predicted_win = model.predict_win([team_a, team_b])
+                e_a = predicted_win[0]
+            except Exception:
+                # Defensive: if predict_win is unavailable / errors, fall back
+                # to "expect a draw" so K_upset reduces to surprise = |S - 0.5|
+                e_a = 0.5
+
             # OpenSkill rate: higher score = better outcome
             new_a, new_b = model.rate([team_a, team_b], scores=[s_a, s_b])
 
-            # Combined K-multiplier (T-P0-011 + T-P0-012):
-            # K = K_division × K_volume per _RESEARCH_/... §8.4
+            # Combined K-multiplier (T-P0-011 + T-P0-012 + upset amp):
+            # K = K_division × K_volume × K_upset
             k_div = division_k_multiplier(m.division)
             total_games = m.side_a_games + m.side_b_games
             k_vol = volume_k_multiplier(total_games, walkover=m.walkover)
-            k_combined = k_div * k_vol
+            k_ups = upset_k_multiplier(s_a, e_a)
+            k_combined = k_div * k_vol * k_ups
 
             # Apply K_combined to scale the OpenSkill-recommended delta.
             # OpenSkill doesn't expose a per-match K-factor, so we scale
