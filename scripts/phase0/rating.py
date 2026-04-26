@@ -50,6 +50,7 @@ DEFAULT_STARTING_MU = 25.0
 # `matches.division` strings (after normalization via _normalize_division).
 # Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §2.2
 DIVISION_STARTING_MU: dict[str, float] = {
+    # Division round-robin events (SE / ESS / Elektra / SE-style)
     "Men Div 1": 35.0,
     "Men Div 2": 30.0,
     "Men Div 3": 25.0,
@@ -57,6 +58,18 @@ DIVISION_STARTING_MU: dict[str, float] = {
     "Lad Div 1": 33.0,
     "Lad Div 2": 28.0,
     "Lad Div 3": 23.0,
+    # Team-tournament RUBBER categories (Antes / Tennis Trade / San Michel /
+    # Samsung / Wilson). A = team's #1 player slot, D = #4 slot. Slightly
+    # below division ratings because team rubbers have rotating partners
+    # (an A player paired with a B partner sometimes loses to a B+A pair).
+    "Men A": 33.0,
+    "Men B": 28.0,
+    "Men C": 23.0,
+    "Men D": 18.0,
+    "Lad A": 31.0,
+    "Lad B": 26.0,
+    "Lad C": 21.0,
+    "Lad D": 16.0,
 }
 
 # Per-division μ ceilings — a player CANNOT rise above their division's
@@ -91,6 +104,7 @@ DIVISION_MU_FLOOR: dict[str, float | None] = {
 # competition = more meaningful rating change").
 # Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §8.1, §8.2
 DIVISION_K: dict[str, float] = {
+    # Division round-robin events
     "Men Div 1": 1.00,
     "Men Div 2": 0.90,
     "Men Div 3": 0.80,
@@ -98,6 +112,18 @@ DIVISION_K: dict[str, float] = {
     "Lad Div 1": 1.00,
     "Lad Div 2": 0.87,
     "Lad Div 3": 0.73,
+    # Team-tournament RUBBER categories — smaller spread than divisions
+    # because the same player often plays multiple categories across
+    # tournaments. A B-rubber win still counts substantially, just less
+    # than an A-rubber win against equivalent opposition.
+    "Men A": 1.00,
+    "Men B": 0.85,
+    "Men C": 0.70,
+    "Men D": 0.60,
+    "Lad A": 1.00,
+    "Lad B": 0.85,
+    "Lad C": 0.70,
+    "Lad D": 0.60,
 }
 
 # Game-volume K-multiplier baseline: a "typical" 2-set match has ~18

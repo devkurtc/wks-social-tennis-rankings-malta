@@ -116,7 +116,18 @@ def cmd_rank(args: argparse.Namespace) -> int:
                 FROM rating_history rh
                 JOIN matches m ON m.id = rh.match_id
                 WHERE rh.player_id = p.id AND rh.model_name = ?
-            ) AS last_played
+            ) AS last_played,
+            (
+                SELECT m.division
+                FROM matches m
+                JOIN match_sides ms ON ms.match_id = m.id
+                WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+                  AND m.superseded_by_run_id IS NULL
+                  AND m.division IS NOT NULL
+                GROUP BY m.division
+                ORDER BY COUNT(*) DESC, m.division
+                LIMIT 1
+            ) AS primary_division
         FROM ratings r
         JOIN players p ON p.id = r.player_id
         WHERE r.model_name = ?
@@ -154,15 +165,16 @@ def cmd_rank(args: argparse.Namespace) -> int:
         return 0
 
     print(
-        f"{'Rank':>4}  {'Player':<32}  {'G':1}  {'mu':>7}  {'sigma':>6}  "
-        f"{'mu-3σ':>7}  {'matches':>7}  {'last played':<12}"
+        f"{'Rank':>4}  {'Player':<28}  {'G':1}  {'PrimaryDiv':<14}  "
+        f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'n':>4}  {'last':<10}"
     )
-    print("-" * 92)
-    for i, (name, gender, mu, sigma, n, last) in enumerate(rows, 1):
+    print("-" * 96)
+    for i, (name, gender, mu, sigma, n, last, primary_div) in enumerate(rows, 1):
         cons = mu - 3 * sigma
         print(
-            f"{i:>4}  {name[:32]:<32}  {gender or '?':1}  {mu:>7.2f}  "
-            f"{sigma:>6.2f}  {cons:>7.2f}  {n:>7}  {last or '?':<12}"
+            f"{i:>4}  {name[:28]:<28}  {gender or '?':1}  "
+            f"{(primary_div or '?')[:14]:<14}  "
+            f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  {n:>4}  {last or '?':<10}"
         )
     return 0
 
