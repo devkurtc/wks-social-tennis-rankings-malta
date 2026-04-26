@@ -648,20 +648,28 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
 - **Commits:** `b4388a2` (wins/losses/win%), `92b69e8` (n column), `7866f27` (gW-gL + game-win%), `b3a72d8` (`history` CLI), `9daa552` (merge-case-duplicates), `2dab66e` (tier merge), `31f60c8` (team-rubber caps + by-category view), `a219ad4` (team-rubber categories + primary-division column)
 - **Note:** These mostly landed before Phase 0 closed but post-T-P0-014; they're fine where they sit on T-P0-007 / T-P0-014's progress logs. Listed here for continuity.
 
-### T-P0.5-010 — Backtest harness + time-decay challenger model
+### T-P0.5-010 — Backtest harness + time-decay challenger + per-player calibration + model-gap feed
 
 - **Status:** `done`
 - **Phase:** 0.5
-- **Commits:** `c685f08` (harness + 4 PL variants + 888-match backtest), follow-up commit (production decay model + Lonia comparison + Decay # column on tournament page)
-- **Goal:** Validate hypotheses raised by Captain Lonia's roster ranking with held-out match data. Build infrastructure that can compare any rating engine against any other.
+- **Commits:** `c685f08` (harness + 4 PL variants), `8a356a5` (production decay model + Lonia validation), `e5fc570` (Decay column on leaderboard), `4c01093` (per-player prediction quality + Pred column on match log), `88b0ea2` (Model gaps page)
+- **Goal:** Validate hypotheses raised by Captain Lonia's roster ranking with held-out match data, build a reusable model-evaluation pipeline, and surface the resulting insights in the public site.
 - **What landed:**
-  - `scripts/phase0/backtest.py` — model-agnostic harness (online evaluation, log-loss + Brier + accuracy + 10-decile calibration)
-  - `OpenSkillPLEngine` (vanilla) and `OpenSkillPLDecayEngine` (τ ∈ {180, 365, 730}) in the harness
-  - `rating.recompute_all` extended with `decay_tau_days` parameter; full-history `openskill_pl_decay365` ratings now exist alongside `openskill_pl` in the production DB
-  - Tournament-roster page exposes a sortable **Decay #** column (recency-weighted rank within the same gender pool)
-  - `_ANALYSIS_/model_evaluation/SUMMARY.md` — full writeup of methodology, headline numbers, calibration tables, and the surprising Lonia-validation result
-- **Headline finding:** Decay τ=365 cuts log-loss by 5.8% (0.6526 → 0.6147) and nearly eliminates the low-probability miscalibration. Lonia agreement *worsens* under decay (men ρ 0.704 → 0.600), revealing that the captain's ranking reflects long-running impressions more than recent form. Both can be true simultaneously.
-- **Foreshadows T-P1-009.** Modified Glicko-2 challenger now has a harness ready and a baseline to beat.
+  - **`scripts/phase0/backtest.py`** — model-agnostic harness (online evaluation, log-loss + Brier + accuracy + 10-decile calibration). Path-anchored via `__file__`.
+  - **`OpenSkillPLEngine` (vanilla)** and **`OpenSkillPLDecayEngine` (τ ∈ {180, 365, 730})** in the harness.
+  - **`rating.recompute_all`** extended with `decay_tau_days` parameter; full-history `openskill_pl_decay365` ratings exist alongside `openskill_pl` in the production DB via the model-name-keyed schema.
+  - **Sortable `Decay #` column** on both the main leaderboard (per-gender) and the tournament-roster page (per-section).
+  - **Per-player prediction quality** stat block on every profile page: held-out accuracy + log-loss under each model, plus a "Biggest model disagreement" callout pinpointing the one match where models diverged most for this player.
+  - **Pred column** on the match log: shows Decay-365's predicted P(this player wins) at the time of each match (true held-out prediction). Hover shows vanilla PL's prediction.
+  - **Model gaps page** (`site/disagreements.html`): top 300 matches across the dataset where the two models predicted most differently, with verdict tally (which model was right). Sortable + filterable. Linked from top nav as "Model gaps".
+  - **Per-match prediction CSVs** for both engines under `_ANALYSIS_/model_evaluation/predictions/`.
+  - **`_ANALYSIS_/model_evaluation/SUMMARY.md`** — methodology, headline numbers, calibration tables, Lonia validation, and per-player drill-down.
+- **Headline findings:**
+  - Decay τ=365 cuts log-loss by 5.8% (0.6526 → 0.6147) on 888 held-out matches and nearly eliminates the low-probability miscalibration in vanilla PL.
+  - Lonia agreement *worsens* under decay (men ρ 0.704 → 0.600). The captain's ranking encodes long-running impressions more than recent form; both views can be true simultaneously.
+  - Per-player evidence shows decay isn't uniformly better — Manuel Bonello's matches are predicted better by vanilla PL (LL 0.419 vs 0.539). The leaderboard Decay # column makes this visible.
+  - Top dataset disagreement is a 70% gap (PL said 2%, Decay said 71%); these matches are the highest-leverage targets for captain input.
+- **Foreshadows T-P1-009.** Glicko-2 (or any other) challenger now plug-and-play — drop a class into `ENGINES`, run backtest, compare.
 
 ---
 
