@@ -1497,7 +1497,12 @@ def _load_captain_rankings(
             for i, name in enumerate(names, 1):
                 if not isinstance(name, str):
                     continue
+                # Index under the captain's spelling AND any word-order
+                # rotation so a roster name in the opposite order
+                # ("Polidano Kyle" vs "Kyle Polidano") still finds it.
                 by_name[name.strip().lower()] = i
+                for variant in _name_order_variants(name.strip()):
+                    by_name.setdefault(variant.lower(), i)
                 row = _lookup_roster_player(conn, name)
                 if row is not None:
                     by_pid[row["id"]] = i
