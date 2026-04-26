@@ -31,18 +31,49 @@ def cmd_load(args: argparse.Namespace) -> int:
         print("load: --file required (or use --init-only)", file=sys.stderr)
         return 1
 
-    # Phase 0: only one parser registered. Filename-based dispatch — Phase 1
-    # introduces a registry pattern when more parsers exist.
+    # Filename-based dispatch via a simple (substring, parser_module) registry.
+    # Match by case-insensitive substring; first match wins. Phase 1 will move
+    # this to a proper plugin registry.
     import os
     filename = os.path.basename(args.file).lower()
+    from parsers import sports_experience_2025 as _se
+    from parsers import mixed_doubles as _md
+    from parsers import team_tournament as _tt
+    from parsers import wilson as _wl
+
+    DISPATCH: list[tuple[str, callable]] = [
+        # Sports Experience Chosen Doubles (2024 + 2025) — same template,
+        # same sheet names ('Men Div 1'..'Lad Div 3') → original parser.
+        ("sports experience chosen doubles", _se.parse),
+        # VLTC Mixed Doubles (and same-template division-RR files) — sheets
+        # are 'Division 1'..'Division N'. Dynamic sub-block discovery.
+        ("ess mixed tournament div and results", _md.parse),
+        ("elektra mixed tournament div and results", _md.parse),
+        # VLTC Team Tournaments (modern "Day N" template) — Antes / Tennis
+        # Trade / San Michel post-2024 / Samsung Rennie Tonna. Same family.
+        ("antes insurance team tournament", _tt.parse),
+        ("tennis trade team tournament", _tt.parse),
+        ("results tennis trade team tournament", _tt.parse),
+        ("san michel results", _tt.parse),
+        ("samsung rennie tonna", _tt.parse),
+        # Wilson Autumn/Spring 2017-2021 (older team-tournament format,
+        # both .xls and .xlsx). Auto-handles legacy Excel via xlrd.
+        ("wilson autumn results", _wl.parse),
+        ("wilson spring results", _wl.parse),
+    ]
+
     parse_fn = None
-    if filename.startswith("sports experience chosen doubles 2025"):
-        from parsers import sports_experience_2025 as _p
-        parse_fn = _p.parse
+    for substr, fn in DISPATCH:
+        if substr in filename:
+            parse_fn = fn
+            break
+
     if parse_fn is None:
         print(
             f"load: no parser registered for {os.path.basename(args.file)!r}. "
-            "Phase 0 only supports 'Sports Experience Chosen Doubles 2025 result sheet.xlsx'.",
+            "Phase 0 supports Sports Experience Chosen Doubles 2024/2025, "
+            "ESS / Elektra Mixed Doubles, and VLTC team-tournament (modern "
+            "Day-N template — Antes 2024+, Tennis Trade 2024+, San Michel 2025+) files.",
             file=sys.stderr,
         )
         return 1

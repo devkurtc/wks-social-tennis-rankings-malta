@@ -3,3 +3,4 @@ openpyxl>=3.1
 openskill>=6.0
 scipy>=1.11
 python-dateutil>=2.8
+xlrd>=2.0   # for legacy .xls (Wilson 2017-2019); openpyxl is .xlsx-only
