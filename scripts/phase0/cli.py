@@ -161,7 +161,22 @@ def cmd_rank(args: argparse.Namespace) -> int:
                 JOIN matches m ON m.id = ms.match_id
                 WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
                   AND m.superseded_by_run_id IS NULL
-            ) AS wins
+            ) AS wins,
+            (
+                SELECT COALESCE(SUM(ms.games_won), 0)
+                FROM match_sides ms
+                JOIN matches m ON m.id = ms.match_id
+                WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+                  AND m.superseded_by_run_id IS NULL
+            ) AS games_won,
+            (
+                SELECT COALESCE(SUM(opp.games_won), 0)
+                FROM match_sides ms
+                JOIN matches m ON m.id = ms.match_id
+                JOIN match_sides opp ON opp.match_id = ms.match_id AND opp.side <> ms.side
+                WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+                  AND m.superseded_by_run_id IS NULL
+            ) AS games_lost
         FROM ratings r
         JOIN players p ON p.id = r.player_id
         WHERE r.model_name = ?
@@ -272,22 +287,32 @@ def cmd_rank(args: argparse.Namespace) -> int:
 
 
 def _print_rank_table(rows: list) -> None:
-    """Print the standard rank table for a list of rows from cmd_rank's SQL."""
+    """Print the standard rank table for a list of rows from cmd_rank's SQL.
+
+    Columns:
+      Rank  Player  G  PrimaryDiv  mu  σ  μ-3σ  n  W-L  win%  gW-gL  gWin%  last
+    """
     print(
-        f"{'Rank':>4}  {'Player':<26}  {'G':1}  {'PrimaryDiv':<13}  "
+        f"{'Rank':>4}  {'Player':<24}  {'G':1}  {'PrimaryDiv':<11}  "
         f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'n':>4}  "
-        f"{'W':>3}-{'L':<3}  {'win%':>4}  {'last':<10}"
+        f"{'W':>3}-{'L':<3}  {'win%':>4}  "
+        f"{'gW':>4}-{'gL':<4}  {'gW%':>4}  {'last':<10}"
     )
-    print("-" * 106)
-    for i, (name, gender, mu, sigma, n, last, primary_div, wins) in enumerate(rows, 1):
+    print("-" * 124)
+    for i, row in enumerate(rows, 1):
+        (name, gender, mu, sigma, n, last, primary_div,
+         wins, games_won, games_lost) = row
         cons = mu - 3 * sigma
         losses = n - wins
         win_pct = (wins / n * 100) if n > 0 else 0
+        total_games = games_won + games_lost
+        gw_pct = (games_won / total_games * 100) if total_games > 0 else 0
         print(
-            f"{i:>4}  {name[:26]:<26}  {gender or '?':1}  "
-            f"{(primary_div or '?')[:13]:<13}  "
+            f"{i:>4}  {name[:24]:<24}  {gender or '?':1}  "
+            f"{(primary_div or '?')[:11]:<11}  "
             f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  {n:>4}  "
-            f"{wins:>3}-{losses:<3}  {win_pct:>3.0f}%  {last or '?':<10}"
+            f"{wins:>3}-{losses:<3}  {win_pct:>3.0f}%  "
+            f"{games_won:>4}-{games_lost:<4}  {gw_pct:>3.0f}%  {last or '?':<10}"
         )
 
 
