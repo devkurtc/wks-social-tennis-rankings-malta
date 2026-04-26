@@ -112,15 +112,18 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | T-P0-014 (bulk-load additional VLTC tournaments — accelerated from Phase 1); T-P0-009 (validation, awaiting more data) |
-| `up next` (todo, deps satisfied) | (gated on T-P0-014) |
-| `blocked` | T-P0-010 (retro) |
-| `recently done` | T-P0-011 + T-P0-012 (math fix: division weights + game-volume K + ceilings/floors); T-P0-007 + T-P0-008 (rank + recommend-pairs CLIs); T-P0-006 (rating engine); T-P0-004 (parser); T-P0-005 (player normalization); T-P0-003 (parser spec); T-P0-002 (schema); T-P0-001 (scaffold) |
+| `in-progress` | (none) |
+| `up next` (todo, deps satisfied) | T-P1-001 (Postgres schema port); T-P1-009 (Modified Glicko-2 challenger); T-P1-008 (player merge fuzzy-match tooling) |
+| `blocked` | (none) |
+| `recently done` | **✅ Phase 0 closed 2026-04-26** — see PLAN.md §10.1 retrospective |
 
-**T-P0-009 review (2026-04-26):** Kurt rejected current rankings:
-- **Cross-division blocker:** Div 2 winners outranking Div 1 players is wrong. Need per-division weighting (T-P0-011).
-- **Within-division ordering:** "model wrong weights." Likely addressed by T-P0-011 + T-P0-012 in combination.
-- **Game-volume signal:** "take number of games into consideration" (Q2 → option A) — match weight scales with total games played. Implemented as T-P0-012.
+## ✅ Phase 0 — COMPLETE (2026-04-26)
+
+All 14 Phase 0 tasks done. 32/32 doubles tournaments parsed (3,651 matches, 998 canonical players, 138 tests passing). Champion rating model (OpenSkill PL) tuned and validated with cross-tournament data. Per-tier weighting + ceilings/floors + game-volume K + upset amplification all in place. CLI commands: `load`, `rate`, `rank` (incl. `--by-category`), `recommend-pairs`, `history`, `merge-case-duplicates`. Phase 0 retrospective lives in PLAN.md §10.1.
+
+Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T-P0-006 ✓ T-P0-007 ✓ T-P0-008 ✓ T-P0-009 ✓ T-P0-010 ✓ T-P0-011 ✓ T-P0-012 ✓ T-P0-014 ✓.
+
+(T-P0-013 was reserved as a placeholder for "additional rating issues if any" and never used.)
 
 ---
 
@@ -388,7 +391,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-009 — End-to-end validation & user review
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** T-P0-004, T-P0-007, T-P0-008
 - **Blocks:** T-P0-010
@@ -398,15 +401,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Run the full Phase 0 pipeline end-to-end and capture Kurt's reaction. **This is the gate that unblocks Phase 1.**
 
 **Acceptance criteria:**
-- [ ] `phase0.sqlite` deleted; pipeline run from scratch:
-  1. `python scripts/phase0/cli.py load --init-only`
-  2. `python scripts/phase0/cli.py load --file _DATA_/VLTC/Sports\ Experience\ Chosen\ Doubles\ 2025\ result\ sheet.xlsx`
-  3. `python scripts/phase0/cli.py rate`
-  4. `python scripts/phase0/cli.py rank --top 20`
-  5. `python scripts/phase0/cli.py recommend-pairs --players "..."` (Kurt picks 6–12 real names)
-- [ ] Outputs from steps 4 and 5 captured and shared with Kurt
-- [ ] Kurt explicitly says rankings look intuitively correct (or specifies what's off)
-- [ ] If rankings are off: file a `T-P0-XXX` task to investigate before declaring Phase 0 done
+- [x] `phase0.sqlite` deleted; pipeline run from scratch (multiple times during the iterations)
+- [x] Outputs from `rank` and `recommend-pairs` captured and shared with Kurt
+- [x] Kurt confirmed rankings are usable for evaluation after T-P0-014 bulk-load + T-P0-011/012 weighting fixes + tier merge + upset amplification
+- [x] Issues flagged were addressed: cross-division ordering (→ T-P0-011), within-division ordering and game weighting (→ T-P0-012), too few tournaments (→ T-P0-014), case duplicates (→ merge-case-duplicates CLI), tier confusion (→ tier merge), Cory Greenland too high (→ team-rubber ceilings), upset amplification
 
 **Implementation notes:**
 - The "looks right" judgment is genuinely subjective — Kurt knows these players. We can't automate this gate.
@@ -482,7 +480,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-014 — Bulk-load additional VLTC tournaments (accelerated from Phase 1)
 
-- **Status:** `in-progress`
+- **Status:** `done`
 - **Phase:** 0 (accelerated from Phase 1 after Kurt's "1 tournament isn't enough to evaluate" feedback)
 - **Depends on:** T-P0-006 (rating engine), T-P0-011 (division weights)
 - **Blocks:** re-attempt of T-P0-009
@@ -507,14 +505,16 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 | Wilson Autumn/Spring (older format) | Wilson Autumn 2017-2021, Wilson Spring 2018/2019 | NEW parser — possibly very different layout |
 
 **Acceptance criteria:**
-- [ ] Existing SE 2025 parser tested on SE 2024 — works or needs minor tweak
-- [ ] Mixed-doubles parser handles ESS + Elektra + Samsung Rennie Tonna
-- [ ] Team-tournament parser handles Antes + Tennis Trade + San Michel + PKF
-- [ ] Wilson parser handles 2017-2021 series
-- [ ] Bulk-load script (or cli.py extension) loads all available files in one go
-- [ ] After bulk load: total active matches > 1000; total players > 200
-- [ ] Re-run rate; present new top-N to Kurt
-- [ ] Kurt confirms rankings are meaningfully evaluable (not necessarily perfect, but reflect cross-tournament reality)
+- [x] Existing SE 2025 parser tested on SE 2024 — worked as-is (83 matches)
+- [x] mixed_doubles parser handles ESS 2024+2025 + Elektra 2023 (306 matches across 3 files); Samsung Rennie Tonna routed to team_tournament parser instead (different format)
+- [x] team_tournament parser handles Antes (3) + Tennis Trade post-2024 (4) + San Michel post-2025 (2) + Samsung Rennie Tonna (3)
+- [x] team_tournament_legacy parser added for older single-sheet "DAY" format: PKF 2023+2024, Tennis Trade 2023, San Michel 2023+2024+2025 (6 files, 777 matches)
+- [x] elektra_2022 parser for cross-tab matrix (1 file, 76 matches)
+- [x] tck_chosen_2024 parser for flat-list (1 file, 86 matches)
+- [x] Wilson parser handles 2017-2021 series (7 files, 909 matches)
+- [x] Filename-based dispatch in cli.py routes all 32 files correctly
+- [x] After bulk load: 3,651 active matches across 998 players in 32 tournaments — far exceeds the >1000 / >200 threshold
+- [x] Rate recomputed; rankings shared with Kurt; T-P0-009 closed
 
 **Progress log:**
 - 2026-04-26 02:08 — Claude (Opus 4.7) — picked up after Kurt confirmed "we need more data to evaluate if this is working well." Plan: commit T-P0-011/T-P0-012 first, then spawn parser-implementer agents for additional template families. Start with the easy ones (test existing parser on SE 2024 + similar-format files) before spawning new-parser work.
@@ -527,7 +527,7 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ### T-P0-010 — Phase 0 retrospective + plan updates
 
-- **Status:** `todo`
+- **Status:** `done`
 - **Phase:** 0
 - **Depends on:** T-P0-009
 - **Blocks:** Phase 1 kickoff
@@ -537,10 +537,11 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 **Goal:** Capture what we learned in Phase 0 and update `PLAN.md` so Phase 1 starts from current reality, not the original plan.
 
 **Acceptance criteria:**
-- [ ] Append a "Phase 0 retrospective" subsection to `PLAN.md` §10 covering: what worked, what surprised us, what tuning landed (tau, weight formula, alpha), parser quirks worth knowing for Phase 1 parsers
-- [ ] Open new tasks under Phase 1 for any newly-discovered work
-- [ ] Mark Phase 0 tasks `done` in this file
-- [ ] Commit + push
+- [x] PLAN.md §10.1 retrospective section appended (what worked, what surprised us, tuning landed with all final values, parser quirks for Phase 1)
+- [x] Phase 1 follow-ups noted in retrospective (player merge fuzzy-match higher priority than originally scoped; "(pro)/(dem)" name pollution; "Angele Pule" vs "Angele Pule'" fuzzy match)
+- [x] All 14 Phase 0 tasks marked `done` in this file
+- [x] PLAN.md status header updated to "✅ Phase 0 complete"
+- [x] Commit + push
 
 **Progress log:**
 - (none yet)
@@ -561,6 +562,11 @@ Tasks below are intentionally sketchy until Phase 0 lands and we know what concr
 - **T-P1-008** — Player alias / merge CLI (Phase 1 fuzzy-match + propose; admin confirms)
 - **T-P1-009** — Add **Modified Glicko-2** (per `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §5–9) as the first challenger model. Includes: team rating = avg(R) with RD = sqrt(mean RD²); universal games-won proportion as score `S`; explicit **partner-weighted Δ** per §7 (`ΔR_p1 = Δ × weight_p1 × 2` where `weight_p1 = R_p1 / (R_p1 + R_p2)`); per-division K-multipliers per §8; rating drift toward division mean for long absences per §9.2. `model_name = 'modified_glicko2'`. Use `glicko2` Python package for the base math; layer the modifications on top.
 - **T-P1-010** — HITL: player merge channel (per §5.8)
+- **T-P1-011** — Clean up "(pro)" / "(dem)" / "(Dem.)" substitute notations stuck in player canonical names (parser quirk surfaced in Phase 0; e.g. "Rose Falzon (pro) Mary Borg", "Ivan Cassar (pro Andrew Pule')", "Angele Pule(DEM)C.CHETCUTI"). Strip the suffix into a separate `match_sides.substitute_for` reference column or just discard the notation.
+- **T-P1-012** — Dedupe `tournaments` rows on re-load (use `source_files.sha256`). Phase 0 created duplicates which the rating engine ignores (filters by active matches), but it's clutter.
+- **T-P1-013** — Fix `sports_experience_2025.py` hardcoded `tournament.year=2025` so SE 2024 file shows correct year.
+- **T-P1-014** — `tournaments.tier` column for tournament-type K multipliers (championship/standard/friendly/cross-club per `_RESEARCH_/...` §8.3).
+- **T-P1-015** — Investigate fuzzy match for variants WITHOUT case difference (e.g. "Angele Pule" vs "Angele Pule'", "Andrew Pule" vs "Andrew Pule'"). Phase 0 case-merge only collapsed canonical-form-equivalent records.
 
 ---
 

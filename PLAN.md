@@ -1,6 +1,6 @@
 # RallyRank — Doubles Tennis Ranking System: Plan
 
-**Public product name:** RallyRank · **Status:** Phase 0 ready · **Owner:** Kurt Carabott · **Last updated:** 2026-04-25
+**Public product name:** RallyRank · **Status:** ✅ Phase 0 complete (2026-04-26) · Phase 1 ready to begin · **Owner:** Kurt Carabott · **Last updated:** 2026-04-26
 **Repo:** https://github.com/devkurtc/wks-social-tennis-rankings-malta (internal repo name kept descriptive)
 
 This document captures the plan, the alternatives considered, and the tradeoffs of each major decision. It's intentionally argumentative — every recommendation is paired with the strongest counter-arguments so we can push back before writing code.
@@ -426,6 +426,107 @@ Things I expect we'll learn and have to revisit:
 - We'll discover that some "pairs" in the data are typos and need a different fix than merging players.
 
 These are knowable unknowns — flagged here so we don't pretend the v1 design is final.
+
+### 10.1 Phase 0 retrospective (2026-04-26)
+
+**Phase 0 closed with 32 of 32 doubles tournaments parsed (3,651 matches, 998 canonical players, 138 tests passing).** Below is what we learned doing the work, sorted by impact for Phase 1+.
+
+#### What worked
+
+- **Plan → Tasks → Execute, in that order.** PLAN.md captured decisions+rationale; TASKS.md kept the operational state; the build phase was fast because every task's *why* was already settled. Re-ordering this (e.g., starting code before plan) would've cost more than the planning time saved.
+- **Multi-agent parallelism for parsers.** Three parser-implementer subagents ran concurrently in two waves (Wilson + mixed + team-tournament; then legacy-team + Elektra-2022 + TCK-2024). Each wrote spec + parser + tests + dispatch entry in ~10-15min wall-clock. Total: ~45min for 6 parsers. Sequential would've been ~3 hours.
+- **TASKS.md "lock" pattern (commit + push to claim a task)** prevented file conflicts even with 3 agents touching `cli.py` dispatch. Substring-match-first-wins ordering guaranteed precedence.
+- **Model-agnostic schema from day one (`model_name` discriminator).** When upset amplification was added late in the session, no schema migration was needed. Same for the eventual Modified Glicko-2 challenger (T-P1-009) — schema is ready.
+- **Audit log + soft-delete via `merged_into_id`.** 188 player merges performed, 0 data lost. Every merge has an `audit_log` row with before/after JSON.
+- **Conservative ranking convention (μ-3σ).** Kept new players (4 matches, high σ) from dominating the leaderboard with raw μ. Saved several "Sebastian Sanchez at #1!" embarrassments.
+- **Agent definitions in `.claude/agents/`** — even though they don't auto-load mid-session, future sessions opened in this repo will have them ready. Contributors get them automatically.
+
+#### What surprised us
+
+- **Pervasive case-sensitivity / apostrophe-variance in the data.** Originally scoped as "Phase 1 fuzzy-match merge." Reality: 188 case-only + apostrophe-variant duplicates among 1,186 records (16%). Built a `merge-case-duplicates` CLI mid-Phase-0 to address it. Phase 1's fuzzy-match merge tool will need to handle name-without-apostrophe vs with ("Angele Pule" vs "Angele Pule'") and parser-quirk-name pollution ("(pro)" / "(dem)" notations stuck in names).
+- **"Men A ≡ Men Div 1" tier mapping was a domain insight** Kurt provided after seeing initial output. Initial design treated team-rubber categories and division names as separate. Tier abstraction emerged late but was clean to retrofit because constants were keyed by name (we just added more keys with same values). Should have asked the domain expert this question earlier.
+- **Single-tournament data was insufficient for evaluation.** Initial T-P0-009 with one tournament (SE 2025) showed Div 2 winners outranking Div 1. Filed T-P0-014 (bulk-load) accelerated from Phase 1 to make ranking accuracy testable. **Lesson:** validate with cross-population data, not single-tournament data.
+- **OpenSkill *did* implement upset weighting natively** via the `S − E` mechanism, but the magnitude was modest. Kurt's "lose to worse should drop more" feedback was about *amplification*, not absence. Added explicit `upset_k_multiplier` (UPSET_ALPHA=1.0) to make it more reactive.
+- **A Python default-args bug**: `def upset_k_multiplier(alpha=UPSET_ALPHA)` binds the default at function-definition time. Tests couldn't override the global. Switched to `alpha=None → look up at call time` pattern.
+- **The Wilson "format" turned out to be team-tournament**, not division round-robin as initially assumed. Reused the team_tournament tier system seamlessly.
+- **5 of 6 "deferred" files in the second batch parsed cleanly** (PKF / Tennis Trade 2023 / San Michel pre-2025 etc.) — they shared an older single-sheet "DAY" template. The 6th turned out to be the same San Michel format under a different filename. One agent → 5 files → 777 matches.
+- **Backtick (`` ` ``) used as apostrophe** in some Maltese-club Excel exports. `Pule\`` meant `Pule'`. Caught only when re-running `merge-case-duplicates` revealed Duncan D'Alessandro split across apostrophe variants.
+
+#### Tuning landed (final values for the Phase 0 baseline rating engine)
+
+```
+Per-tier starting μ:
+  Men Tier 1 (A/Div 1)  33.0   Lad Tier 1   31.0
+  Men Tier 2 (B/Div 2)  28.0   Lad Tier 2   26.0
+  Men Tier 3 (C/Div 3)  23.0   Lad Tier 3   21.0
+  Men Tier 4 (D/Div 4)  18.0   Lad Tier 4   16.0
+
+Per-tier K (rating-update multiplier):
+  Tier 1   1.00          Tier 3   0.70
+  Tier 2   0.85          Tier 4   0.60
+
+Per-tier μ ceiling / floor:
+  Men T1   floor=28, no ceiling      Lad T1   floor=26, no ceiling
+  Men T2   floor=23, ceiling=32      Lad T2   floor=21, ceiling=30
+  Men T3   floor=18, ceiling=27      Lad T3   floor=16, ceiling=25
+  Men T4   no floor,  ceiling=22     Lad T4   no floor,  ceiling=20
+
+Score (universal games-won):  S = games_won / (games_won + opp_games_won)
+Walkover handling:            S = 0.90 / 0.10  (not 1.0 / 0.0)
+Game-volume K_volume:         total_games / 18, clamped [0.5, 1.5]; walkover = 0.5
+Upset amplification:          K_upset = 1 + UPSET_ALPHA × |S − E|
+                              UPSET_ALPHA = 1.0 (50% upset → 1.5×; total → 1.8×)
+Sigma drift (inactivity):     σ' = sqrt(σ² + N × τ²); τ = 0.0833; period = 30 days
+Champion model:               OpenSkill PlackettLuce, model_name = 'openskill_pl'
+Sort key:                     μ − 3σ  (conservative Bayesian rating)
+```
+
+#### Parser quirks worth knowing for Phase 1
+
+| Quirk | Where | Workaround |
+|---|---|---|
+| ALL CAPS player names | Older legacy files (PKF, San Michel 2023, Wilson 2017-2018) | `merge-case-duplicates` CLI (Phase 0); fuzzy match in Phase 1 |
+| Backtick (`` ` ``) used for apostrophe | Some Maltese exports (Pule, D'Alessandro variants) | Added to `players._APOSTROPHE_TABLE` |
+| Sub-tier suffixes (`LAD A1`, `LAD A 1`, `LAD A02`) | Legacy team-tournament files | `team_tournament_legacy.py` collapses to canonical `Lad A` |
+| `(pro)` / `(dem)` substitute notations stuck in player names | Various team-tournament files | NOT handled in Phase 0; Phase 1 fuzzy-match merge cleanup needed |
+| Different super-tiebreak rules across tournaments | Wilson, modern team-tournament, Elektra 2022 | Each parser handles per local convention; ~309 Wilson rubbers stored as `won=0` (unrecorded) |
+| No per-match dates | Sports Experience 2025 | Tournament-year-Jan-1 placeholder; rating engine falls back to insertion order |
+| Cross-tab matrix layout | Elektra 2022 only | Dedicated `elektra_2022.py` parser walks upper triangle |
+| Walkover encoding variants (`W/O`, `W/0`, `WO`, `SCRATCHED`) | TCK Chosen 2024 | Tolerant matcher in `tck_chosen_2024.py` |
+| Different apostrophe in same player name (no apostrophe vs with) | "Angele Pule" vs "Angele Pule'" | NOT handled; needs Phase 1 fuzzy match |
+| Re-load creates duplicate `tournaments` row | All parsers | Tolerated for Phase 0 (rating engine filters by active matches); Phase 1 should dedupe on `source_files.sha256` |
+| SE parser hardcodes `tournament.year=2025` | `sports_experience_2025.py` | SE 2024 file shows `year=2025` in DB; cosmetic; Phase 1 fix |
+
+#### Phase 0 statistics
+
+```
+Span:           One extended session, 2026-04-25 → 2026-04-26
+Commits:        ~30 to main
+Lines of code:  ~5,000 Python (parsers + rating + cli + tests)
+Lines of docs:  ~2,500 markdown (PLAN, TASKS, parser specs, READMEs)
+Tests:          138 unit + integration, all passing
+Subagents:      6 successful (3 explorer + 3 implementer pairs)
+Player merges:  188 audited
+Tournaments:    32 / ~32 doubles tournaments in dataset
+Matches:        3,651
+Players:        998 canonical (1,186 raw)
+```
+
+#### Tasks promoted from Phase 1 to Phase 0 during the work
+
+- T-P1-014 → T-P0-014: bulk-load all VLTC tournaments (originally Phase 1)
+- T-P1-008 partial: case+apostrophe merge tool (full fuzzy-match still Phase 1)
+- T-P0-011, T-P0-012: division weights + game-volume K (originally Phase 1 enhancement)
+- Upset amplification (UPSET_ALPHA): not in original plan; added late in Phase 0
+
+#### What the next session should do
+
+1. Run T-P0-009 acceptance one more time with the locked baseline (Kurt eyeballs the leaderboards)
+2. Move directly to Phase 1: Postgres migration (T-P1-001) is the natural starting point
+3. Modified Glicko-2 challenger (T-P1-009) is the next big-impact rating work — runs alongside OpenSkill PL via the model-agnostic schema
+4. Player merge fuzzy-match tooling (T-P1-008) — much higher priority than originally scoped given how pervasive case/apostrophe variance turned out
+
+**Phase 0 status: ✅ COMPLETE.**
 
 ---
 
