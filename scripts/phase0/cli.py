@@ -154,7 +154,14 @@ def cmd_rank(args: argparse.Namespace) -> int:
                 GROUP BY m.division
                 ORDER BY COUNT(*) DESC, m.division
                 LIMIT 1
-            ) AS primary_division
+            ) AS primary_division,
+            (
+                SELECT COALESCE(SUM(ms.won), 0)
+                FROM match_sides ms
+                JOIN matches m ON m.id = ms.match_id
+                WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+                  AND m.superseded_by_run_id IS NULL
+            ) AS wins
         FROM ratings r
         JOIN players p ON p.id = r.player_id
         WHERE r.model_name = ?
@@ -267,16 +274,20 @@ def cmd_rank(args: argparse.Namespace) -> int:
 def _print_rank_table(rows: list) -> None:
     """Print the standard rank table for a list of rows from cmd_rank's SQL."""
     print(
-        f"{'Rank':>4}  {'Player':<28}  {'G':1}  {'PrimaryDiv':<14}  "
-        f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'n':>4}  {'last':<10}"
+        f"{'Rank':>4}  {'Player':<26}  {'G':1}  {'PrimaryDiv':<13}  "
+        f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'W':>3}-{'L':<3}  "
+        f"{'win%':>4}  {'last':<10}"
     )
-    print("-" * 96)
-    for i, (name, gender, mu, sigma, n, last, primary_div) in enumerate(rows, 1):
+    print("-" * 100)
+    for i, (name, gender, mu, sigma, n, last, primary_div, wins) in enumerate(rows, 1):
         cons = mu - 3 * sigma
+        losses = n - wins
+        win_pct = (wins / n * 100) if n > 0 else 0
         print(
-            f"{i:>4}  {name[:28]:<28}  {gender or '?':1}  "
-            f"{(primary_div or '?')[:14]:<14}  "
-            f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  {n:>4}  {last or '?':<10}"
+            f"{i:>4}  {name[:26]:<26}  {gender or '?':1}  "
+            f"{(primary_div or '?')[:13]:<13}  "
+            f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  "
+            f"{wins:>3}-{losses:<3}  {win_pct:>3.0f}%  {last or '?':<10}"
         )
 
 
