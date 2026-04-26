@@ -54,6 +54,10 @@ yarn-error.log*
 *.sqlite-shm
 *.sqlite3
 *.db
+# DB backup snapshots (created by hand before risky migrations / merges).
+# Pattern is `<dbname>.sqlite.bak.<timestamp_or_label>`; the trailing label
+# means the plain `*.sqlite` glob doesn't match.
+*.sqlite.bak.*
 .coverage
 coverage/
 

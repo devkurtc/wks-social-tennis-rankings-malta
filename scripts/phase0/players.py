@@ -412,6 +412,206 @@ def merge_token_duplicates(
     return out
 
 
+# ---- Typo auto-merger ----
+#
+# Catches the dominant pattern in the real data: an established player (10s of
+# matches, captain-assigned class) plus a "ghost" record with 1-2 matches whose
+# canonical name differs by a single character (Excel typo, missing letter,
+# transposition). Adding hundreds of these to manual_aliases.json doesn't
+# scale; the rules below auto-merge them safely.
+#
+# Discriminator vs same-first-name-different-surname false positives
+# (e.g. "Christine Schembri" vs "Christine Scerri" — different people):
+# the typo signal requires `abs(len_diff) <= 1` on token-sorted fingerprints
+# AND ratio >= 0.95. Two distinct surnames diverging by 4+ characters fail
+# that gate, so the auto-merger leaves them for the human suggester.
+
+
+def _is_typo_pair(name_a: str, name_b: str) -> bool:
+    """Return True if two names look like a 1-char edit of each other
+    (insertion, deletion, substitution, or transposition).
+
+    Compares lowercased+whitespace-collapsed *raw* names — NOT token-sorted
+    fingerprints — because sorting destroys positional character similarity.
+    Example: 'Clayton Zammit Cesare' vs 'Calyton Zammit Cesare' is an obvious
+    1-char typo on the raw names, but sorting the tokens moves 'calyton' to
+    position 0 and 'clayton' to position 1, which makes SequenceMatcher
+    treat them as much less similar.
+
+    Token-order variants of the SAME person (e.g. 'Borg Reuben' vs
+    'Reuben Borg') are handled separately by `merge_token_duplicates` —
+    the typo gate doesn't need to cover them.
+
+    This is the same gate used by `_confidence` for the "token-fp
+    ~1-char-edit" boost (kept under that name for backward-compatible
+    reasoning labels) and by `merge_typo_duplicates` for auto-merging.
+    Keeping a single definition prevents the suggester and merger from
+    drifting out of sync.
+    """
+    import difflib
+    a = " ".join(name_a.lower().split())
+    b = " ".join(name_b.lower().split())
+    if abs(len(a) - len(b)) > 1:
+        return False
+    # Min length 9 (the shorter of the two). Below this, one differing char
+    # is too large a fraction of the name to discriminate typos from genuine
+    # different names. Real Maltese names mostly exceed 9 chars.
+    if len(a) < 9 or len(b) < 9:
+        return False
+    # Threshold 0.92: empirically separates genuine typos (>= 0.94 in our
+    # data) from same-first-name-different-surname false positives
+    # (Christine Schembri vs Scerri = 0.88, Mike vs Mark Smith = 0.80).
+    # The "Jon Smith" vs "John Smith" 0.95 nickname case is rare enough
+    # in this domain that auto-merging is more often right than wrong;
+    # the additional gates (shared club + lopsided n + same gender)
+    # keep the false-positive surface small.
+    sm = difflib.SequenceMatcher(None, a, b)
+    return sm.ratio() >= 0.92
+
+
+def find_typo_duplicate_groups(
+    conn: sqlite3.Connection,
+    *,
+    min_winner_matches: int = 4,
+    max_loser_matches: int = 2,
+) -> list[dict]:
+    """Find lopsided typo pairs that are safe to auto-merge.
+
+    Lopsided: one record has >= `min_winner_matches` matches, the other has
+    <= `max_loser_matches`. Captures the "established player + ghost typo
+    record" pattern. Two real players who happen to share a near-identical
+    name (both with 5+ matches each) are NOT auto-merged — they go through
+    `suggest_fuzzy_matches` for human review.
+
+    Each result entry:
+        {
+            "winner": {"id", "name", "n", "gender", "clubs", "latest_class"},
+            "loser":  {"id", "name", "n", "gender", "clubs", "latest_class"},
+            "reason": str,
+        }
+    """
+    rows = conn.execute(
+        """
+        SELECT
+            p.id, p.canonical_name, p.gender,
+            (SELECT COUNT(*) FROM match_sides ms
+             JOIN matches m ON m.id = ms.match_id
+             WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+               AND m.superseded_by_run_id IS NULL) AS n,
+            (SELECT GROUP_CONCAT(DISTINCT c.slug)
+             FROM match_sides ms
+             JOIN matches m ON m.id = ms.match_id
+             JOIN tournaments t ON t.id = m.tournament_id
+             JOIN clubs c ON c.id = t.club_id
+             WHERE (ms.player1_id = p.id OR ms.player2_id = p.id)
+               AND m.superseded_by_run_id IS NULL) AS clubs,
+            (SELECT pta.class_label
+             FROM player_team_assignments pta
+             JOIN tournaments t ON t.id = pta.tournament_id
+             WHERE pta.player_id = p.id
+             ORDER BY t.year DESC, t.id DESC LIMIT 1) AS latest_class
+        FROM players p
+        WHERE p.merged_into_id IS NULL
+        """
+    ).fetchall()
+
+    # Pre-compute fingerprints + first letter for fast filtering
+    enriched = []
+    for pid, name, gender, n, clubs, latest_class in rows:
+        fp = _token_fingerprint(name)
+        if not fp:
+            continue
+        enriched.append({
+            "id": pid, "name": name, "gender": gender,
+            "n": n or 0, "clubs": clubs or "",
+            "latest_class": latest_class or "",
+            "_fp": fp,
+            "_first": name[:1].lower(),
+            "_token_count": len(fp.split()),
+        })
+
+    pairs: list[dict] = []
+    seen_loser_ids: set[int] = set()
+    n_players = len(enriched)
+    for i in range(n_players):
+        a = enriched[i]
+        for j in range(i + 1, n_players):
+            b = enriched[j]
+            # Cheap prefilters
+            if a["_first"] != b["_first"]:
+                continue
+            if a["_token_count"] != b["_token_count"]:
+                continue
+            # Same gender required (or one unknown — captures unattributed ghosts)
+            if a["gender"] and b["gender"] and a["gender"] != b["gender"]:
+                continue
+            # Shared club — guard against cross-club homonyms
+            a_clubs = set((a["clubs"] or "").split(",")) - {""}
+            b_clubs = set((b["clubs"] or "").split(",")) - {""}
+            if not (a_clubs & b_clubs):
+                continue
+            # Typo gate (the actual discriminator). Compares raw names —
+            # see _is_typo_pair docstring for why sorted fingerprints are
+            # the wrong input here.
+            if not _is_typo_pair(a["name"], b["name"]):
+                continue
+            # Lopsidedness: one established, one ghost
+            n_max = max(a["n"], b["n"])
+            n_min = min(a["n"], b["n"])
+            if n_max < min_winner_matches or n_min > max_loser_matches:
+                continue
+            # Pick winner: the higher-N record. Tie-break: non-CAPS, then lowest id.
+            def _sort_key(p):
+                return (-p["n"], 1 if p["name"].isupper() else 0, p["id"])
+            winner, loser = sorted([a, b], key=_sort_key)[:2]
+            if loser["id"] in seen_loser_ids:
+                # A ghost shouldn't be merged into two different winners.
+                # If it could match multiple, the human suggester should sort it.
+                continue
+            seen_loser_ids.add(loser["id"])
+            pairs.append({
+                "winner": {k: v for k, v in winner.items() if not k.startswith("_")},
+                "loser":  {k: v for k, v in loser.items() if not k.startswith("_")},
+                "reason": (
+                    f"typo auto-merge: {loser['name']!r} ({loser['n']}m) "
+                    f"≈ {winner['name']!r} ({winner['n']}m), shared club"
+                ),
+            })
+
+    return pairs
+
+
+def merge_typo_duplicates(
+    conn: sqlite3.Connection,
+    *,
+    dry_run: bool = False,
+    min_winner_matches: int = 4,
+    max_loser_matches: int = 2,
+) -> list[dict]:
+    """Auto-merge lopsided typo pairs (see find_typo_duplicate_groups).
+
+    Returns the list of pairs (with a `merged: bool` field added to each).
+    Caller should run `rate` afterward to recompute ratings.
+    """
+    pairs = find_typo_duplicate_groups(
+        conn,
+        min_winner_matches=min_winner_matches,
+        max_loser_matches=max_loser_matches,
+    )
+    for p in pairs:
+        if not dry_run:
+            merge_player_into(
+                conn,
+                loser_id=p["loser"]["id"],
+                winner_id=p["winner"]["id"],
+                reason=p["reason"],
+            )
+            p["merged"] = True
+        else:
+            p["merged"] = False
+    return pairs
+
+
 # ---- Manual-alias merges ----
 #
 # For cases automated rules cannot catch: marriage surname changes,
@@ -511,15 +711,12 @@ def _confidence(
             f"shared club ({','.join(sorted(a_clubs & b_clubs))})"
         )
 
-    # Single-character edit on sorted-token fingerprints (catches typos
-    # like 'Lillian Badacchino' / 'Lillian Baldacchino')
-    fp_a = a["_token_fp"]
-    fp_b = b["_token_fp"]
-    if abs(len(fp_a) - len(fp_b)) <= 1 and len(fp_a) >= 8:
-        sm = __import__("difflib").SequenceMatcher(None, fp_a, fp_b)
-        if sm.ratio() >= 0.95:
-            score += 0.04
-            reasons.append("token-fp ~1-char-edit")
+    # Single-character edit on raw lowercased names (catches typos
+    # like 'Lillian Badacchino' / 'Lillian Baldacchino'). Uses the same
+    # gate as the typo auto-merger so the two stay in sync.
+    if _is_typo_pair(a["name"], b["name"]):
+        score += 0.04
+        reasons.append("token-fp ~1-char-edit")
 
     # Both look 'real' (lots of matches each) — penalise as collision risk.
     # Two players with 30+ matches each are much less likely to be a typo
@@ -530,9 +727,163 @@ def _confidence(
         score -= 0.08
         reasons.append("both have 30+ matches (less typo-like)")
 
+    # Both have a captain-assigned class from a recent tournament. That's a
+    # strong "both records are real, distinct people" signal — captains pick
+    # rosters by hand, so a ghost typo record almost never carries a class
+    # assignment. If the classes are *different* divisions that's the
+    # strongest evidence yet that they're separate players (e.g. Christine
+    # Schembri A1 vs Christine Scerri C3). If the classes match, milder
+    # penalty — they might still be the same person across two tournaments.
+    cls_a = (a.get("latest_class") or "").strip()
+    cls_b = (b.get("latest_class") or "").strip()
+    if cls_a and cls_b:
+        if cls_a == cls_b:
+            score -= 0.04
+            reasons.append(f"both class-assigned ({cls_a})")
+        else:
+            # Strip trailing digit (A1/A2/A3 → A) to compare division-tiers.
+            tier_a = cls_a.rstrip("0123456789")
+            tier_b = cls_b.rstrip("0123456789")
+            if tier_a and tier_b and tier_a != tier_b:
+                # Different tier (A vs C) — almost certainly different people.
+                score -= 0.18
+                reasons.append(f"different class tiers ({cls_a} vs {cls_b})")
+            else:
+                score -= 0.08
+                reasons.append(f"different classes ({cls_a} vs {cls_b})")
+
+    # Lopsided n is a typo signal (one ghost, one established) — boost slightly
+    # so genuine typos rank above same-n ambiguous cases at the same raw score.
+    if min(n_a, n_b) <= 2 and max(n_a, n_b) >= 10:
+        score += 0.02
+        reasons.append("lopsided n (ghost+established)")
+
     # Bound and round
     score = max(0.0, min(1.0, score))
     return round(score, 3), reasons
+
+
+def load_known_distinct(path: str) -> set[frozenset[str]]:
+    """Load the 'these are different people' pair set from JSON.
+
+    Returns a set of frozensets of two canonical names. Order doesn't matter
+    (frozenset equality is order-insensitive). Missing file → empty set.
+    Used by `suggest_fuzzy_matches` to filter out pairs a human has already
+    ruled on.
+    """
+    import json
+    import os
+    if not os.path.exists(path):
+        return set()
+    with open(path, "r", encoding="utf-8") as f:
+        # Don't catch JSONDecodeError — silently swallowing means the
+        # suggester quietly stops respecting the file, which is worse than
+        # a loud failure.
+        data = json.loads(f.read())
+    out: set[frozenset[str]] = set()
+    for entry in data.get("pairs", []):
+        a, b = entry.get("a"), entry.get("b")
+        if a and b:
+            out.add(frozenset({a, b}))
+    return out
+
+
+def record_distinct(
+    path: str,
+    a_name: str,
+    b_name: str,
+    reason: str,
+) -> bool:
+    """Append a 'these are different people' verdict to the known-distinct
+    JSON file. Returns True if newly added, False if the pair was already
+    recorded. Idempotent — safe to call repeatedly.
+    """
+    import json
+    import os
+    from datetime import datetime, timezone
+
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.loads(f.read())
+    else:
+        data = {"pairs": []}
+    pairs = data.setdefault("pairs", [])
+
+    target = frozenset({a_name, b_name})
+    for existing in pairs:
+        if frozenset({existing.get("a", ""), existing.get("b", "")}) == target:
+            return False  # already recorded — no-op
+
+    pairs.append({
+        "a": a_name,
+        "b": b_name,
+        "reason": reason,
+        "decided_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    })
+    # Atomic write: tmpfile + rename, so a crashed process can't truncate
+    # the JSON mid-write.
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(data, indent=2, ensure_ascii=False))
+        f.write("\n")
+    os.replace(tmp, path)
+    return True
+
+
+def record_same_person(
+    aliases_path: str,
+    winner_name: str,
+    loser_name: str,
+    reason: str,
+) -> bool:
+    """Append a 'same person' verdict to manual_aliases.json — adds the
+    loser to the appropriate winner's `losers` list, creating a new merge
+    entry if the winner doesn't appear yet. Returns True if anything new
+    was written, False if the loser was already recorded under that winner.
+    Idempotent.
+    """
+    import json
+    import os
+
+    if os.path.exists(aliases_path):
+        with open(aliases_path, "r", encoding="utf-8") as f:
+            data = json.loads(f.read())
+    else:
+        data = {"merges": []}
+    merges = data.setdefault("merges", [])
+
+    # Find existing merge entry for this winner (by exact canonical match).
+    target = None
+    for m in merges:
+        if m.get("winner") == winner_name:
+            target = m
+            break
+
+    if target is None:
+        merges.append({
+            "winner": winner_name,
+            "losers": [loser_name],
+            "reason": reason,
+        })
+        new_write = True
+    else:
+        losers = target.setdefault("losers", [])
+        if loser_name in losers:
+            return False
+        losers.append(loser_name)
+        # Don't overwrite an existing reason silently; append the new one if
+        # it's different so the audit trail is complete.
+        existing_reason = target.get("reason", "")
+        if reason and reason not in existing_reason:
+            target["reason"] = (existing_reason + "; " + reason).lstrip("; ")
+        new_write = True
+
+    tmp = aliases_path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(data, indent=2, ensure_ascii=False))
+        f.write("\n")
+    os.replace(tmp, aliases_path)
+    return new_write
 
 
 def suggest_fuzzy_matches(
@@ -541,6 +892,7 @@ def suggest_fuzzy_matches(
     threshold: float = 0.85,
     same_gender_only: bool = True,
     min_matches: int = 1,
+    known_distinct: set[frozenset[str]] | None = None,
 ) -> list[dict]:
     """Surface plausible same-person pairs that automated rules missed.
 
@@ -614,11 +966,15 @@ def suggest_fuzzy_matches(
         })
 
     suggestions: list[dict] = []
+    known_distinct = known_distinct or set()
     n_players = len(players_list)
     for i in range(n_players):
         a = players_list[i]
         for j in range(i + 1, n_players):
             b = players_list[j]
+            # Filter pairs a human has already ruled "different people".
+            if frozenset({a["name"], b["name"]}) in known_distinct:
+                continue
             # Cheap prefilters
             if abs(len(a["_key"]) - len(b["_key"])) > 8:
                 continue

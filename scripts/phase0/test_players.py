@@ -267,5 +267,335 @@ class TestCaseDuplicateMerge(unittest.TestCase):
         self.assertEqual(again, [])
 
 
+class TestIsTypoPair(unittest.TestCase):
+    """Gate logic for the typo auto-merger / fuzzy suggester boost.
+
+    These cases are the actual discriminator between "1-char typo of the same
+    person" and "two distinct players who share a first name". If either side
+    of this gate drifts, the suggester (HIGH/VERY HIGH bucketing) and the
+    auto-merger (which fires without human review) will disagree.
+    """
+
+    def test_canonical_typos_pass(self):
+        cases = [
+            ("Borg Reuben", "Borg Ruben"),                  # 1 deletion
+            ("Mariska Steenkamer", "Mariska Stennkamer"),    # 1 substitution
+            ("Jonathan Martinelli", "Jonathan Maritnelli"),  # transposition
+            ("Stephanie Farrugia", "Stephania Farrugia"),    # last-char sub
+            ("Karolina Papiernik", "Karolina Paperniek"),    # transposition
+            ("Clayton Zammit Cesare", "Calyton Zammit Cesare"),  # 3-token typo
+            ("Jin Attard", "Jin Atard"),                     # 9-char min boundary
+        ]
+        for a, b in cases:
+            with self.subTest(a=a, b=b):
+                self.assertTrue(players._is_typo_pair(a, b), f"{a!r} vs {b!r}")
+
+    def test_distinct_people_with_similar_names_fail(self):
+        # These MUST NOT auto-merge — they're real false positives in the data.
+        cases = [
+            ("Mike Smith", "Mark Smith"),
+            ("John Smith", "Jane Smith"),
+            ("Cachia Ivan", "Cachia Sean"),
+            ("Christine Schembri", "Christine Scerri"),
+            ("Jurgen Farrugia", "Owen Farrugia"),
+        ]
+        for a, b in cases:
+            with self.subTest(a=a, b=b):
+                self.assertFalse(players._is_typo_pair(a, b), f"{a!r} vs {b!r}")
+
+    def test_short_names_fail_length_gate(self):
+        # Names < 9 chars are too short for ratio-based discrimination.
+        self.assertFalse(players._is_typo_pair("Jo Smith", "Jo Smyth"))
+
+    def test_length_diff_gt_one_fails(self):
+        # An extra word or 2-char difference is not a 1-char typo.
+        self.assertFalse(
+            players._is_typo_pair("Mark Gatt", "Mark Anthony Gatt")
+        )
+
+
+class TestTypoAutoMerger(unittest.TestCase):
+    """End-to-end behavior of the lopsided-typo auto-merger.
+
+    Sets up a tiny realistic DB (with clubs + tournaments + matches) so the
+    merger's club-overlap and match-count gates have real data to read.
+    """
+
+    def setUp(self):
+        self.conn = db.init_db(":memory:")
+        self.conn.execute("INSERT INTO clubs (id, name, slug) VALUES (1, 'VLTC', 'vltc')")
+        self.conn.execute("INSERT INTO clubs (id, name, slug) VALUES (2, 'TCK', 'tck')")
+        self.conn.execute(
+            "INSERT INTO source_files (id, club_id, original_filename, sha256) "
+            "VALUES (1, 1, 'fix.xlsx', 'sha1')"
+        )
+        self.conn.execute(
+            "INSERT INTO ingestion_runs (id, source_file_id, status, started_at) "
+            "VALUES (1, 1, 'completed', '2025-01-01')"
+        )
+        self.conn.execute(
+            "INSERT INTO tournaments (id, club_id, name, year, format, source_file_id) "
+            "VALUES (1, 1, 'VLTC Cup', 2025, 'doubles_division', 1)"
+        )
+        self.conn.execute(
+            "INSERT INTO tournaments (id, club_id, name, year, format) "
+            "VALUES (2, 2, 'TCK Cup', 2025, 'doubles_division')"
+        )
+        self.conn.commit()
+
+    def tearDown(self):
+        self.conn.close()
+
+    def _add_player(self, pid, name, gender=None):
+        self.conn.execute(
+            "INSERT INTO players (id, canonical_name, gender) VALUES (?, ?, ?)",
+            (pid, name, gender),
+        )
+
+    def _add_match(self, mid, tournament_id, p_a1, p_a2, p_b1, p_b2):
+        self.conn.execute(
+            "INSERT INTO matches (id, tournament_id, played_on, ingestion_run_id) "
+            "VALUES (?, ?, '2025-06-01', 1)", (mid, tournament_id),
+        )
+        self.conn.execute(
+            "INSERT INTO match_sides (match_id, side, player1_id, player2_id, games_won, won) "
+            "VALUES (?, 'A', ?, ?, 6, 1)", (mid, p_a1, p_a2),
+        )
+        self.conn.execute(
+            "INSERT INTO match_sides (match_id, side, player1_id, player2_id, games_won, won) "
+            "VALUES (?, 'B', ?, ?, 3, 0)", (mid, p_b1, p_b2),
+        )
+
+    def test_lopsided_typo_pair_merges(self):
+        # Established player (5 matches) + ghost record (1 match), 1-char typo,
+        # same gender, shared club. Expected: auto-merge ghost into established.
+        self._add_player(1, "Mariska Steenkamer", "F")
+        self._add_player(2, "Mariska Stennkamer", "F")  # 1-char typo
+        self._add_player(3, "Partner", "F")
+        self._add_player(4, "Foe1", "F"); self._add_player(5, "Foe2", "F")
+        for mid in range(1, 6):
+            self._add_match(mid, 1, 1, 3, 4, 5)
+        self._add_match(6, 1, 2, 3, 4, 5)
+        self.conn.commit()
+
+        result = players.merge_typo_duplicates(self.conn)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["winner"]["id"], 1)
+        self.assertEqual(result[0]["loser"]["id"], 2)
+        # Ghost row has merged_into_id set
+        merged_into = self.conn.execute(
+            "SELECT merged_into_id FROM players WHERE id = 2"
+        ).fetchone()[0]
+        self.assertEqual(merged_into, 1)
+
+    def test_same_n_pair_does_not_auto_merge(self):
+        # Two records with 3 matches each — neither looks like a "ghost".
+        # Auto-merger leaves these for human review via suggest-merges.
+        self._add_player(1, "Christina Bonnet", "F")
+        self._add_player(2, "Christina Bonett", "F")
+        self._add_player(3, "Partner", "F")
+        self._add_player(4, "Foe1", "F"); self._add_player(5, "Foe2", "F")
+        for mid in range(1, 4):
+            self._add_match(mid, 1, 1, 3, 4, 5)
+        for mid in range(4, 7):
+            self._add_match(mid, 1, 2, 3, 4, 5)
+        self.conn.commit()
+
+        result = players.merge_typo_duplicates(self.conn)
+        self.assertEqual(result, [])
+
+    def test_no_shared_club_does_not_merge(self):
+        # Two clubs, established at one, ghost at the other. Same name typo.
+        # Cross-club homonym safety net — leaves it for human.
+        self._add_player(1, "Andrea Magaldi", "F")
+        self._add_player(2, "Andrea Magalgi", "F")
+        self._add_player(3, "Partner", "F")
+        self._add_player(4, "Foe1", "F"); self._add_player(5, "Foe2", "F")
+        for mid in range(1, 6):
+            self._add_match(mid, 1, 1, 3, 4, 5)  # club 1
+        self._add_match(6, 2, 2, 3, 4, 5)         # club 2
+        self.conn.commit()
+
+        result = players.merge_typo_duplicates(self.conn)
+        self.assertEqual(result, [])
+
+    def test_different_gender_does_not_merge(self):
+        # Maria (F) vs Mario (M) — same surname, 1-char first-name diff,
+        # but explicit different gender → leave it alone.
+        self._add_player(1, "Maria Abdilla", "F")
+        self._add_player(2, "Mario Abdilla", "M")
+        self._add_player(3, "Partner", "F")
+        self._add_player(4, "Foe1", "F"); self._add_player(5, "Foe2", "F")
+        for mid in range(1, 6):
+            self._add_match(mid, 1, 1, 3, 4, 5)
+        self._add_match(6, 1, 2, 3, 4, 5)
+        self.conn.commit()
+
+        result = players.merge_typo_duplicates(self.conn)
+        self.assertEqual(result, [])
+
+    def test_dry_run_does_not_modify_db(self):
+        self._add_player(1, "Mariska Steenkamer", "F")
+        self._add_player(2, "Mariska Stennkamer", "F")
+        self._add_player(3, "Partner", "F")
+        self._add_player(4, "Foe1", "F"); self._add_player(5, "Foe2", "F")
+        for mid in range(1, 6):
+            self._add_match(mid, 1, 1, 3, 4, 5)
+        self._add_match(6, 1, 2, 3, 4, 5)
+        self.conn.commit()
+
+        result = players.merge_typo_duplicates(self.conn, dry_run=True)
+        self.assertEqual(len(result), 1)
+        self.assertFalse(result[0]["merged"])
+        # Loser still independent
+        merged_into = self.conn.execute(
+            "SELECT merged_into_id FROM players WHERE id = 2"
+        ).fetchone()[0]
+        self.assertIsNone(merged_into)
+
+
+class TestKnownDistinctAndRecorders(unittest.TestCase):
+    """Persistence helpers for the human-review verdict files.
+
+    These wire into the suggester so a 'different people' verdict actually
+    sticks across runs. If load/record drift, the suggester silently stops
+    respecting human decisions — a quiet, hard-to-debug failure mode.
+    """
+
+    def setUp(self):
+        import tempfile
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.distinct_path = str(Path(self.tmpdir.name) / "known_distinct.json")
+        self.aliases_path = str(Path(self.tmpdir.name) / "manual_aliases.json")
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def test_load_known_distinct_missing_file_returns_empty(self):
+        self.assertEqual(players.load_known_distinct(self.distinct_path), set())
+
+    def test_record_distinct_creates_file_and_reloads(self):
+        ok = players.record_distinct(
+            self.distinct_path, "Christine Schembri", "Christine Scerri",
+            reason="different people"
+        )
+        self.assertTrue(ok)
+        loaded = players.load_known_distinct(self.distinct_path)
+        self.assertEqual(loaded, {frozenset({"Christine Schembri", "Christine Scerri"})})
+
+    def test_record_distinct_is_idempotent_unordered(self):
+        players.record_distinct(self.distinct_path, "A Smith", "B Jones", reason="x")
+        # Same pair, names swapped — should NOT create a duplicate entry
+        ok = players.record_distinct(self.distinct_path, "B Jones", "A Smith", reason="y")
+        self.assertFalse(ok)
+        loaded = players.load_known_distinct(self.distinct_path)
+        self.assertEqual(len(loaded), 1)
+
+    def test_record_same_person_creates_alias_entry(self):
+        ok = players.record_same_person(
+            self.aliases_path, "Pretty Name", "TYPO Name", reason="auto"
+        )
+        self.assertTrue(ok)
+        loaded = players.load_known_distinct  # sanity
+        with open(self.aliases_path) as f:
+            data = __import__("json").loads(f.read())
+        self.assertEqual(data["merges"][0]["winner"], "Pretty Name")
+        self.assertEqual(data["merges"][0]["losers"], ["TYPO Name"])
+
+    def test_record_same_person_appends_loser_to_existing_winner(self):
+        players.record_same_person(self.aliases_path, "Real", "Fake1", reason="r1")
+        players.record_same_person(self.aliases_path, "Real", "Fake2", reason="r2")
+        with open(self.aliases_path) as f:
+            data = __import__("json").loads(f.read())
+        self.assertEqual(len(data["merges"]), 1)
+        self.assertEqual(data["merges"][0]["losers"], ["Fake1", "Fake2"])
+
+    def test_record_same_person_is_idempotent(self):
+        players.record_same_person(self.aliases_path, "Real", "Fake", reason="r")
+        ok = players.record_same_person(self.aliases_path, "Real", "Fake", reason="r")
+        self.assertFalse(ok)
+
+
+class TestSuggesterFiltersKnownDistinct(unittest.TestCase):
+    """The suggester must drop pairs in the known-distinct set BEFORE scoring,
+    otherwise the human review queue keeps re-surfacing already-decided pairs.
+    """
+
+    def setUp(self):
+        self.conn = db.init_db(":memory:")
+        self.conn.execute("INSERT INTO clubs (id, name, slug) VALUES (1, 'VLTC', 'vltc')")
+        self.conn.execute(
+            "INSERT INTO source_files (id, club_id, original_filename, sha256) "
+            "VALUES (1, 1, 'fix.xlsx', 'sha1')"
+        )
+        self.conn.execute(
+            "INSERT INTO ingestion_runs (id, source_file_id, status, started_at) "
+            "VALUES (1, 1, 'completed', '2025-01-01')"
+        )
+        self.conn.execute(
+            "INSERT INTO tournaments (id, club_id, name, year, format, source_file_id) "
+            "VALUES (1, 1, 'Cup', 2025, 'doubles_division', 1)"
+        )
+        # Two near-identical names in the same club to ensure a fuzzy hit
+        self.conn.execute(
+            "INSERT INTO players (id, canonical_name, gender) VALUES (1, 'Christine Schembri', 'F')"
+        )
+        self.conn.execute(
+            "INSERT INTO players (id, canonical_name, gender) VALUES (2, 'Christine Scerri', 'F')"
+        )
+        self.conn.execute("INSERT INTO players (id, canonical_name, gender) VALUES (3, 'Partner', 'F')")
+        self.conn.execute("INSERT INTO players (id, canonical_name, gender) VALUES (4, 'F1', 'F')")
+        self.conn.execute("INSERT INTO players (id, canonical_name, gender) VALUES (5, 'F2', 'F')")
+        # Give both players matches so they aren't filtered by min_matches
+        for mid in range(1, 4):
+            self.conn.execute(
+                "INSERT INTO matches (id, tournament_id, played_on, ingestion_run_id) "
+                "VALUES (?, 1, '2025-06-01', 1)", (mid,)
+            )
+            self.conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, player2_id, games_won, won) "
+                "VALUES (?, 'A', 1, 3, 6, 1)", (mid,)
+            )
+            self.conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, player2_id, games_won, won) "
+                "VALUES (?, 'B', 4, 5, 3, 0)", (mid,)
+            )
+        for mid in range(4, 7):
+            self.conn.execute(
+                "INSERT INTO matches (id, tournament_id, played_on, ingestion_run_id) "
+                "VALUES (?, 1, '2025-06-01', 1)", (mid,)
+            )
+            self.conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, player2_id, games_won, won) "
+                "VALUES (?, 'A', 2, 3, 6, 1)", (mid,)
+            )
+            self.conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, player2_id, games_won, won) "
+                "VALUES (?, 'B', 4, 5, 3, 0)", (mid,)
+            )
+        self.conn.commit()
+
+    def tearDown(self):
+        self.conn.close()
+
+    def test_pair_appears_without_filter(self):
+        # No known_distinct: the pair should surface (low confidence is fine).
+        results = players.suggest_fuzzy_matches(self.conn, threshold=0.80)
+        names = {frozenset({s["a"]["name"], s["b"]["name"]}) for s in results}
+        self.assertIn(
+            frozenset({"Christine Schembri", "Christine Scerri"}), names
+        )
+
+    def test_pair_filtered_when_in_known_distinct(self):
+        kd = {frozenset({"Christine Schembri", "Christine Scerri"})}
+        results = players.suggest_fuzzy_matches(
+            self.conn, threshold=0.80, known_distinct=kd
+        )
+        names = {frozenset({s["a"]["name"], s["b"]["name"]}) for s in results}
+        self.assertNotIn(
+            frozenset({"Christine Schembri", "Christine Scerri"}), names
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

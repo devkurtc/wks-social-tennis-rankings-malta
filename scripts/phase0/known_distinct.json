@@ -1,0 +1,4 @@
+{
+  "_comment": "Pairs explicitly confirmed as DIFFERENT people. The fuzzy suggester filters these out so the same false-positive pair doesn't keep getting flagged after a human has ruled on it. Each entry: 'a' and 'b' are canonical names (order doesn't matter \u2014 pairs are matched as an unordered set). 'reason' is human context. 'decided_at' is ISO timestamp, set automatically by the review tools.",
+  "pairs": []
+}

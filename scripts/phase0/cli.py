@@ -69,6 +69,11 @@ def cmd_load(args: argparse.Namespace) -> int:
         ("tennis trade team tournament", _tt.parse),
         ("results tennis trade team tournament", _tt.parse),
         ("san michel results", _tt.parse),
+        # 2026+ Google-Sheet scraper names this file "SAN MICHEL TEAM TOURNAMENT
+        # YYYY.xlsx" but the file inside is the modern Day-N layout. Add explicit
+        # year prefixes here so the more general "san michel team tournament"
+        # legacy match (below) doesn't steal it. Add a new line per year.
+        ("san michel team tournament 2026", _tt.parse),
         ("samsung rennie tonna", _tt.parse),
         # VLTC Team Tournaments (LEGACY single-sheet "DAY" template) —
         # PKF 2023/2024, Tennis Trade 2023, San Michel 2023/2024/2025
@@ -170,12 +175,43 @@ def cmd_load(args: argparse.Namespace) -> int:
                         get_or_create_player_fn=get_or_create_player,
                     )
                     conn.commit()
+
+        # Auto-run identity-resolution mergers so the DB doesn't accumulate
+        # stale duplicates. Order matters:
+        #   1. case-only (cheapest, deterministic)
+        #   2. token-equivalent (catches surname-first vs first-name swaps)
+        #   3. typo (lopsided 1-char-typo pairs)
+        #   4. manual aliases (marriage names, nicknames — hand-curated JSON)
+        # Each is idempotent. Skipped via --no-merge for diagnostic loads.
+        merge_summary: list[str] = []
+        if not getattr(args, "no_merge", False):
+            import players as _players
+            n = len(_players.merge_case_duplicates(conn))
+            if n: merge_summary.append(f"{n} case")
+            n = len(_players.merge_token_duplicates(conn))
+            if n: merge_summary.append(f"{n} token")
+            n = sum(1 for p in _players.merge_typo_duplicates(conn) if p.get("merged"))
+            if n: merge_summary.append(f"{n} typo")
+            # Manual aliases path resolves relative to project root, not cwd.
+            from pathlib import Path as _P
+            aliases_path = _P(__file__).resolve().parent / "manual_aliases.json"
+            if aliases_path.exists():
+                applied, _warnings = _players.apply_manual_aliases(
+                    conn, str(aliases_path)
+                )
+                n = sum(
+                    1 for r in applied for l in r["losers"]
+                    if l["status"] == "merged"
+                )
+                if n: merge_summary.append(f"{n} manual")
     finally:
         conn.close()
-    print(
-        f"Loaded ingestion_run_id={run_id} from {args.file}"
-        + (f" (+{n_team_assigns} team assignments)" if n_team_assigns else "")
-    )
+    msg = f"Loaded ingestion_run_id={run_id} from {args.file}"
+    if n_team_assigns:
+        msg += f" (+{n_team_assigns} team assignments)"
+    if merge_summary:
+        msg += f"\n  auto-merged: {', '.join(merge_summary)}. Run `cli.py rate` to refresh ratings."
+    print(msg)
     return 0
 
 
@@ -382,14 +418,18 @@ def cmd_suggest_merges(args: argparse.Namespace) -> int:
     """Surface plausible same-person fuzzy matches for human review."""
     import db
     import players
+    from pathlib import Path as _P
 
     conn = db.init_db()
     try:
+        kd_path = _P(__file__).resolve().parent / "known_distinct.json"
+        kd = players.load_known_distinct(str(kd_path))
         suggestions = players.suggest_fuzzy_matches(
             conn,
             threshold=args.threshold,
             same_gender_only=not args.cross_gender,
             min_matches=args.min_matches,
+            known_distinct=kd,
         )
     finally:
         conn.close()
@@ -626,6 +666,181 @@ def cmd_merge_token_duplicates(args: argparse.Namespace) -> int:
     print()
     if args.dry_run:
         print("Dry run only — re-run without --dry-run to apply.")
+    else:
+        print("Run `cli.py rate` to recompute ratings against the merged data.")
+    return 0
+
+
+def cmd_review(args: argparse.Namespace) -> int:
+    """Walk pending fuzzy-match suggestions interactively (terminal-friendly).
+
+    Designed for low-bandwidth use including SSH from phone — the prompt is
+    minimal, the verdicts go to the same JSON files the public site reads,
+    so a triage session done over SSH is durable.
+    """
+    import db
+    import players
+    from pathlib import Path as _P
+
+    aliases_path = _P(__file__).resolve().parent / "manual_aliases.json"
+    distinct_path = _P(__file__).resolve().parent / "known_distinct.json"
+
+    conn = db.init_db()
+    try:
+        kd = players.load_known_distinct(str(distinct_path))
+        suggestions = players.suggest_fuzzy_matches(
+            conn,
+            threshold=args.threshold,
+            same_gender_only=not args.cross_gender,
+            min_matches=args.min_matches,
+            known_distinct=kd,
+        )
+    finally:
+        conn.close()
+
+    if not suggestions:
+        print("Nothing to review — fuzzy queue is empty.")
+        return 0
+
+    # Apply confidence ceiling/floor filters if user asked
+    if args.min_confidence is not None:
+        suggestions = [s for s in suggestions if s["confidence"] >= args.min_confidence]
+    if args.max_confidence is not None:
+        suggestions = [s for s in suggestions if s["confidence"] <= args.max_confidence]
+
+    if args.limit and args.limit > 0:
+        suggestions = suggestions[: args.limit]
+
+    n = len(suggestions)
+    print(
+        f"Reviewing {n} pending pair(s). For each, choose:\n"
+        f"  s = SAME person (will be merged)\n"
+        f"  d = DIFFERENT people (will stop being suggested)\n"
+        f"  k = SKIP (decide later)\n"
+        f"  q = QUIT (saves progress, exits)\n"
+    )
+
+    n_same = n_distinct = n_skip = 0
+    for i, s in enumerate(suggestions, 1):
+        a, b = s["a"], s["b"]
+        signals = " · ".join(s.get("reasons") or [])
+        # Pick a default winner: more matches, then non-CAPS
+        def _pretty_key(p):
+            return (-p["n"], 1 if p["name"].isupper() else 0, p["id"])
+        default_winner_first = sorted([a, b], key=_pretty_key)[0] is a
+        winner_default = a if default_winner_first else b
+        loser_default = b if default_winner_first else a
+
+        a_class = f", {a.get('latest_class')}" if a.get("latest_class") else ""
+        b_class = f", {b.get('latest_class')}" if b.get("latest_class") else ""
+        print(f"\n[{i}/{n}]  conf {s['confidence']:.2f}")
+        print(f"  A  id #{a['id']:<5} ({a['n']}m{a_class})  {a['name']}")
+        print(f"  B  id #{b['id']:<5} ({b['n']}m{b_class})  {b['name']}")
+        print(f"  signals: {signals}")
+        print(
+            f"  default winner if [s]ame: {winner_default['name']!r} "
+            f"(loser: {loser_default['name']!r})"
+        )
+
+        try:
+            verdict = input("  → [s]ame / [d]ifferent / [k]eep / [q]uit > ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\n(interrupted — progress saved)")
+            break
+
+        if verdict in ("q", "quit"):
+            print("(quit — progress saved)")
+            break
+        elif verdict in ("d", "different", "no", "n"):
+            reason = input("  reason (optional, ENTER for default) > ").strip()
+            if not reason:
+                reason = "Different people; confirmed via cli review"
+            ok = players.record_distinct(
+                str(distinct_path), a["name"], b["name"], reason=reason
+            )
+            n_distinct += 1
+            print(f"  → {'recorded' if ok else 'already recorded'}: distinct")
+        elif verdict in ("s", "same", "yes", "y"):
+            choice = input(
+                f"  winner? [a]/[b]/ENTER for default ({'A' if default_winner_first else 'B'}) > "
+            ).strip().lower()
+            if choice == "a":
+                w, l = a, b
+            elif choice == "b":
+                w, l = b, a
+            else:
+                w, l = winner_default, loser_default
+            reason = input("  reason (optional) > ").strip() or "Same person; confirmed via cli review"
+            ok = players.record_same_person(
+                str(aliases_path), w["name"], l["name"], reason=reason
+            )
+            n_same += 1
+            print(f"  → {'recorded' if ok else 'already recorded'}: {l['name']!r} → {w['name']!r}")
+        else:
+            n_skip += 1
+            print("  → skipped")
+
+    print(
+        f"\nSession: {n_same} same · {n_distinct} different · {n_skip} skipped."
+    )
+    if n_same > 0:
+        print(
+            "Run `cli.py apply-manual-aliases --file scripts/phase0/manual_aliases.json` "
+            "+ `cli.py rate` to materialize the SAME merges. "
+            "Then `./scripts/deploy-site.sh` to publish."
+        )
+    elif n_distinct > 0:
+        print(
+            "DIFFERENT verdicts only — no DB changes needed. The next site "
+            "build will pick up the filter via `./scripts/deploy-site.sh`."
+        )
+    return 0
+
+
+def cmd_review_server(args: argparse.Namespace) -> int:
+    """Start the local review server. Defined separately from the import so
+    `cli.py --help` doesn't pay the import cost."""
+    import review_server
+    review_server.serve(port=args.port, open_browser=not args.no_browser)
+    return 0
+
+
+def cmd_merge_typo_duplicates(args: argparse.Namespace) -> int:
+    """Auto-merge lopsided typo pairs (see players.merge_typo_duplicates)."""
+    import db
+    import players
+
+    conn = db.init_db()
+    try:
+        pairs = players.merge_typo_duplicates(
+            conn,
+            dry_run=args.dry_run,
+            min_winner_matches=args.min_winner_matches,
+            max_loser_matches=args.max_loser_matches,
+        )
+    finally:
+        if args.dry_run:
+            conn.rollback()
+        conn.close()
+
+    if not pairs:
+        print(
+            f"No typo-pair candidates found "
+            f"(winner ≥{args.min_winner_matches}m, loser ≤{args.max_loser_matches}m)."
+        )
+        return 0
+
+    label = "Would merge" if args.dry_run else "Merged"
+    print(f"{label} {len(pairs)} typo pair(s):")
+    for p in pairs:
+        w, l = p["winner"], p["loser"]
+        print(
+            f"  {l['name']!r} (id={l['id']}, n={l['n']}) "
+            f" →  {w['name']!r} (id={w['id']}, n={w['n']})"
+        )
+    print()
+    if args.dry_run:
+        print("Dry run — re-run without --dry-run to apply.")
     else:
         print("Run `cli.py rate` to recompute ratings against the merged data.")
     return 0
@@ -1037,6 +1252,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--file",
         help="Path to a tournament .xlsx file to load (e.g. _DATA_/VLTC/...).",
     )
+    p_load.add_argument(
+        "--no-merge",
+        action="store_true",
+        help=(
+            "Skip the post-load identity-resolution sweep "
+            "(case + token + typo + manual aliases). Use for diagnostic loads "
+            "where you want to inspect raw post-parse state."
+        ),
+    )
     p_load.set_defaults(func=cmd_load)
 
     p_rate = sub.add_parser(
@@ -1096,6 +1320,90 @@ def build_parser() -> argparse.ArgumentParser:
         help="Preview the proposed merges without modifying the database.",
     )
     p_merge_tok.set_defaults(func=cmd_merge_token_duplicates)
+
+    p_merge_typo = sub.add_parser(
+        "merge-typo-duplicates",
+        help=(
+            "Auto-merge lopsided typo pairs: established player (>=4 matches) "
+            "+ ghost record (<=2 matches) whose names differ by ~1 character "
+            "(missing letter, transposition). Requires same token count, same "
+            "first letter, same gender or one unknown, and shared club. "
+            "Conservative — same-N pairs go to suggest-merges for human review."
+        ),
+    )
+    p_merge_typo.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the proposed merges without modifying the database.",
+    )
+    p_merge_typo.add_argument(
+        "--min-winner-matches",
+        type=int,
+        default=4,
+        help="Larger record must have at least this many matches (default 4).",
+    )
+    p_merge_typo.add_argument(
+        "--max-loser-matches",
+        type=int,
+        default=2,
+        help="Smaller record must have at most this many matches (default 2).",
+    )
+    p_merge_typo.set_defaults(func=cmd_merge_typo_duplicates)
+
+    p_review = sub.add_parser(
+        "review",
+        help=(
+            "Interactive triage of the fuzzy-match queue. For each pair "
+            "shows compact info + signals; you choose [s]ame / [d]ifferent / "
+            "[k]eep / [q]uit. Verdicts are appended to manual_aliases.json "
+            "(same) or known_distinct.json (different). Phone-friendly: "
+            "minimal output, single-character prompts, safe to interrupt."
+        ),
+    )
+    p_review.add_argument(
+        "--threshold", type=float, default=0.85,
+        help="Minimum raw similarity to surface (default 0.85).",
+    )
+    p_review.add_argument(
+        "--cross-gender", action="store_true",
+        help="Also surface cross-gender pairs (default: same gender only).",
+    )
+    p_review.add_argument(
+        "--min-matches", type=int, default=1,
+        help="Both records must have at least this many active matches.",
+    )
+    p_review.add_argument(
+        "--min-confidence", type=float, default=None,
+        help="Skip pairs with confidence below this (e.g. 0.95 = VERY HIGH only).",
+    )
+    p_review.add_argument(
+        "--max-confidence", type=float, default=None,
+        help="Skip pairs above this (e.g. only review LOW/MEDIUM).",
+    )
+    p_review.add_argument(
+        "--limit", type=int, default=0,
+        help="Max number of pairs to walk in this session (0 = all).",
+    )
+    p_review.set_defaults(func=cmd_review)
+
+    p_review_server = sub.add_parser(
+        "review-server",
+        help=(
+            "Start a local-only review UI (stdlib http.server) on localhost. "
+            "Same/different/defer buttons per pair, inline player mini-profiles. "
+            "Verdicts go to manual_aliases.json + known_distinct.json — same "
+            "files as `cli.py review` so the two tools cooperate."
+        ),
+    )
+    p_review_server.add_argument(
+        "--port", type=int, default=8765,
+        help="Port to listen on (default 8765).",
+    )
+    p_review_server.add_argument(
+        "--no-browser", action="store_true",
+        help="Don't auto-open a browser tab.",
+    )
+    p_review_server.set_defaults(func=cmd_review_server)
 
     p_apply_aliases = sub.add_parser(
         "apply-manual-aliases",

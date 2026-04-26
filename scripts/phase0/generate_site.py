@@ -357,9 +357,10 @@ footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px
 .hwr .calc-bar .a { background: var(--win); display: flex; align-items: center; justify-content: center; }
 .hwr .calc-bar .b { background: var(--loss); display: flex; align-items: center; justify-content: center; }
 .hwr .calc-table {
-  display: grid; grid-template-columns: 1fr auto auto auto; gap: 4px 16px;
+  display: grid; grid-template-columns: 1.4fr 0.6fr 0.6fr 0.7fr 0.9fr 0.9fr;
+  gap: 4px 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px; margin-top: 10px;
+  font-size: 12px; margin-top: 14px;
 }
 .hwr .calc-table .calc-th {
   color: var(--muted); text-transform: uppercase; font-size: 10.5px;
@@ -367,10 +368,71 @@ footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px
   padding-bottom: 3px;
 }
 .hwr .calc-table .num { text-align: right; }
+.hwr .calc-table .delta-pos { color: var(--win); }
+.hwr .calc-table .delta-neg { color: var(--loss); }
+.hwr .calc-table .delta-zero { color: var(--muted); }
+.hwr .calc-section-head {
+  margin-top: 14px; font-size: 12px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.hwr .calc-toggle {
+  display: inline-flex; gap: 4px; margin: 10px 0 4px 0;
+  padding: 3px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.hwr .calc-toggle button {
+  background: transparent; color: var(--muted);
+  border: 0; padding: 5px 12px; font-size: 12px; cursor: pointer;
+  border-radius: 4px; font-weight: 600;
+}
+.hwr .calc-toggle button.active { background: var(--accent); color: #0b1220; }
 @media (max-width: 600px) {
   .hwr .calc-pair { grid-template-columns: 1fr; }
   .hwr .calc-pair .pair-label { margin-top: 8px; }
+  .hwr .calc-table {
+    grid-template-columns: 1.6fr 0.7fr 0.9fr 0.9fr;
+  }
+  .hwr .calc-table .hide-mobile { display: none; }
 }
+
+/* --- Multiplier-stack diagram --- */
+.hwr .stack-diagram {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 14px; margin: 8px 0;
+}
+.hwr .stack-row {
+  display: grid; grid-template-columns: 150px 1fr 70px;
+  align-items: center; gap: 12px; margin: 6px 0;
+}
+.hwr .stack-label {
+  color: var(--muted); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.hwr .stack-label .stack-mult {
+  display: block; color: var(--fg); margin-top: 2px;
+  font-size: 12px; text-transform: none; letter-spacing: 0;
+  font-weight: 600;
+}
+.hwr .stack-bar-track {
+  height: 16px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 3px; position: relative; overflow: hidden;
+}
+.hwr .stack-bar-fill {
+  height: 100%; background: var(--accent); opacity: 0.7;
+}
+.hwr .stack-bar-fill.baseline { background: var(--muted); opacity: 0.5; }
+.hwr .stack-bar-fill.up { background: var(--win); }
+.hwr .stack-bar-fill.down { background: var(--loss); }
+.hwr .stack-value {
+  text-align: right; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hwr .stack-final-row {
+  border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px;
+}
+.hwr .stack-final-row .stack-label { color: var(--accent); font-weight: 600; }
 
 /* --- Match-impact expansion (All-matches + Player pages) --- */
 /* Tiny rank badge shown next to every player name in match listings,
@@ -3921,14 +3983,76 @@ def build_how_it_works_page(conn: sqlite3.Connection) -> str:
 
   <section>
     <h2>What changes a rating after a match</h2>
-    <p>Win or lose, both teams' ratings move. Bigger upset ⇒ bigger move. Five things tune how big:</p>
+    <p>Win or lose, both teams' ratings move. The base move is whatever OpenSkill's math says (bigger upset ⇒ bigger move). On top of that, four multipliers stack to scale the change up or down:</p>
     <ul>
       <li><strong>Game volume</strong> — a 26-game battle is more informative than a 6-0 6-0 blowout, so it changes ratings more.</li>
-      <li><strong>Division</strong> — a Div 1 win moves your rating more than a Div 4 win.</li>
-      <li><strong>Partner weighting</strong> — within a winning pair, the stronger partner's rating moves a bit more (they probably contributed more).</li>
+      <li><strong>Division K</strong> — a Div 1 win moves your rating more than a Div 4 win (higher division = stronger field = stronger signal).</li>
       <li><strong>Time decay</strong> — matches from two years ago count for less than matches from last month. Recent form weighs heavier.</li>
-      <li><strong>Walkovers</strong> — counted, but at half weight (the win was real, the play wasn't).</li>
+      <li><strong>Partner weighting</strong> — within a pair, the stronger partner's rating moves a bit more (they probably contributed more). Net team change is preserved.</li>
     </ul>
+    <p>Walkovers count, but at half weight — the win was real, the play wasn't.</p>
+
+    <p class="diagram-caption" style="margin-top:18px;">Interactive: slide the multipliers below to see how they stack on a hypothetical winning player whose baseline μ change is +1.00:</p>
+    <div class="stack-diagram" id="hwr-stack">
+      <div class="stack-row">
+        <div class="stack-label">Baseline (OpenSkill)<span class="stack-mult" id="stk-base-mult">×1.00</span></div>
+        <div class="stack-bar-track"><div class="stack-bar-fill baseline" id="stk-base-bar" style="width:50%;"></div></div>
+        <div class="stack-value" id="stk-base-val">+1.00</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Game volume
+          <span class="stack-mult" id="stk-vol-mult">×1.00</span>
+          <input type="range" id="stk-vol" min="6" max="36" step="1" value="18"
+                 style="width:100%;margin-top:4px;" aria-label="Total games in match">
+          <span style="font-size:10px;color:var(--muted);" id="stk-vol-label">18 games (typical)</span>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-vol-bar" style="width:50%;"></div></div>
+        <div class="stack-value" id="stk-vol-val">+1.00</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Division K
+          <span class="stack-mult" id="stk-div-mult">×0.85</span>
+          <select id="stk-div" style="width:100%;margin-top:4px;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:11px;">
+            <option value="1.00">Div 1</option>
+            <option value="0.85" selected>Div 2</option>
+            <option value="0.70">Div 3</option>
+            <option value="0.55">Div 4</option>
+          </select>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-div-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-div-val">+0.85</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Time decay
+          <span class="stack-mult" id="stk-time-mult">×1.00</span>
+          <input type="range" id="stk-time" min="0" max="1095" step="30" value="0"
+                 style="width:100%;margin-top:4px;" aria-label="Match age in days">
+          <span style="font-size:10px;color:var(--muted);" id="stk-time-label">today</span>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-time-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-time-val">+0.85</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Partner share
+          <span class="stack-mult" id="stk-pw-mult">×1.00</span>
+          <input type="range" id="stk-pw" min="35" max="65" step="1" value="50"
+                 style="width:100%;margin-top:4px;" aria-label="This player's share of pair strength, percent">
+          <span style="font-size:10px;color:var(--muted);" id="stk-pw-label">50% (equal partners)</span>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-pw-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-pw-val">+0.85</div>
+      </div>
+      <div class="stack-row stack-final-row">
+        <div class="stack-label">Final μ change</div>
+        <div class="stack-bar-track"><div class="stack-bar-fill up" id="stk-final-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-final-val">+0.85</div>
+      </div>
+    </div>
+    <p class="diagram-caption">Try: slide the time-decay slider out to 2 years and watch the final move shrink. Or push the partner-share slider to 65% to see the stronger partner's bump.</p>
   </section>
 
   <section>

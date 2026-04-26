@@ -24,11 +24,27 @@ import db  # noqa: E402
 import team_tournament as parser  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-DATA_DIR = REPO_ROOT / "_DATA_" / "VLTC"
+DATA_DIR = REPO_ROOT / "_DATA_"
 
-ANTES_2025 = str(DATA_DIR / "Antes Insurance Team Tournament IMO Joe results 2025.xlsx")
-TENNIS_TRADE_2024 = str(DATA_DIR / "Results Tennis Trade Team Tournament(1).xlsx")
-SAN_MICHEL_2026 = str(DATA_DIR / "San Michel Results 2026.xlsx")
+ANTES_2025 = str(
+    DATA_DIR / "2025/VLTC/antes-insurance-team-tournament-2025"
+    / "Antes Insurance Team Tournament IMO Joe results 2025.xlsx"
+)
+TENNIS_TRADE_2024 = str(
+    DATA_DIR / "2024/VLTC/tennis-trade-team-tournament-2024"
+    / "Results Tennis Trade Team Tournament(1).xlsx"
+)
+SAN_MICHEL_2026 = str(
+    DATA_DIR / "2026/VLTC/san-michel-2026" / "San Michel Results 2026.xlsx"
+)
+# The Google-Sheet scraper produces a second copy under a different folder/name.
+# Same workbook, but kept fresher because the scraper re-pulls daily. Used by
+# the Final-col-shift test because the Results file's Final-sheet game cells
+# have been blanked at source while this one has them.
+SAN_MICHEL_2026_TOURNAMENT = str(
+    DATA_DIR / "2026/VLTC/san-michel-team-tournament-2026"
+    / "SAN MICHEL TEAM TOURNAMENT 2026.xlsx"
+)
 
 
 def _player_name(conn: sqlite3.Connection, pid: int | None) -> str | None:
@@ -290,6 +306,54 @@ class TestIdempotency(unittest.TestCase):
             self.assertEqual(n_sf, 1)
         finally:
             conn.close()
+
+
+class TestSanMichel2026FinalColShift(unittest.TestCase):
+    """San Michel 2026 Final sheet has Time/Rubber headers at col 1/2 instead
+    of col 3/4 (whole sheet shifted left by 2 cols). Parser must detect the
+    column offset and still extract rubbers — historically it skipped Final
+    entirely and 0 final matches were ingested."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not os.path.exists(SAN_MICHEL_2026_TOURNAMENT):
+            raise unittest.SkipTest(
+                f"San Michel 2026 TOURNAMENT file not present: {SAN_MICHEL_2026_TOURNAMENT}"
+            )
+        cls.conn = db.init_db(":memory:")
+        cls.run_id = parser.parse(SAN_MICHEL_2026_TOURNAMENT, cls.conn)
+
+    @classmethod
+    def tearDownClass(cls):
+        if hasattr(cls, "conn"):
+            cls.conn.close()
+
+    def test_final_lad_a_rubber_present(self):
+        """Final / Lad A: Annmarie Mangion / Mae Jane Manzanares vs
+        Renette Magro / Christina Bonett, set 1 4-6, set 2 2-6 (B wins 2-0).
+        This rubber lives on the col-shifted Final sheet."""
+        mid = _find_match(
+            self.conn,
+            division="Lad A",
+            round_label="final",
+            side_a_names={"Annmarie Mangion", "Mae Jane Manzanares"},
+            side_b_names={"Renette Magro", "Christina Bonett"},
+        )
+        sets = self.conn.execute(
+            "SELECT set_number, side_a_games, side_b_games FROM match_set_scores "
+            "WHERE match_id = ? ORDER BY set_number",
+            (mid,),
+        ).fetchall()
+        self.assertEqual(sets, [(1, 4, 6), (2, 2, 6)])
+
+    def test_final_has_multiple_rubbers(self):
+        """The Final sheet should contribute multiple rubbers (Men C, D, B,
+        A, Lad A, B, C). Before the col-offset fix, this was 0."""
+        n_final = self.conn.execute(
+            "SELECT COUNT(*) FROM matches WHERE ingestion_run_id = ? AND round = 'final'",
+            (self.run_id,),
+        ).fetchone()[0]
+        self.assertGreaterEqual(n_final, 5, f"expected >=5 Final rubbers, got {n_final}")
 
 
 if __name__ == "__main__":

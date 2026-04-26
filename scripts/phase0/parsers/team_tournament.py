@@ -246,69 +246,83 @@ def _round_label_for_sheet(sheet_name: str) -> Optional[str]:
 # Sheet structure detection
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _find_court_panels(ws) -> list[tuple[int, int]]:
+def _find_time_header_offset(ws, header_row: int) -> Optional[int]:
+    """Return col_offset such that ws.cell(header_row, COL_TIME + col_offset)
+    is the 'Time' label, with 'Rubber' immediately after. None if not found.
+
+    Standard Day/Semi sheets have Time at col 3 → offset 0. The Final sheet in
+    San Michel 2026 has Time at col 1 → offset -2. We accept any offset in
+    [-2, +2] so future templates with minor shifts still parse.
+    """
+    for off in (0, -2, -1, 1, 2):
+        v = ws.cell(header_row, COL_TIME + off).value
+        if not (isinstance(v, str) and v.strip().lower() == "time"):
+            continue
+        v2 = ws.cell(header_row, COL_RUBBER + off).value
+        if isinstance(v2, str) and v2.strip().lower() == "rubber":
+            return off
+    return None
+
+
+def _find_court_panels(ws) -> list[tuple[int, int, int]]:
     """Find all court panel header rows in a sheet.
 
-    Returns a list of (court_label_row, header_row) tuples — header_row is
-    where 'Time'/'Rubber' headers live.
+    Returns a list of (court_label_row, header_row, col_offset) tuples.
+    `col_offset` is added to every COL_* constant when reading rubber rows;
+    it is 0 for the standard Day/Semi layout (Time in col 3) and -2 for the
+    San Michel 2026 Final layout (Time in col 1).
 
-    Primary strategy: a 'court panel' is identified by a cell in col 3 (or
-    nearby) whose value starts with 'Court' (case-insensitive); the header
-    row is 1-4 rows below.
-
-    Fallback: if no court labels found, scan for any 'Time' header row in
-    col 3 — Final sheets often have no court label but still use the same
-    Time/Rubber/Games header structure. Each header row found this way
-    becomes its own pseudo-panel.
+    Primary strategy: a 'court panel' is identified by a cell whose value
+    starts with 'Court' (case-insensitive); the Time/Rubber header row is
+    1-4 rows below. Fallback: any standalone Time/Rubber header row.
     """
     panels = []
-    for r in range(1, min(ws.max_row + 1, 500)):
-        for c in (COL_TIME, COL_TIME - 1, COL_TIME + 1):
+    max_scan_row = min(ws.max_row + 1, 500)
+
+    # Primary: scan for "Court ..." labels in any column, then locate the
+    # Time/Rubber header in the next few rows below.
+    for r in range(1, max_scan_row):
+        for c in range(1, ws.max_column + 1):
             v = ws.cell(r, c).value
-            if isinstance(v, str) and v.strip().lower().startswith("court"):
-                header_row = None
-                for hr in range(r + 1, r + 5):
-                    hv = ws.cell(hr, COL_TIME).value
-                    if isinstance(hv, str) and hv.strip().lower() == "time":
-                        header_row = hr
-                        break
-                if header_row is not None:
-                    panels.append((r, header_row))
-                break
+            if not (isinstance(v, str) and v.strip().lower().startswith("court")):
+                continue
+            for hr in range(r + 1, r + 5):
+                offset = _find_time_header_offset(ws, hr)
+                if offset is not None:
+                    panels.append((r, hr, offset))
+                    break
+            break  # only one Court label per row
 
     if panels:
         return panels
 
-    # Fallback: any "Time" header at col 3 with a "Rubber" header at col 4.
-    for r in range(1, min(ws.max_row + 1, 500)):
-        v = ws.cell(r, COL_TIME).value
-        if not (isinstance(v, str) and v.strip().lower() == "time"):
-            continue
-        v2 = ws.cell(r, COL_RUBBER).value
-        if isinstance(v2, str) and v2.strip().lower() == "rubber":
-            panels.append((r, r))
+    # Fallback: any row that looks like a "Time | Rubber | ..." header on its own.
+    for r in range(1, max_scan_row):
+        offset = _find_time_header_offset(ws, r)
+        if offset is not None:
+            panels.append((r, r, offset))
     return panels
 
 
-def _detect_two_row_variant(ws, header_row: int) -> bool:
+def _detect_two_row_variant(ws, header_row: int, col_offset: int = 0) -> bool:
     """Decide whether a sheet uses two-row (set 1+2) or single-row variant.
 
     Heuristic: presence of 'Sets' header at [header_row, COL_SETS_OR_NOTE]
     indicates two-row variant. Fallback: scan rubbers below header for any
     that have a numeric in [r+1, COL_GAMES_A] or [r+1, COL_GAMES_B].
     """
-    sets_header = ws.cell(header_row, COL_SETS_OR_NOTE).value
+    sets_header = ws.cell(header_row, COL_SETS_OR_NOTE + col_offset).value
     if isinstance(sets_header, str) and sets_header.strip().lower() == "sets":
         return True
     # Fallback: probe the first 6 rubbers below the header for set-2 numerics.
     for r in range(header_row + 1, header_row + 1 + 6 * RUBBER_STRIDE, RUBBER_STRIDE):
         # Don't look at set-2 row if rubber row itself is empty.
-        rubber = _strip_str(ws.cell(r, COL_RUBBER).value)
+        rubber = _strip_str(ws.cell(r, COL_RUBBER + col_offset).value)
         if not rubber:
             continue
         for off in (1,):
-            v_a = ws.cell(r + off, COL_GAMES_A).value
-            v_b = ws.cell(r + off, COL_GAMES_B).value
+            v_a = ws.cell(r + off, COL_GAMES_A + col_offset).value
+            v_b = ws.cell(r + off, COL_GAMES_B + col_offset).value
             if isinstance(v_a, (int, float)) or isinstance(v_b, (int, float)):
                 return True
     return False
@@ -332,17 +346,17 @@ def _find_sheet_date(ws) -> Optional[str]:
 # Match extraction (one rubber)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _extract_rubber(ws, r: int, two_row: bool) -> Optional[dict]:
+def _extract_rubber(ws, r: int, two_row: bool, col_offset: int = 0) -> Optional[dict]:
     """Extract a single rubber anchored at row r. Returns None if not a rubber."""
-    rubber_label = _strip_str(ws.cell(r, COL_RUBBER).value)
-    name_a1 = _strip_str(ws.cell(r, COL_SIDE_A_P1).value)
-    name_b1 = _strip_str(ws.cell(r, COL_SIDE_B_P1).value)
+    rubber_label = _strip_str(ws.cell(r, COL_RUBBER + col_offset).value)
+    name_a1 = _strip_str(ws.cell(r, COL_SIDE_A_P1 + col_offset).value)
+    name_b1 = _strip_str(ws.cell(r, COL_SIDE_B_P1 + col_offset).value)
     if not rubber_label:
         return None
     if not name_a1 or not name_b1:
         return None
-    name_a2 = _strip_str(ws.cell(r, COL_SIDE_A_P2).value)
-    name_b2 = _strip_str(ws.cell(r, COL_SIDE_B_P2).value)
+    name_a2 = _strip_str(ws.cell(r, COL_SIDE_A_P2 + col_offset).value)
+    name_b2 = _strip_str(ws.cell(r, COL_SIDE_B_P2 + col_offset).value)
 
     # Pro-substitute handling: if a name cell contains '(pro)', take FIRST half.
     if name_a1 and _PRO_SUB_RE.search(name_a1):
@@ -354,14 +368,14 @@ def _extract_rubber(ws, r: int, two_row: bool) -> Optional[dict]:
     if name_b2 and _PRO_SUB_RE.search(name_b2):
         name_b2 = _split_pro_substitute(name_b2)
 
-    walkover_note = _strip_str(ws.cell(r, COL_SETS_OR_NOTE).value)
+    walkover_note = _strip_str(ws.cell(r, COL_SETS_OR_NOTE + col_offset).value)
     is_walkover = bool(walkover_note and isinstance(walkover_note, str) and _WALKOVER_RE.search(walkover_note))
 
     if two_row:
-        s1a = _coerce_score(ws.cell(r, COL_GAMES_A).value)
-        s1b = _coerce_score(ws.cell(r, COL_GAMES_B).value)
-        s2a = _coerce_score(ws.cell(r + 1, COL_GAMES_A).value)
-        s2b = _coerce_score(ws.cell(r + 1, COL_GAMES_B).value)
+        s1a = _coerce_score(ws.cell(r, COL_GAMES_A + col_offset).value)
+        s1b = _coerce_score(ws.cell(r, COL_GAMES_B + col_offset).value)
+        s2a = _coerce_score(ws.cell(r + 1, COL_GAMES_A + col_offset).value)
+        s2b = _coerce_score(ws.cell(r + 1, COL_GAMES_B + col_offset).value)
         # Skip if no scores at all on either set.
         if s1a is None and s1b is None and s2a is None and s2b is None:
             return None
@@ -379,8 +393,8 @@ def _extract_rubber(ws, r: int, two_row: bool) -> Optional[dict]:
             "walkover": is_walkover,
         }
     else:
-        ta = _coerce_score(ws.cell(r, COL_GAMES_A).value)
-        tb = _coerce_score(ws.cell(r, COL_GAMES_B).value)
+        ta = _coerce_score(ws.cell(r, COL_GAMES_A + col_offset).value)
+        tb = _coerce_score(ws.cell(r, COL_GAMES_B + col_offset).value)
         if ta is None and tb is None:
             return None
         return {
@@ -396,7 +410,7 @@ def _extract_rubber(ws, r: int, two_row: bool) -> Optional[dict]:
         }
 
 
-def _iter_panel_rubbers(ws, header_row: int, two_row: bool, panels_below: list[int]):
+def _iter_panel_rubbers(ws, header_row: int, two_row: bool, panels_below: list[int], col_offset: int = 0):
     """Yield (row, rubber_data) for all rubbers in a court panel.
 
     Court panels can contain multiple sub-panels (e.g., Day 1 Court 2 has
@@ -416,7 +430,7 @@ def _iter_panel_rubbers(ws, header_row: int, two_row: bool, panels_below: list[i
     r = header_row + 1
     while r < end_row:
         # Skip header-row helpers like blank spacers before trying.
-        rubber_data = _extract_rubber(ws, r, two_row)
+        rubber_data = _extract_rubber(ws, r, two_row, col_offset)
         if rubber_data is not None:
             yield r, rubber_data
             # Skip the next row in two-row variant since it's the set-2 row.
@@ -739,12 +753,12 @@ def parse(xlsx_path: str, db_conn: sqlite3.Connection) -> int:
                 sheet_match_count = 0
 
                 # Build a list of header rows so we know where each panel ends.
-                header_rows = [hr for (_, hr) in panels]
+                header_rows = [hr for (_, hr, _) in panels]
 
-                for idx, (court_row, header_row) in enumerate(panels):
+                for idx, (court_row, header_row, col_offset) in enumerate(panels):
                     panels_below = header_rows[idx + 1:]
-                    two_row = _detect_two_row_variant(ws, header_row)
-                    for r, rubber_data in _iter_panel_rubbers(ws, header_row, two_row, panels_below):
+                    two_row = _detect_two_row_variant(ws, header_row, col_offset)
+                    for r, rubber_data in _iter_panel_rubbers(ws, header_row, two_row, panels_below, col_offset):
                         if rubber_data is None:
                             continue
                         _insert_match(
