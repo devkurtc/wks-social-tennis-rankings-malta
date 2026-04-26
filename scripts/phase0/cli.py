@@ -100,6 +100,33 @@ def cmd_rate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_merge_case_duplicates(args: argparse.Namespace) -> int:
+    import db
+    import players
+
+    conn = db.init_db()
+    try:
+        merged = players.merge_case_duplicates(conn)
+    finally:
+        conn.close()
+
+    if not merged:
+        print("No case-only duplicate players found.")
+        return 0
+
+    n_losers = sum(len(losers) for _, losers in merged)
+    print(
+        f"Merged {n_losers} duplicate record(s) into {len(merged)} canonical "
+        f"player(s):"
+    )
+    for winner, losers in merged:
+        for loser in losers:
+            print(f"  {loser!r}  →  {winner!r}")
+    print()
+    print("Run `cli.py rate` to recompute ratings against the merged data.")
+    return 0
+
+
 def cmd_rank(args: argparse.Namespace) -> int:
     import db
     import rating
@@ -377,6 +404,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Recompute OpenSkill ratings for all loaded matches.",
     )
     p_rate.set_defaults(func=cmd_rate)
+
+    p_merge = sub.add_parser(
+        "merge-case-duplicates",
+        help=(
+            "Find and merge player records that differ only by case "
+            "(e.g. 'KURT CARABOTT' → 'Kurt Carabott'). The record with most "
+            "matches is the winner; others are merged in (audit_log entry "
+            "per merge). Run `rate` afterward to recompute."
+        ),
+    )
+    p_merge.set_defaults(func=cmd_merge_case_duplicates)
 
     p_rank = sub.add_parser(
         "rank",
