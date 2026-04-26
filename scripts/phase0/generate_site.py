@@ -24,8 +24,10 @@ import sqlite3
 import sys
 from pathlib import Path
 
-DB_PATH = "phase0.sqlite"
-OUT_DIR = Path("site")
+# Anchor to project root regardless of cwd (script lives at scripts/phase0/).
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DB_PATH = str(PROJECT_ROOT / "phase0.sqlite")
+OUT_DIR = PROJECT_ROOT / "site"
 MODEL = "openskill_pl"
 
 # Tournament roster pages. Each entry produces site/tournaments/<slug>.html
@@ -206,10 +208,148 @@ footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px
   table.leaderboard td:nth-child(5),
   table.leaderboard th:nth-child(6),     /* σ */
   table.leaderboard td:nth-child(6),
-  table.leaderboard th:nth-child(11),    /* games */
-  table.leaderboard td:nth-child(11),
-  table.leaderboard th:nth-child(12),    /* g% */
-  table.leaderboard td:nth-child(12) { display: none; }
+  table.leaderboard th:nth-child(12),    /* games */
+  table.leaderboard td:nth-child(12),
+  table.leaderboard th:nth-child(13),    /* g% */
+  table.leaderboard td:nth-child(13) { display: none; }
+}
+
+/* --- Changelog page --- */
+.changelog { max-width: 760px; }
+.changelog .filters {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 14px 0 18px 0;
+}
+.changelog .filter {
+  background: var(--card); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 12px; font-size: 12px; cursor: pointer;
+  user-select: none;
+}
+.changelog .filter:hover { color: var(--fg); }
+.changelog .filter.active {
+  background: var(--accent); color: #0b1220;
+  border-color: var(--accent);
+}
+.changelog .month-heading {
+  margin: 22px 0 10px 0;
+  font-size: 13px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+.changelog .entry {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 16px; margin: 0 0 12px 0;
+}
+.changelog .entry.hidden { display: none; }
+.changelog .entry-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.changelog .pill {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 2px 9px; border-radius: 999px; letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.changelog .pill.kind-new      { background: #173626; color: #6fe09e; }
+.changelog .pill.kind-improved { background: #1d2f4a; color: #6fb1ff; }
+.changelog .pill.kind-fixed    { background: #3a2820; color: #ffae8a; }
+.changelog .pill.aud-captains  { background: #2b2540; color: #c2b1ff; }
+.changelog .pill.aud-admins    { background: #2a2a2a; color: #cccccc; }
+.changelog .entry-date { color: var(--muted); font-size: 12px; }
+.changelog .entry-title {
+  font-size: 16px; font-weight: 600; margin: 0 0 4px 0;
+}
+.changelog .entry-summary { color: var(--fg); font-size: 14px; margin: 0; }
+.changelog details {
+  margin-top: 8px; color: var(--muted); font-size: 13px;
+}
+.changelog details summary {
+  cursor: pointer; color: var(--accent); font-size: 12px;
+  list-style: none;
+}
+.changelog details summary::-webkit-details-marker { display: none; }
+.changelog details summary:hover { text-decoration: underline; }
+.changelog details > p { margin: 8px 0 0 0; color: var(--fg); }
+.changelog .entry-trace {
+  margin-top: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px; color: var(--muted); word-break: break-all;
+}
+.changelog .entry-trace a { color: var(--muted); }
+.changelog .entry-trace a:hover { color: var(--fg); }
+.changelog .lead {
+  color: var(--muted); font-size: 14px; max-width: 700px;
+  margin: 0 0 6px 0;
+}
+.changelog .empty {
+  color: var(--muted); padding: 24px; text-align: center;
+  border: 1px dashed var(--border); border-radius: 8px;
+}
+
+/* --- Match-impact expansion (All-matches + Player pages) --- */
+/* Tiny rank badge shown next to every player name in match listings,
+   reflecting that player's rank in their gender bucket AT THE TIME of
+   the match (not their current rank). */
+.rank-tag {
+  display: inline-block; background: rgba(78, 161, 255, 0.12);
+  color: var(--accent); padding: 0 5px; border-radius: 3px;
+  font-size: 10.5px; font-weight: 600; margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+  vertical-align: 1px;
+}
+.rank-tag.muted { background: rgba(139, 150, 168, 0.15); color: var(--muted); }
+/* Expander cell — clickable arrow that toggles the impact row. */
+.expand-trigger {
+  cursor: pointer; user-select: none;
+  width: 22px; text-align: center;
+  color: var(--muted); font-size: 11px;
+  transition: transform 0.15s ease;
+}
+.expand-trigger:hover { color: var(--accent); }
+tr.open .expand-trigger { transform: rotate(90deg); color: var(--accent); }
+tr.impact-row { background: #11151d !important; }
+tr.impact-row > td { padding: 0; border-bottom: 1px solid var(--border); }
+tr.impact-row[hidden] { display: none; }
+.impact-box {
+  padding: 10px 14px 12px 32px;
+  display: grid; gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.impact-player {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 10px;
+  font-size: 12px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.impact-player .who {
+  font-weight: 600; font-size: 13px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.impact-player .side-tag {
+  font-size: 9.5px; font-weight: 700;
+  padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em;
+}
+.impact-player .side-tag.A { background: rgba(78, 161, 255, 0.18); color: #6cb3ff; }
+.impact-player .side-tag.B { background: rgba(170, 110, 220, 0.18); color: #c39cff; }
+.impact-player .side-tag.win { background: rgba(70, 194, 129, 0.22); color: var(--win); }
+.impact-player .side-tag.loss { background: rgba(224, 122, 122, 0.22); color: var(--loss); }
+.impact-player .metric {
+  display: flex; gap: 6px; font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+}
+.impact-player .metric .k { color: var(--muted); width: 50px; }
+.impact-player .metric .delta-up { color: var(--win); font-weight: 600; }
+.impact-player .metric .delta-dn { color: var(--loss); font-weight: 600; }
+.impact-player .metric .delta-z { color: var(--muted); }
+.impact-player .commentary { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.impact-player .commentary .pass-up { color: var(--win); }
+.impact-player .commentary .pass-dn { color: var(--loss); }
+.impact-player .new-entry { color: var(--accent); font-style: italic; font-size: 11px; }
+@media (max-width: 700px) {
+  .impact-box { padding: 8px 10px 10px 18px; grid-template-columns: 1fr; }
+  .rank-tag { font-size: 10px; padding: 0 4px; }
 }
 """
 
@@ -226,7 +366,7 @@ def render_nav(rel_root: str, active: str) -> str:
     """Top-of-page navigation bar.
 
     rel_root  -- prefix for hrefs ('' from index, '../' from sub-pages).
-    active    -- which entry to highlight: 'index', 'matches',
+    active    -- which entry to highlight: 'index', 'matches', 'changelog',
                  or 'tournament:<slug>'.
     """
     parts: list[str] = []
@@ -241,6 +381,12 @@ def render_nav(rel_root: str, active: str) -> str:
         cls = ' class="active"' if active == f"tournament:{slug}" else ""
         parts.append('<span class="sep">·</span>')
         parts.append(f'<a href="{rel_root}tournaments/{esc(slug)}.html"{cls}>{esc(label)}</a>')
+    parts.append('<span class="sep">·</span>')
+    cls_al = ' class="active"' if active == "aliases" else ""
+    parts.append(f'<a href="{rel_root}aliases.html"{cls_al}>Mapping</a>')
+    parts.append('<span class="sep">·</span>')
+    cls_cl = ' class="active"' if active == "changelog" else ""
+    parts.append(f'<a href="{rel_root}changelog.html"{cls_cl}>What’s new</a>')
     return f'<nav class="topnav">{"".join(parts)}</nav>'
 
 
@@ -468,6 +614,29 @@ def build_index(conn: sqlite3.Connection) -> str:
     rows = conn.execute(LEADERBOARD_SQL, (MODEL,)).fetchall()
     rows = [r for r in rows if r[6] > 0]  # n_matches > 0
 
+    # Decay-365 challenger rank per gender. Sort each gender's pool by
+    # decay μ-3σ DESC and map player_id → rank within that gender. Players
+    # with NULL gender or missing decay row get None.
+    decay_ratings = {
+        row[0]: (row[1], row[2])
+        for row in conn.execute(
+            "SELECT player_id, mu, sigma FROM ratings "
+            "WHERE model_name = 'openskill_pl_decay365'"
+        ).fetchall()
+    }
+    decay_rank: dict[int, int] = {}
+    for gender_filter in ("M", "F"):
+        # Use the leaderboard output (already filtered to n>0) so the decay
+        # rank reflects the same population as the displayed rows.
+        candidates = [
+            (pid, decay_ratings[pid])
+            for (pid, _, gender, *_rest) in rows
+            if gender == gender_filter and pid in decay_ratings
+        ]
+        candidates.sort(key=lambda x: -(x[1][0] - 3 * x[1][1]))
+        for i, (pid, _) in enumerate(candidates, 1):
+            decay_rank[pid] = i
+
     body_rows = []
     for rank, r in enumerate(rows, 1):
         (pid, name, gender, mu, sigma, mu3s, n, wins, gw, gl,
@@ -477,6 +646,16 @@ def build_index(conn: sqlite3.Connection) -> str:
         gw_pct = f"{int(round(gw * 100 / (gw + gl)))}%" if (gw + gl) else ""
         cls = captain_class or ""
         clubs_str = clubs or ""
+        d_rank = decay_rank.get(pid)
+        if d_rank is not None:
+            decay_cell = (
+                f'<td class="num" data-sort="{d_rank}">'
+                f'{d_rank}</td>'
+            )
+        else:
+            decay_cell = (
+                '<td class="num muted" data-sort="999999">—</td>'
+            )
         body_rows.append(
             f'<tr data-gender="{esc(gender or "")}" data-class="{esc(cls)}" '
             f'data-clubs="{esc(clubs_str)}">'
@@ -487,6 +666,7 @@ def build_index(conn: sqlite3.Connection) -> str:
             f'<td class="num">{mu:.2f}</td>'
             f'<td class="num">{sigma:.2f}</td>'
             f'<td class="num"><strong>{mu3s:.2f}</strong></td>'
+            f'{decay_cell}'
             f'<td class="num">{n}</td>'
             f'<td class="num"><span class="win">{wins}</span>-<span class="loss">{losses}</span></td>'
             f'<td class="num">{win_pct}</td>'
@@ -597,6 +777,7 @@ def build_index(conn: sqlite3.Connection) -> str:
         <th class="num">μ</th>
         <th class="num">σ</th>
         <th class="num">μ-3σ</th>
+        <th class="num" title="Time-decay challenger rank (τ=365d, within same gender). Recency-weighted: old matches contribute exponentially less. See _ANALYSIS_/model_evaluation/SUMMARY.md for backtest results.">Decay #</th>
         <th class="num">n</th>
         <th class="num">W-L</th>
         <th class="num">win%</th>
@@ -922,8 +1103,21 @@ def render_identity_section(
 
     merge_rows_html = ""
     if merges:
+        # Re-fetch with audit_log id so each row gets a stable deeplink to the
+        # site-wide mapping page (#m-<audit_id>).
+        merges_with_id = conn.execute(
+            """
+            SELECT al.id, al.entity_id, al.ts, al.before_jsonb, al.after_jsonb
+            FROM audit_log al
+            WHERE al.action = 'player.merged'
+              AND al.entity_type = 'players'
+              AND json_extract(al.after_jsonb, '$.merged_into_id') = ?
+            ORDER BY al.ts
+            """,
+            (pid,),
+        ).fetchall()
         rows = []
-        for loser_id, merged_at, before_json, after_json in merges:
+        for audit_id, loser_id, merged_at, before_json, after_json in merges_with_id:
             try:
                 before = _json.loads(before_json or "{}")
                 after = _json.loads(after_json or "{}")
@@ -932,15 +1126,12 @@ def render_identity_section(
             loser_name = before.get("canonical_name", f"#{loser_id}")
             reason = after.get("reason", "—")
             merged_on = (merged_at or "")[:10]
-            # Loser pages aren't generated, but the merge target's match log
-            # contains the absorbed matches. Provide an in-page anchor link
-            # to the match log so the reader can scan there.
             rows.append(
                 f'<tr>'
                 f'<td><span class="tag">id #{loser_id}</span> {esc(loser_name)}</td>'
                 f'<td class="muted">{esc(merged_on)}</td>'
                 f'<td>{esc(reason)}</td>'
-                f'<td><a href="#match-log">view in match log ↓</a></td>'
+                f'<td><a href="../aliases.html#m-{audit_id}" title="Permalink in mapping log">#{audit_id} ↗</a></td>'
                 f'</tr>'
             )
         merge_rows_html = "".join(rows)
@@ -955,7 +1146,8 @@ def render_identity_section(
   <h2 class="section-title">Identity &amp; merge history</h2>
   <p class="muted" style="font-size:12px; margin-top:-4px;">
     Every raw name spelling seen in source data, and every other record that
-    was merged into this player. Use this to verify the merges look right.
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
   </p>
   <div class="table-wrap">
   <table>
@@ -991,16 +1183,292 @@ def compute_swings(match_rows_with_delta: list) -> tuple[list, list]:
             [l for l in losses if l["delta"] < 0])
 
 
+def compute_match_impacts(conn: sqlite3.Connection) -> dict:
+    """Replay every active match chronologically and snapshot per-player
+    rank-bucket position before/after each match.
+
+    Returns: {(match_id, player_id) -> impact dict} with keys:
+        side ('A'|'B'), won (bool),
+        rank_before (int|None), rank_after (int),
+        mu_before (float|None), mu_after (float),
+        score_before (float|None), score_after (float),
+        mu_delta (float), score_delta (float),
+        bypassed (list[int]): pids overtaken on the way up,
+        passed_by (list[int]): pids who overtook me on the way down,
+        bucket_size_after (int)
+
+    Rank is the player's 1-indexed position in their gender bucket
+    (M / F / U), sorted by μ-3σ desc. A player only enters the bucket
+    once they have ≥1 rating_history row.
+    """
+    # Bulk pull, keyed by match_id (NOT model — only one model so far).
+    rh_rows = conn.execute(
+        "SELECT match_id, player_id, mu_after, sigma_after "
+        "FROM rating_history WHERE model_name = ?",
+        (MODEL,),
+    ).fetchall()
+    rh: dict[tuple[int, int], tuple[float, float]] = {
+        (mid, pid): (mu, sg) for mid, pid, mu, sg in rh_rows
+    }
+
+    genders: dict[int, str] = {
+        pid: (g if g in ("M", "F") else "U")
+        for pid, g in conn.execute("SELECT id, gender FROM players")
+    }
+
+    # Active matches in chronological order, with both sides.
+    matches = conn.execute(
+        """
+        SELECT m.id,
+               sa.player1_id, sa.player2_id, sa.won,
+               sb.player1_id, sb.player2_id, sb.won
+        FROM matches m
+        JOIN match_sides sa ON sa.match_id = m.id AND sa.side = 'A'
+        JOIN match_sides sb ON sb.match_id = m.id AND sb.side = 'B'
+        WHERE m.superseded_by_run_id IS NULL
+        ORDER BY m.played_on ASC, m.id ASC
+        """
+    ).fetchall()
+
+    # Current state per player: pid -> (mu, sigma). Players not yet in here
+    # haven't played a match yet (pre-system).
+    state: dict[int, tuple[float, float]] = {}
+    impacts: dict[tuple[int, int], dict] = {}
+
+    for row in matches:
+        mid, a1, a2, awon, b1, b2, bwon = row
+        sides = [(a1, "A", bool(awon)), (a2, "A", bool(awon)),
+                 (b1, "B", bool(bwon)), (b2, "B", bool(bwon))]
+        participants = [(p, sd, w) for p, sd, w in sides if p is not None]
+
+        # Collect new (mu, sigma) for every participant that has rating_history
+        # for this match. Walkovers / no-rating matches will be missing — we
+        # still record an impact (rank_before = rank_after, no deltas) so the
+        # UI shows the players' standing at the time of the match.
+        new_for: dict[int, tuple[float, float]] = {}
+        for pid, _sd, _w in participants:
+            entry = rh.get((mid, pid))
+            if entry is not None:
+                new_for[pid] = entry
+
+        # Snapshot bucket BEFORE: per gender, list of (pid, score).
+        bucket_before: dict[str, list[tuple[int, float]]] = {"M": [], "F": [], "U": []}
+        for pid, (mu, sg) in state.items():
+            bucket_before[genders.get(pid, "U")].append((pid, mu - 3 * sg))
+
+        # Project state AFTER (only participants change).
+        state_after = dict(state)
+        for pid, (mu, sg) in new_for.items():
+            state_after[pid] = (mu, sg)
+        bucket_after: dict[str, list[tuple[int, float]]] = {"M": [], "F": [], "U": []}
+        for pid, (mu, sg) in state_after.items():
+            bucket_after[genders.get(pid, "U")].append((pid, mu - 3 * sg))
+
+        # Compute impact per participant.
+        for pid, side, won in participants:
+            g = genders.get(pid, "U")
+            in_before = pid in state
+
+            if in_before:
+                mu_b, sg_b = state[pid]
+                score_before = mu_b - 3 * sg_b
+                # 1-indexed rank: count of others strictly above me + 1
+                rank_before = 1 + sum(
+                    1 for p, s in bucket_before[g] if p != pid and s > score_before
+                )
+            else:
+                mu_b = sg_b = None
+                score_before = None
+                rank_before = None
+
+            if pid in new_for:
+                mu_a, sg_a = new_for[pid]
+            else:
+                # No rating change recorded for this match (rare — walkover etc).
+                # Carry the old state so rank_after is computed sensibly.
+                if not in_before:
+                    continue  # nothing to record
+                mu_a, sg_a = mu_b, sg_b
+            score_after = mu_a - 3 * sg_a
+            rank_after = 1 + sum(
+                1 for p, s in bucket_after[g] if p != pid and s > score_after
+            )
+
+            mu_delta = (mu_a - mu_b) if mu_b is not None else 0.0
+            score_delta = (score_after - score_before) if score_before is not None else 0.0
+
+            bypassed: list[int] = []
+            passed_by: list[int] = []
+            if in_before:
+                # Compare against every other bucket member's BEFORE/AFTER.
+                # Non-participants didn't move; participants in this match did.
+                before_map = {p: s for p, s in bucket_before[g]}
+                after_map = {p: s for p, s in bucket_after[g]}
+                for other_pid, other_before in before_map.items():
+                    if other_pid == pid:
+                        continue
+                    other_after = after_map.get(other_pid, other_before)
+                    if other_before > score_before and other_after <= score_after:
+                        bypassed.append(other_pid)
+                    elif other_before < score_before and other_after >= score_after:
+                        passed_by.append(other_pid)
+
+            impacts[(mid, pid)] = {
+                "side": side,
+                "won": won,
+                "rank_before": rank_before,
+                "rank_after": rank_after,
+                "mu_before": mu_b,
+                "mu_after": mu_a,
+                "score_before": score_before,
+                "score_after": score_after,
+                "mu_delta": mu_delta,
+                "score_delta": score_delta,
+                "bypassed": bypassed,
+                "passed_by": passed_by,
+                "bucket_size_after": len(bucket_after[g]),
+            }
+
+        # Commit state.
+        for pid, (mu, sg) in new_for.items():
+            state[pid] = (mu, sg)
+
+    return impacts
+
+
+def _delta_span(delta: float, decimals: int = 2) -> str:
+    """Render a +X.XX / -X.XX / 0 span with appropriate color class."""
+    if delta > 0.005:
+        cls = "delta-up"
+        return f'<span class="{cls}">+{delta:.{decimals}f}</span>'
+    if delta < -0.005:
+        cls = "delta-dn"
+        return f'<span class="{cls}">{delta:.{decimals}f}</span>'
+    return f'<span class="delta-z">±0</span>'
+
+
+def _rank_delta_span(rank_before: int | None, rank_after: int) -> str:
+    """Rank delta is inverted (lower number = higher position)."""
+    if rank_before is None:
+        return ""
+    diff = rank_before - rank_after  # positive = moved up
+    if diff > 0:
+        return f'<span class="delta-up">+{diff}</span>'
+    if diff < 0:
+        return f'<span class="delta-dn">{diff}</span>'
+    return '<span class="delta-z">±0</span>'
+
+
+def render_match_impact_block(
+    mid: int,
+    participants: list[tuple[int, str | None, str, bool]],
+    impacts: dict,
+    name_lookup: dict,
+    players_prefix: str = "players/",
+) -> str:
+    """Render the expanded per-player impact section for ONE match.
+
+    `participants` items: (pid, partner_pid_or_None, side ('A'|'B'), won (bool))
+    The list is in display order: side A players first, then side B.
+    `players_prefix` is the URL prefix for player pages — `players/` from a
+    root-level page, or `` (empty) from /players/X.html.
+    """
+    if not participants:
+        return ""
+
+    def _link(p: int) -> str:
+        cid, n = name_lookup.get(p, (p, f"#{p}"))
+        return f'<a class="player-link" href="{players_prefix}{cid}.html">{esc(n)}</a>'
+
+    cards = []
+    for pid, _partner, side, won in participants:
+        imp = impacts.get((mid, pid))
+        link = _link(pid)
+        wl_cls = "win" if won else "loss"
+        wl_txt = "W" if won else "L"
+        if imp is None:
+            cards.append(
+                f'<div class="impact-player">'
+                f'<div class="who">{link}'
+                f'<span class="side-tag {wl_cls}">{side} · {wl_txt}</span></div>'
+                f'<div class="new-entry">No rating change recorded</div>'
+                f'</div>'
+            )
+            continue
+        rank_before = imp["rank_before"]
+        rank_after = imp["rank_after"]
+        score_before = imp["score_before"]
+        score_after = imp["score_after"]
+        score_delta = imp["score_delta"]
+        bypassed = imp["bypassed"]
+        passed_by = imp["passed_by"]
+
+        if rank_before is None:
+            rank_line = (
+                f'<div class="metric"><span class="k">Rank</span>'
+                f'<span class="new-entry">new entry → #{rank_after}</span></div>'
+            )
+        else:
+            r_delta = _rank_delta_span(rank_before, rank_after)
+            rank_line = (
+                f'<div class="metric"><span class="k">Rank</span>'
+                f'<span>#{rank_before} {r_delta} = #{rank_after}</span></div>'
+            )
+
+        if score_before is None:
+            score_line = (
+                f'<div class="metric"><span class="k">Score</span>'
+                f'<span class="new-entry">starts at {score_after:.1f}</span></div>'
+            )
+        else:
+            sd = _delta_span(score_delta, decimals=2)
+            score_line = (
+                f'<div class="metric"><span class="k">Score</span>'
+                f'<span>{score_before:.1f} {sd} = {score_after:.1f}</span></div>'
+            )
+
+        commentary = ""
+        if bypassed:
+            names = ", ".join(_link(p) for p in bypassed[:5])
+            extra = f" + {len(bypassed) - 5} more" if len(bypassed) > 5 else ""
+            commentary = (
+                f'<div class="commentary">'
+                f'<span class="pass-up">↑ bypassed</span> {names}{extra}'
+                f'</div>'
+            )
+        elif passed_by:
+            names = ", ".join(_link(p) for p in passed_by[:5])
+            extra = f" + {len(passed_by) - 5} more" if len(passed_by) > 5 else ""
+            commentary = (
+                f'<div class="commentary">'
+                f'<span class="pass-dn">↓ passed by</span> {names}{extra}'
+                f'</div>'
+            )
+
+        cards.append(
+            f'<div class="impact-player">'
+            f'<div class="who">{link}'
+            f'<span class="side-tag {wl_cls}">{side} · {wl_txt}</span></div>'
+            f'{rank_line}'
+            f'{score_line}'
+            f'{commentary}'
+            f'</div>'
+        )
+    return f'<div class="impact-box">{"".join(cards)}</div>'
+
+
 def build_player_page(
     conn: sqlite3.Connection,
     pid: int,
     name_lookup: dict[int, str],
     neighbours_by_gender: dict[str, list[dict]] | None = None,
+    impacts: dict | None = None,
 ) -> str:
     info = conn.execute(PLAYER_INFO_SQL, (pid,)).fetchone()
     if info is None:
         return ""
     _, name, gender = info
+    impacts = impacts or {}
 
     rating = conn.execute(PLAYER_RATING_SQL, (pid, MODEL)).fetchone()
     mu, sigma = (rating if rating else (None, None))
@@ -1078,8 +1546,28 @@ def build_player_page(
         mu_cell = f"{mu_after:.2f}" if mu_after is not None else '<span class="muted">—</span>'
         sig_cell = f"{sigma_after:.2f}" if sigma_after is not None else '<span class="muted">—</span>'
         wo = ' <span class="tag">W/O</span>' if walkover else ""
-        match_rows.append(
-            f'<tr>'
+
+        # Rank-at-time tag for THIS player. From a /players/X.html page the
+        # player links use no prefix; the tag itself doesn't link, just shows
+        # the rank.
+        my_imp = impacts.get((mid, pid))
+        my_rank_tag = (
+            f'<span class="rank-tag">#{my_imp["rank_after"]}</span>'
+            if my_imp else ""
+        )
+
+        # Determine if we have an impact row to render for this match.
+        all_pids = [p for p in (my_p1, my_p2, opp_p1, opp_p2) if p is not None]
+        has_impact = any((mid, p) in impacts for p in all_pids)
+        trigger_cell = (
+            f'<td class="expand-trigger" data-mid="{mid}">▶</td>'
+            if has_impact
+            else '<td class="muted" style="text-align:center;">·</td>'
+        )
+
+        main_row = (
+            f'<tr class="match-row" data-mid="{mid}">'
+            f'{trigger_cell}'
             f'<td>{esc(played)}</td>'
             f'<td><span class="tag">{esc(club_slug)}</span> {esc(tname)} {esc(tyear)}</td>'
             f'<td class="muted">{esc(division or "")} {esc(rnd or "")}</td>'
@@ -1088,12 +1576,35 @@ def build_player_page(
             f'<td class="score">{score}{wo}</td>'
             f'<td class="num"><span class="{result_cls}">{result_txt}</span> '
             f'{my_games}-{opp_games}</td>'
-            f'<td class="num">{mu_cell}</td>'
+            f'<td class="num">{mu_cell}{my_rank_tag}</td>'
             f'<td class="num">{d_mu}</td>'
             f'<td class="num">{sig_cell}</td>'
             f'<td class="num">{d_sig}</td>'
             f'</tr>'
         )
+        impact_row = ""
+        if has_impact:
+            my_won_bool = bool(my_won)
+            opp_won_bool = not my_won_bool
+            opp_side = "B" if side == "A" else "A"
+            participants = [
+                (my_p1, my_p2, side, my_won_bool),
+                (my_p2, my_p1, side, my_won_bool),
+                (opp_p1, opp_p2, opp_side, opp_won_bool),
+                (opp_p2, opp_p1, opp_side, opp_won_bool),
+            ]
+            participants = [p for p in participants if p[0] is not None]
+            impact_html = render_match_impact_block(
+                mid, participants, impacts, name_lookup, players_prefix=""
+            )
+            impact_row = (
+                f'<tr class="impact-row" data-mid="{mid}" hidden>'
+                f'<td colspan="12">{impact_html}</td>'
+                f'</tr>'
+            )
+        # Pair them so reversing keeps the impact row immediately after its
+        # match row.
+        match_rows.append((main_row, impact_row))
         if delta_val is not None:
             swing_data.append({
                 "delta": delta_val,
@@ -1280,16 +1791,22 @@ def build_player_page(
   </div>
 
   <h2 id="match-log" class="section-title">Match log ({n})</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. Click ▶ to see every player's rank/score
+    impact for that match.
+  </p>
   <div class="table-wrap">
-  <table>
+  <table id="player-match-log">
     <thead><tr>
+      <th></th>
       <th>Date</th><th>Tournament</th><th>Round</th>
       <th>Partner</th><th>Opponents</th><th>Score</th>
       <th class="num">Result</th>
       <th class="num">μ after</th><th class="num">Δμ</th>
       <th class="num">σ after</th><th class="num">Δσ</th>
     </tr></thead>
-    <tbody>{''.join(reversed(match_rows)) if match_rows else '<tr><td colspan="11" class="muted">No matches.</td></tr>'}</tbody>
+    <tbody>{''.join(main + imp for main, imp in reversed(match_rows)) if match_rows else '<tr><td colspan="12" class="muted">No matches.</td></tr>'}</tbody>
   </table>
   </div>
 </main>
@@ -1297,6 +1814,22 @@ def build_player_page(
   μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
   Δμ / Δσ are differences from the prior match (blank for the very first rated match).
 </footer>
+<script>
+(function() {{
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {{
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  }});
+}})();
+</script>
 </body>
 </html>
 """
@@ -1528,6 +2061,7 @@ def _render_roster_section(
     hits: list[dict],
     misses: list[tuple[str, list[str]]],
     captain_rankings: list[dict] | None = None,
+    decay_ratings_by_pid: dict[int, tuple[float, float]] | None = None,
 ) -> str:
     rated = sorted(
         (h for h in hits if h["mu"] is not None),
@@ -1535,6 +2069,20 @@ def _render_roster_section(
     )
     unrated = [h for h in hits if h["mu"] is None]
     total = len(rated) + len(unrated) + len(misses)
+
+    # Per-section decay rank: sort the rated pool by decay μ-3σ within
+    # this gender section and map player_id → rank. Apples-to-apples
+    # comparison within the same field of competitors.
+    decay_rank_by_pid: dict[int, int] = {}
+    decay_ratings_by_pid = decay_ratings_by_pid or {}
+    if decay_ratings_by_pid:
+        decay_ranked = [h for h in rated if h["id"] in decay_ratings_by_pid]
+        decay_ranked.sort(
+            key=lambda h: -(decay_ratings_by_pid[h["id"]][0]
+                            - 3 * decay_ratings_by_pid[h["id"]][1])
+        )
+        for i, h in enumerate(decay_ranked, 1):
+            decay_rank_by_pid[h["id"]] = i
 
     pills = [f'<span class="pill ok">{len(rated)} rated</span>']
     if unrated:
@@ -1568,12 +2116,17 @@ def _render_roster_section(
             _captain_rank_cell(c[f"{sheet_key}_by_pid"].get(h["id"]))
             for c in captain_rankings
         )
+        decay_cell = (
+            _captain_rank_cell(decay_rank_by_pid.get(h["id"]))
+            if decay_ratings_by_pid else ""
+        )
         rows.append(
             f'<tr>'
             f'<td class="num" data-sort="{i}">{i}</td>'
             f'<td class="cls" title="{esc(cls_title)}">{esc(proposed_cls)}</td>'
             f'<td>{link}</td>'
             f'<td class="num" data-sort="{cons:.4f}"><strong>{cons:.2f}</strong></td>'
+            f'{decay_cell}'
             f'<td class="num" data-sort="{h["mu"]:.4f}">{h["mu"]:.2f}</td>'
             f'<td class="num" data-sort="{h["sigma"]:.4f}">{h["sigma"]:.2f}</td>'
             f'<td class="num" data-sort="{h["n"]}">{h["n"]}</td>'
@@ -1587,11 +2140,19 @@ def _render_roster_section(
         f'{esc(c["label"])}</th>'
         for c in captain_rankings
     )
+    decay_header = (
+        '<th class="num" title="Time-decay challenger model rank '
+        '(τ=365d). Recency-weighted: old matches contribute exponentially '
+        'less. Backtest log-loss is 5.8% better than vanilla; see '
+        '_ANALYSIS_/model_evaluation/SUMMARY.md.">Decay #</th>'
+        if decay_ratings_by_pid else ""
+    )
     rated_table = (
         f'<div class="table-wrap"><table class="sortable">'
         f'<thead><tr>'
         f'<th class="num">#</th><th>Class</th><th>Player</th>'
         f'<th class="num">μ-3σ</th>'
+        f'{decay_header}'
         f'<th class="num">μ</th><th class="num">σ</th>'
         f'<th class="num">n</th><th>Last played</th>'
         f'{captain_headers}'
@@ -1713,12 +2274,19 @@ document.addEventListener('DOMContentLoaded', () => {
 """
 
 
-def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
+def build_matches_page(
+    conn: sqlite3.Connection,
+    name_lookup: dict,
+    impacts: dict | None = None,
+) -> str:
     """Chronological feed of every active match — newest first.
 
     Single page with client-side year/club/text filter. Match sides are linked
-    to player profiles. Winning side is bolded.
+    to player profiles. Winning side is bolded. Each player name carries a
+    rank-at-the-time tag, and each row expands to show every player's
+    rank/score change for that match.
     """
+    impacts = impacts or {}
     rows = conn.execute(
         """
         SELECT m.id, m.played_on, m.division, m.round, m.walkover,
@@ -1736,11 +2304,35 @@ def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
         """
     ).fetchall()
 
-    def _name(pid):
+    # Bulk-fetch set scores once. Per-match SQL would be 5K queries.
+    set_scores_by_mid: dict[int, list[tuple]] = {}
+    for mid, sn, a, b, tb in conn.execute(
+        "SELECT match_id, set_number, side_a_games, side_b_games, was_tiebreak "
+        "FROM match_set_scores ORDER BY match_id, set_number"
+    ):
+        set_scores_by_mid.setdefault(mid, []).append((sn, a, b, tb))
+
+    def _name_with_rank(pid: int, mid: int) -> str:
+        """Linked player name + rank-at-time tag (from impacts)."""
         if pid is None:
             return ""
         cid, n = name_lookup.get(pid, (pid, f"#{pid}"))
-        return f'<a class="player-link" href="players/{cid}.html">{esc(n)}</a>'
+        link = f'<a class="player-link" href="players/{cid}.html">{esc(n)}</a>'
+        imp = impacts.get((mid, pid))
+        if imp is None:
+            return link
+        return f'{link}<span class="rank-tag">#{imp["rank_after"]}</span>'
+
+    def _render_set_score(side: str, sets: list) -> str:
+        """Render '6-2, 6-1' from THIS side's perspective."""
+        if not sets:
+            return ""
+        out = []
+        for _sn, a, b, tb in sets:
+            my, opp = (a, b) if side == "A" else (b, a)
+            mark = " <span class='muted'>(TB)</span>" if tb else ""
+            out.append(f"{my}-{opp}{mark}")
+        return ", ".join(out)
 
     body_rows = []
     years: set = set()
@@ -1752,25 +2344,73 @@ def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
          b1, b2, bgw, bwon) = r
         years.add(tour_year)
         clubs.add(club_slug)
-        side_a = " / ".join(x for x in (_name(a1), _name(a2)) if x) or "—"
-        side_b = " / ".join(x for x in (_name(b1), _name(b2)) if x) or "—"
-        if awon:
-            side_a = f'<strong class="win">{side_a}</strong>'
-            side_b = f'<span class="muted">{side_b}</span>'
+
+        sets = set_scores_by_mid.get(mid, [])
+        score_a = _render_set_score("A", sets)
+        score_b = _render_set_score("B", sets)
+        if score_a:
+            score_cell = (
+                f'<span class="score">'
+                f'<strong class="{"win" if awon else "loss"}">{score_a}</strong>'
+                f' / <span class="muted">{score_b}</span>'
+                f'</span>'
+            )
         else:
-            side_b = f'<strong class="win">{side_b}</strong>'
-            side_a = f'<span class="muted">{side_a}</span>'
+            score_cell = f'<span class="score muted">{agw or 0}-{bgw or 0}</span>'
         wo = ' <span class="tag">W/O</span>' if walkover else ""
+
+        side_a_names = " / ".join(
+            x for x in (_name_with_rank(a1, mid), _name_with_rank(a2, mid)) if x
+        ) or "—"
+        side_b_names = " / ".join(
+            x for x in (_name_with_rank(b1, mid), _name_with_rank(b2, mid)) if x
+        ) or "—"
+        if awon:
+            side_a_html = f'<strong class="win">{side_a_names}</strong>'
+            side_b_html = f'<span class="muted">{side_b_names}</span>'
+        else:
+            side_b_html = f'<strong class="win">{side_b_names}</strong>'
+            side_a_html = f'<span class="muted">{side_a_names}</span>'
+
+        has_impact = any(
+            (mid, p) in impacts for p in (a1, a2, b1, b2) if p is not None
+        )
+        trigger_cell = (
+            f'<td class="expand-trigger" data-mid="{mid}">▶</td>'
+            if has_impact
+            else '<td class="muted" style="text-align:center;">·</td>'
+        )
+
         body_rows.append(
-            f'<tr data-year="{esc(tour_year)}" data-club="{esc(club_slug)}">'
+            f'<tr class="match-row" data-mid="{mid}" '
+            f'data-year="{esc(tour_year)}" data-club="{esc(club_slug)}">'
+            f'{trigger_cell}'
             f'<td>{esc(played)}</td>'
             f'<td><span class="tag">{esc(club_slug)}</span> {esc(tour_name)}</td>'
             f'<td class="muted">{esc(division or "")} {esc(rnd or "")}</td>'
-            f'<td>{side_a}</td>'
-            f'<td>{side_b}</td>'
-            f'<td class="num">{agw or 0}-{bgw or 0}{wo}</td>'
+            f'<td>{side_a_html}</td>'
+            f'<td>{side_b_html}</td>'
+            f'<td class="score">{score_cell}{wo}</td>'
             f'</tr>'
         )
+
+        if has_impact:
+            participants = [
+                (a1, a2, "A", bool(awon)),
+                (a2, a1, "A", bool(awon)),
+                (b1, b2, "B", bool(bwon)),
+                (b2, b1, "B", bool(bwon)),
+            ]
+            participants = [p for p in participants if p[0] is not None]
+            impact_html = render_match_impact_block(
+                mid, participants, impacts, name_lookup
+            )
+            body_rows.append(
+                f'<tr class="impact-row" data-mid="{mid}" '
+                f'data-year="{esc(tour_year)}" data-club="{esc(club_slug)}" hidden>'
+                f'<td colspan="7">{impact_html}</td>'
+                f'</tr>'
+            )
 
     year_options = "".join(
         f'<option value="{y}">{y}</option>' for y in sorted(years, reverse=True)
@@ -1785,20 +2425,37 @@ def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
       const y = document.getElementById('f-year').value;
       const c = document.getElementById('f-club').value;
       const q = document.getElementById('f-search').value.toLowerCase();
-      const rows = document.querySelectorAll('tbody tr');
+      const matchRows = document.querySelectorAll('tr.match-row');
       let visible = 0;
-      rows.forEach(row => {
+      matchRows.forEach(row => {
         const ok = (!y || row.dataset.year === y)
                 && (!c || row.dataset.club === c)
                 && (!q || row.textContent.toLowerCase().includes(q));
         row.style.display = ok ? '' : 'none';
+        const mid = row.dataset.mid;
+        const ir = document.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+        if (ir && !ok) {
+          ir.hidden = true;
+          row.classList.remove('open');
+        }
         if (ok) visible++;
       });
       document.getElementById('count').textContent = visible.toLocaleString() + ' matches';
     }
+    function toggleImpact(ev) {
+      const cell = ev.target.closest('.expand-trigger');
+      if (!cell) return;
+      const mid = cell.dataset.mid;
+      const row = cell.closest('tr.match-row');
+      const ir = document.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+      if (!ir) return;
+      ir.hidden = !ir.hidden;
+      row.classList.toggle('open', !ir.hidden);
+    }
     document.addEventListener('DOMContentLoaded', () => {
       ['f-year','f-club','f-search'].forEach(id =>
         document.getElementById(id).addEventListener('input', applyFilters));
+      document.querySelector('table').addEventListener('click', toggleImpact);
       applyFilters();
     });
     </script>
@@ -1816,7 +2473,10 @@ def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
 <body>
 <header>
   <h1>All matches</h1>
-  <p>Every active match across every loaded source file, newest first. Winning side is bolded.</p>
+  <p>Every active match across every loaded source file, newest first.
+     Winning side is bolded. Numbers next to names are each player's rank
+     in their gender bucket immediately AFTER that match. Click ▶ to see
+     each player's rank/score change.</p>
 </header>
 {render_nav("", "matches")}
 <main>
@@ -1835,8 +2495,9 @@ def build_matches_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
   <div class="table-wrap">
   <table>
     <thead><tr>
+      <th></th>
       <th>Date</th><th>Tournament</th><th>Round</th>
-      <th>Side A</th><th>Side B</th><th class="num">Games</th>
+      <th>Side A</th><th>Side B</th><th>Score</th>
     </tr></thead>
     <tbody>{''.join(body_rows)}</tbody>
   </table>
@@ -1873,6 +2534,17 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
                     file=sys.stderr,
                 )
 
+    # Load the time-decay challenger ratings if available. The recompute
+    # for this model is run separately; if no rows exist yet, the column
+    # is just omitted from the page.
+    decay_ratings_by_pid: dict[int, tuple[float, float]] = {
+        row[0]: (row[1], row[2])
+        for row in conn.execute(
+            "SELECT player_id, mu, sigma FROM ratings "
+            "WHERE model_name = 'openskill_pl_decay365'"
+        ).fetchall()
+    }
+
     sections: list[str] = []
     totals = {"rated": 0, "unrated": 0, "miss": 0, "all": 0}
     for sheet, names in roster.items():
@@ -1885,7 +2557,10 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
             else:
                 hits.append(r)
         sections.append(
-            _render_roster_section(sheet, hits, misses, captain_rankings)
+            _render_roster_section(
+                sheet, hits, misses, captain_rankings,
+                decay_ratings_by_pid=decay_ratings_by_pid,
+            )
         )
         totals["rated"] += sum(1 for h in hits if h["mu"] is not None)
         totals["unrated"] += sum(1 for h in hits if h["mu"] is None)
@@ -1943,6 +2618,617 @@ def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
 """
 
 
+# --- Changelog page ----------------------------------------------------------
+
+
+CHANGELOG_JSON = PROJECT_ROOT / "scripts" / "phase0" / "changelog_entries.json"
+
+GITHUB_REPO_URL = "https://github.com/devkurtc/wks-social-tennis-rankings-malta"
+
+
+_MONTHS_LONG = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+]
+_MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def _parse_iso_ts(ts: str):
+    """Parse an ISO 8601 timestamp like '2026-04-26T12:27:00+02:00'.
+
+    Returns a timezone-aware `datetime`, or `None` on parse failure.
+    """
+    from datetime import datetime
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts)
+    except ValueError:
+        return None
+
+
+def _format_month_from_ts(ts: str) -> str:
+    """'2026-04-26T...' -> 'April 2026'."""
+    dt = _parse_iso_ts(ts)
+    if dt is None:
+        return ts or ""
+    return f"{_MONTHS_LONG[dt.month - 1]} {dt.year}"
+
+
+def _format_date_time_malta(ts: str) -> str:
+    """'2026-04-26T12:27:00+02:00' -> '26 Apr 2026 · 12:27'.
+
+    The timestamp string already encodes the Malta offset; we render the
+    wall-clock time as written (no further conversion needed).
+    """
+    dt = _parse_iso_ts(ts)
+    if dt is None:
+        return ts or ""
+    return f"{dt.day} {_MONTHS_SHORT[dt.month - 1]} {dt.year} · {dt.hour:02d}:{dt.minute:02d}"
+
+
+def build_changelog_page() -> str | None:
+    """Render site/changelog.html from changelog_entries.json.
+
+    Returns None (and prints a warning) if the JSON is missing or malformed.
+    """
+    if not CHANGELOG_JSON.exists():
+        print(f"  skipped changelog: {CHANGELOG_JSON} not found", file=sys.stderr)
+        return None
+    try:
+        data = json.loads(CHANGELOG_JSON.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        print(f"  skipped changelog: invalid JSON — {e}", file=sys.stderr)
+        return None
+
+    entries = data.get("entries", [])
+    if not entries:
+        print("  skipped changelog: no entries in JSON", file=sys.stderr)
+        return None
+
+    # Validate: warn on missing/unparseable timestamps (they sort to bottom).
+    for e in entries:
+        if _parse_iso_ts(e.get("timestamp", "")) is None:
+            print(
+                f"  changelog warning: entry '{e.get('id','?')}' has missing or "
+                f"unparseable timestamp '{e.get('timestamp','')}'",
+                file=sys.stderr,
+            )
+
+    # Newest first. Stable sort + reverse=True preserves JSON insertion order
+    # for entries with identical timestamps (e.g. multiple ELI5 entries derived
+    # from the same commit), so the JSON file controls within-tie ordering.
+    from datetime import datetime, timezone
+    far_past = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    entries_sorted = sorted(
+        entries,
+        key=lambda e: _parse_iso_ts(e.get("timestamp", "")) or far_past,
+        reverse=True,
+    )
+
+    # Group by month-of-timestamp.
+    grouped: list[tuple[str, list[dict]]] = []
+    current_month: str | None = None
+    current_bucket: list[dict] = []
+    for e in entries_sorted:
+        m = _format_month_from_ts(e.get("timestamp", ""))
+        if m != current_month:
+            if current_bucket:
+                grouped.append((current_month or "", current_bucket))
+            current_month = m
+            current_bucket = []
+        current_bucket.append(e)
+    if current_bucket:
+        grouped.append((current_month or "", current_bucket))
+
+    parts: list[str] = []
+    for month, bucket in grouped:
+        parts.append(f'<h2 class="month-heading">{esc(month)}</h2>')
+        for e in bucket:
+            kind = (e.get("kind") or "new").lower()
+            audience = (e.get("audience") or "all").lower()
+            kind_label = {"new": "New", "improved": "Improved", "fixed": "Fixed"}.get(
+                kind, kind.title()
+            )
+            head_pills = [
+                f'<span class="pill kind-{esc(kind)}">{esc(kind_label)}</span>',
+            ]
+            if audience in ("captains", "admins"):
+                aud_label = "For captains" if audience == "captains" else "For admins"
+                head_pills.append(
+                    f'<span class="pill aud-{esc(audience)}">{esc(aud_label)}</span>'
+                )
+            head_pills.append(
+                f'<span class="entry-date">{esc(_format_date_time_malta(e.get("timestamp","")))}</span>'
+            )
+
+            details_html = ""
+            if e.get("details"):
+                details_html = (
+                    "<details>"
+                    "<summary>More detail</summary>"
+                    f"<p>{esc(e['details'])}</p>"
+                    "</details>"
+                )
+
+            trace_bits: list[str] = []
+            for cm in e.get("commits") or []:
+                short = esc(str(cm)[:7])
+                trace_bits.append(
+                    f'<a href="{GITHUB_REPO_URL}/commit/{esc(cm)}" '
+                    f'target="_blank" rel="noopener">{short}</a>'
+                )
+            for tk in e.get("tasks") or []:
+                trace_bits.append(esc(tk))
+            trace_html = ""
+            if trace_bits:
+                trace_html = (
+                    f'<div class="entry-trace">tech ref: '
+                    + " · ".join(trace_bits)
+                    + "</div>"
+                )
+
+            parts.append(
+                f'<article class="entry" data-kind="{esc(kind)}" '
+                f'data-audience="{esc(audience)}">'
+                f'<div class="entry-head">{"".join(head_pills)}</div>'
+                f'<h3 class="entry-title">{esc(e.get("title",""))}</h3>'
+                f'<p class="entry-summary">{esc(e.get("summary",""))}</p>'
+                f'{details_html}'
+                f'{trace_html}'
+                f'</article>'
+            )
+
+    cards_html = "\n".join(parts)
+    nav_html = render_nav("", "changelog")
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What's new — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v={CSS_VERSION}">
+</head>
+<body>
+{nav_html}
+<header>
+  <h1>What’s new on RallyRank</h1>
+  <p>Recent additions, improvements, and fixes — in plain English. Use the filters below to narrow the list.</p>
+</header>
+
+<main class="changelog">
+  <p class="lead">Most recent at the top. All times shown in Malta local time. Click <em>More detail</em> on any entry for the longer story.</p>
+
+  <div class="filters" id="changelog-filters">
+    <span class="filter active" data-filter-kind="all">All</span>
+    <span class="filter" data-filter-kind="new">New features</span>
+    <span class="filter" data-filter-kind="improved">Improvements</span>
+    <span class="filter" data-filter-kind="fixed">Fixes</span>
+  </div>
+
+  <div id="changelog-list">
+{cards_html}
+  </div>
+  <div id="changelog-empty" class="empty" style="display:none;">
+    Nothing to show with the current filter.
+  </div>
+</main>
+
+<script>
+(function() {{
+  const list = document.getElementById('changelog-list');
+  const emptyMsg = document.getElementById('changelog-empty');
+  const filterEls = document.querySelectorAll('#changelog-filters .filter');
+  let activeKind = 'all';
+
+  function apply() {{
+    const cards = list.querySelectorAll('.entry');
+    let visible = 0;
+    let lastVisibleHeading = null;
+    list.querySelectorAll('.month-heading').forEach((h) => {{
+      h.dataset.hasVisible = '0';
+    }});
+    cards.forEach((c) => {{
+      const k = c.dataset.kind;
+      const ok = activeKind === 'all' || k === activeKind;
+      c.classList.toggle('hidden', !ok);
+      if (ok) {{
+        visible++;
+        // mark previous-sibling month heading as having visible content
+        let p = c.previousElementSibling;
+        while (p) {{
+          if (p.classList && p.classList.contains('month-heading')) {{
+            p.dataset.hasVisible = '1';
+            break;
+          }}
+          p = p.previousElementSibling;
+        }}
+      }}
+    }});
+    list.querySelectorAll('.month-heading').forEach((h) => {{
+      h.style.display = h.dataset.hasVisible === '1' ? '' : 'none';
+    }});
+    emptyMsg.style.display = visible === 0 ? '' : 'none';
+  }}
+
+  filterEls.forEach((el) => {{
+    el.addEventListener('click', () => {{
+      filterEls.forEach((x) => x.classList.remove('active'));
+      el.classList.add('active');
+      activeKind = el.dataset.filterKind;
+      apply();
+    }});
+  }});
+
+  apply();
+}})();
+</script>
+</body>
+</html>
+"""
+
+
+# --- Mapping transparency page ----------------------------------------------
+
+
+def _merge_kind_from_reason(reason: str) -> str:
+    """Bucket a merge's `reason` string into a stable kind label.
+
+    The reason text is human-written (set by the merger that fired) and
+    starts with a small set of fixed prefixes — we match on those. Used for
+    the filter pills + count summary on the Mapping page.
+    """
+    r = (reason or "").lower()
+    if r.startswith("manual alias"):
+        return "manual"
+    if r.startswith("typo auto-merge"):
+        return "typo"
+    if r.startswith("token-equivalent"):
+        return "token"
+    if r.startswith("case-only"):
+        return "case"
+    return "other"
+
+
+# All merges, newest first. Joins the audit_log row to the surviving
+# (winner) record so we can render a working link straight to its page.
+ALL_MERGES_SQL = """
+SELECT
+    al.id              AS audit_id,
+    al.ts              AS merged_at,
+    al.entity_id       AS loser_id,
+    al.before_jsonb    AS before_json,
+    al.after_jsonb     AS after_json,
+    json_extract(al.after_jsonb, '$.merged_into_id')   AS winner_id,
+    json_extract(al.after_jsonb, '$.reason')            AS reason
+FROM audit_log al
+WHERE al.action = 'player.merged' AND al.entity_type = 'players'
+ORDER BY al.ts DESC, al.id DESC
+"""
+
+
+def build_aliases_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
+    """Render site/aliases.html — full identity-resolution transparency.
+
+    Three sections:
+      1. Stats — totals + per-kind breakdown.
+      2. Merge log — every player.merged audit row, deep-linked by audit id.
+      3. Pending suggestions — live snapshot of fuzzy candidates that the
+         automated rules left for human review.
+    """
+    import json as _json
+    # Local import — players is in the same dir as this script; sys.path
+    # is configured by the CLI but not by direct script invocation, so be
+    # defensive.
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).parent))
+    import players as _players  # noqa: E402
+
+    # ---- Section 1: Stats ----
+    n_players_active = conn.execute(
+        "SELECT COUNT(*) FROM players WHERE merged_into_id IS NULL"
+    ).fetchone()[0]
+    n_players_merged = conn.execute(
+        "SELECT COUNT(*) FROM players WHERE merged_into_id IS NOT NULL"
+    ).fetchone()[0]
+    n_aliases = conn.execute("SELECT COUNT(*) FROM player_aliases").fetchone()[0]
+
+    merge_rows = conn.execute(ALL_MERGES_SQL).fetchall()
+    n_merges = len(merge_rows)
+    by_kind: dict[str, int] = {"case": 0, "token": 0, "typo": 0, "manual": 0, "other": 0}
+    for r in merge_rows:
+        by_kind[_merge_kind_from_reason(r[6] or "")] += 1
+
+    stats_html = f"""
+  <div class="stat-grid" style="margin-bottom:18px;">
+    <div class="stat"><div class="stat-label">Active players</div>
+      <div class="stat-value">{n_players_active:,}</div></div>
+    <div class="stat"><div class="stat-label">Records merged</div>
+      <div class="stat-value">{n_players_merged:,}</div></div>
+    <div class="stat"><div class="stat-label">Total merges</div>
+      <div class="stat-value">{n_merges:,}</div></div>
+    <div class="stat"><div class="stat-label">Raw alias forms</div>
+      <div class="stat-value">{n_aliases:,}</div></div>
+  </div>
+  <div class="muted" style="font-size:12px; margin: -10px 0 18px 0;">
+    By kind:
+    <span class="tag" data-kind-tally="case">case · {by_kind['case']}</span>
+    <span class="tag" data-kind-tally="token">token · {by_kind['token']}</span>
+    <span class="tag" data-kind-tally="typo">typo · {by_kind['typo']}</span>
+    <span class="tag" data-kind-tally="manual">manual · {by_kind['manual']}</span>
+    {"<span class='tag' data-kind-tally='other'>other · " + str(by_kind['other']) + "</span>" if by_kind['other'] else ""}
+  </div>
+"""
+
+    # ---- Section 2: Merge log ----
+    merge_log_rows: list[str] = []
+    for audit_id, merged_at, loser_id, before_json, after_json, winner_id, reason in merge_rows:
+        try:
+            before = _json.loads(before_json or "{}")
+            after = _json.loads(after_json or "{}")
+        except _json.JSONDecodeError:
+            before, after = {}, {}
+        loser_name = before.get("canonical_name", f"#{loser_id}")
+        winner_name = after.get("winner_canonical_name", f"#{winner_id}")
+        kind = _merge_kind_from_reason(reason or "")
+        merged_on = (merged_at or "")[:10]
+        # Winner page link (loser pages aren't generated; the loser is
+        # a "ghost" whose history now lives under the winner).
+        winner_link = (
+            f'<a class="player-link" href="players/{int(winner_id)}.html">{esc(winner_name)}</a>'
+            if winner_id is not None else esc(winner_name)
+        )
+        merge_log_rows.append(
+            f'<tr id="m-{audit_id}" data-kind="{kind}" '
+            f'data-search="{esc((loser_name + " " + winner_name + " " + (reason or "")).lower())}">'
+            f'<td class="muted" style="font-variant-numeric:tabular-nums;">'
+            f'<a href="#m-{audit_id}" class="muted" title="Permalink">#{audit_id}</a></td>'
+            f'<td class="muted">{esc(merged_on)}</td>'
+            f'<td><span class="kind-pill kind-{kind}">{kind}</span></td>'
+            f'<td><span class="tag">id #{loser_id}</span> {esc(loser_name)}</td>'
+            f'<td>→</td>'
+            f'<td>{winner_link} <span class="tag">id #{winner_id or "?"}</span></td>'
+            f'<td class="muted">{esc(reason or "")}</td>'
+            f'</tr>'
+        )
+
+    merge_log_html = "".join(merge_log_rows) or (
+        '<tr><td colspan="7" class="muted">No merges yet.</td></tr>'
+    )
+
+    # ---- Section 3: Pending fuzzy suggestions ----
+    # Snapshot at build time. Use the same threshold/gates as the CLI's
+    # default `suggest-merges` so the site mirrors what an admin would see.
+    # Filter out pairs already ruled "different people" via the review tools.
+    kd_path = Path(__file__).resolve().parent / "known_distinct.json"
+    suggestions = _players.suggest_fuzzy_matches(
+        conn,
+        threshold=0.85,
+        same_gender_only=True,
+        min_matches=1,
+        known_distinct=_players.load_known_distinct(str(kd_path)),
+    )
+
+    BUCKETS = [
+        ("very-high", "VERY HIGH", 0.95, 1.01,
+         "Auto-merge candidates — usually safe to add to manual_aliases.json"),
+        ("high",      "HIGH",      0.88, 0.95,
+         "Almost certainly the same person — quick glance"),
+        ("medium",    "MEDIUM",    0.78, 0.88,
+         "Needs human review — not obvious"),
+        ("low",       "LOW",       0.00, 0.78,
+         "Probably different — but flagged"),
+    ]
+
+    bucket_rows: dict[str, list[str]] = {b[0]: [] for b in BUCKETS}
+    for s in suggestions:
+        c = s["confidence"]
+        bucket_key = next(
+            (k for (k, _, lo, hi, _) in BUCKETS if lo <= c < hi),
+            "low",
+        )
+        a = s["a"]; b = s["b"]
+        signals = " · ".join(s.get("reasons") or [])
+        a_link = f'<a class="player-link" href="players/{a["id"]}.html">{esc(a["name"])}</a>'
+        b_link = f'<a class="player-link" href="players/{b["id"]}.html">{esc(b["name"])}</a>'
+        bucket_rows[bucket_key].append(
+            f'<tr data-search="{esc((a["name"] + " " + b["name"]).lower())}">'
+            f'<td class="num">{c:.2f}</td>'
+            f'<td>{a_link} <span class="muted">({a.get("n", 0)}m'
+            + (f", {a.get('latest_class')}" if a.get("latest_class") else "")
+            + f')</span></td>'
+            f'<td class="muted">vs</td>'
+            f'<td>{b_link} <span class="muted">({b.get("n", 0)}m'
+            + (f", {b.get('latest_class')}" if b.get("latest_class") else "")
+            + f')</span></td>'
+            f'<td class="muted" style="white-space:normal; font-size:11px;">{esc(signals)}</td>'
+            f'</tr>'
+        )
+
+    suggestion_sections: list[str] = []
+    for key, label, lo, hi, hint in BUCKETS:
+        rows = bucket_rows[key]
+        rng = f"{lo:.2f}+" if hi > 1.0 else f"{lo:.2f}–{hi:.2f}"
+        body = "".join(rows) if rows else (
+            f'<tr><td colspan="5" class="muted">No pairs in this bucket.</td></tr>'
+        )
+        suggestion_sections.append(f"""
+  <h3 class="bucket-heading bucket-{key}">{label}
+    <span class="muted">({len(rows)} pair{'s' if len(rows) != 1 else ''}, conf {rng})</span></h3>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">{esc(hint)}</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">Conf</th>
+      <th>Player A</th>
+      <th></th>
+      <th>Player B</th>
+      <th>Signals</th>
+    </tr></thead>
+    <tbody>{body}</tbody>
+  </table>
+  </div>
+""")
+
+    nav_html = render_nav("", "aliases")
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Mapping &amp; merges — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v={CSS_VERSION}">
+<style>
+  .kind-pill {{
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }}
+  .kind-case   {{ background: #25344f; color: #9bc1ff; }}
+  .kind-token  {{ background: #2c3e2c; color: #9fd8a4; }}
+  .kind-typo   {{ background: #3e3520; color: #ffd58a; }}
+  .kind-manual {{ background: #3a2a3e; color: #d99bd0; }}
+  .kind-other  {{ background: #2a3242; color: #8b96a8; }}
+  .bucket-heading {{
+    margin: 18px 0 4px 0; font-size: 14px; font-weight: 600;
+  }}
+  .bucket-very-high {{ color: #ffd58a; }}
+  .bucket-high      {{ color: #9fd8a4; }}
+  .bucket-medium    {{ color: #9bc1ff; }}
+  .bucket-low       {{ color: #8b96a8; }}
+  .filter-pills {{
+    display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0;
+  }}
+  .filter-pills .pill {{
+    cursor: pointer; user-select: none;
+    padding: 4px 10px; border-radius: 6px; font-size: 12px;
+    background: var(--card); color: var(--muted); border: 1px solid var(--border);
+  }}
+  .filter-pills .pill.active {{
+    background: var(--accent); color: var(--bg); border-color: var(--accent);
+  }}
+  /* Target highlight when arriving via #m-<id> deep link */
+  tr:target {{ background: #2a3a55 !important; outline: 2px solid var(--accent); }}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mapping &amp; merges</h1>
+  <p>
+    Every identity-resolution decision RallyRank has made — what got merged
+    into whom, why, and what's still pending review. Permalink any merge by
+    clicking its <code>#id</code>.
+  </p>
+</header>
+{nav_html}
+<main>
+{stats_html}
+
+  <h2 class="section-title">Merge log</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Newest first. Each merge captures: which losing record was absorbed, into
+    which surviving record, on what date, and the rule that fired.
+  </p>
+  <div class="filter-pills" id="merge-filters">
+    <span class="pill active" data-kind="all">All ({n_merges})</span>
+    <span class="pill" data-kind="case">case ({by_kind['case']})</span>
+    <span class="pill" data-kind="token">token ({by_kind['token']})</span>
+    <span class="pill" data-kind="typo">typo ({by_kind['typo']})</span>
+    <span class="pill" data-kind="manual">manual ({by_kind['manual']})</span>
+    <input id="merge-search" type="search" placeholder="Search names / reason..." style="margin-left:auto; flex:1 1 200px;">
+  </div>
+  <div class="table-wrap">
+  <table id="merge-log">
+    <thead><tr>
+      <th>#</th>
+      <th>Date</th>
+      <th>Kind</th>
+      <th>Loser (absorbed)</th>
+      <th></th>
+      <th>Winner (surviving)</th>
+      <th>Reason</th>
+    </tr></thead>
+    <tbody>{merge_log_html}</tbody>
+  </table>
+  </div>
+  <div id="merge-empty" class="muted" style="display:none; padding:8px;">
+    No merges match the current filter.
+  </div>
+
+  <h2 class="section-title" style="margin-top:32px;">Pending fuzzy suggestions</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Snapshot at build time. Pairs the automated rules left for human review.
+    VERY HIGH = obvious typos the auto-merger declined (usually because both
+    look "established"). LOW = probably different people, just flagged.
+  </p>
+{''.join(suggestion_sections)}
+</main>
+<footer>
+  Want a merge undone or added? <strong>Open an issue on GitHub</strong> with
+  the <code>#id</code> of the merge (or the names of the suggested pair).
+  Manual aliases live in <code>scripts/phase0/manual_aliases.json</code>.
+</footer>
+<script>
+(function() {{
+  const tbody = document.querySelector('#merge-log tbody');
+  if (!tbody) return;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const filterEls = document.querySelectorAll('#merge-filters .pill');
+  const searchEl = document.getElementById('merge-search');
+  const emptyEl = document.getElementById('merge-empty');
+  let activeKind = 'all';
+  let q = '';
+
+  function apply() {{
+    let visible = 0;
+    rows.forEach((r) => {{
+      const k = r.dataset.kind;
+      const s = r.dataset.search || '';
+      const okKind = activeKind === 'all' || k === activeKind;
+      const okSearch = !q || s.includes(q);
+      const show = okKind && okSearch;
+      r.style.display = show ? '' : 'none';
+      if (show) visible++;
+    }});
+    emptyEl.style.display = visible === 0 ? '' : 'none';
+  }}
+
+  filterEls.forEach((el) => {{
+    el.addEventListener('click', () => {{
+      filterEls.forEach((x) => x.classList.remove('active'));
+      el.classList.add('active');
+      activeKind = el.dataset.kind;
+      apply();
+    }});
+  }});
+  searchEl.addEventListener('input', () => {{
+    q = searchEl.value.trim().toLowerCase();
+    apply();
+  }});
+
+  // If the URL has a #m-<id> hash, scroll into view + flash the row.
+  if (location.hash && location.hash.startsWith('#m-')) {{
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) {{
+      // If the targeted row was hidden by an active filter, reset to "all".
+      target.style.display = '';
+      filterEls.forEach((x) => x.classList.toggle('active', x.dataset.kind === 'all'));
+      activeKind = 'all';
+      apply();
+      target.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+    }}
+  }}
+}})();
+</script>
+</body>
+</html>
+"""
+
+
 # --- Main --------------------------------------------------------------------
 
 
@@ -1962,13 +3248,33 @@ def main() -> int:
         name_lookup = fetch_player_lookup(conn)
         neighbours_by_gender = fetch_neighbour_index(conn)
 
+        # Replay rating history once to derive per-(match, player) rank/score
+        # impact (rank_before/after, deltas, bypassed/passed-by). Reused by
+        # both the All Matches feed and per-player pages.
+        print("Computing per-match impacts ...")
+        match_impacts = compute_match_impacts(conn)
+        print(f"  {len(match_impacts):,} (match, player) impact rows")
+
         # Index
         write(OUT_DIR / "index.html", build_index(conn))
         print(f"Wrote {OUT_DIR / 'index.html'}")
 
         # All-matches feed (chronological)
-        write(OUT_DIR / "matches.html", build_matches_page(conn, name_lookup))
+        write(
+            OUT_DIR / "matches.html",
+            build_matches_page(conn, name_lookup, impacts=match_impacts),
+        )
         print(f"Wrote {OUT_DIR / 'matches.html'}")
+
+        # What's new (changelog)
+        changelog_html = build_changelog_page()
+        if changelog_html:
+            write(OUT_DIR / "changelog.html", changelog_html)
+            print(f"Wrote {OUT_DIR / 'changelog.html'}")
+
+        # Mapping & merges (full identity-resolution transparency)
+        write(OUT_DIR / "aliases.html", build_aliases_page(conn, name_lookup))
+        print(f"Wrote {OUT_DIR / 'aliases.html'}")
 
         # Per-player pages: only for unmerged players with at least 1 active match.
         eligible = conn.execute("""
@@ -1981,7 +3287,8 @@ def main() -> int:
         eligible_ids = [r[0] for r in eligible]
         for pid in eligible_ids:
             html_text = build_player_page(
-                conn, pid, name_lookup, neighbours_by_gender
+                conn, pid, name_lookup, neighbours_by_gender,
+                impacts=match_impacts,
             )
             if html_text:
                 write(OUT_DIR / player_filename(pid), html_text)
