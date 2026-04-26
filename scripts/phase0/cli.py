@@ -100,6 +100,136 @@ def cmd_rate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_history(args: argparse.Namespace) -> int:
+    """Show the match-by-match rating trajectory for a single player."""
+    import db
+    import rating
+
+    conn = db.init_db()
+    try:
+        # Resolve player by canonical name
+        row = conn.execute(
+            "SELECT id, canonical_name, gender FROM players "
+            "WHERE canonical_name = ? AND merged_into_id IS NULL",
+            (args.player,),
+        ).fetchone()
+        if row is None:
+            print(
+                f"history: player {args.player!r} not found "
+                f"(must match canonical_name exactly).",
+                file=sys.stderr,
+            )
+            return 1
+        player_id, canonical_name, gender = row
+
+        # Per-match trajectory: partner, opponents, score, μ/σ before+after
+        rows = conn.execute(
+            """
+            SELECT
+                m.id, m.played_on, t.name AS tournament, m.division,
+                ms.side, ms.player1_id, ms.player2_id, ms.games_won, ms.won,
+                opp.player1_id, opp.player2_id, opp.games_won,
+                rh.mu_after, rh.sigma_after
+            FROM rating_history rh
+            JOIN matches m ON m.id = rh.match_id
+            JOIN tournaments t ON t.id = m.tournament_id
+            JOIN match_sides ms ON ms.match_id = m.id
+                AND (ms.player1_id = ? OR ms.player2_id = ?)
+            JOIN match_sides opp ON opp.match_id = m.id AND opp.side <> ms.side
+            WHERE rh.player_id = ?
+              AND rh.model_name = ?
+              AND m.superseded_by_run_id IS NULL
+            ORDER BY m.played_on, m.id
+            """,
+            (player_id, player_id, player_id, rating.CHAMPION_MODEL),
+        ).fetchall()
+
+        if not rows:
+            print(
+                f"history: no rated matches for {canonical_name!r}.",
+                file=sys.stderr,
+            )
+            return 0
+
+        # Resolve all player IDs to names in one pass
+        all_ids = set()
+        for r in rows:
+            all_ids.update((r[5], r[6], r[9], r[10]))
+        all_ids.discard(None)
+        name_map = dict(
+            conn.execute(
+                f"SELECT id, canonical_name FROM players "
+                f"WHERE id IN ({','.join('?' * len(all_ids))})",
+                tuple(all_ids),
+            ).fetchall()
+        )
+    finally:
+        conn.close()
+
+    def short(name: str | None, width: int = 18) -> str:
+        if not name:
+            return ""
+        return name if len(name) <= width else name[: width - 1] + "…"
+
+    # Apply --recent filter
+    if args.recent and args.recent > 0:
+        rows = rows[-args.recent:]
+
+    # Determine starting μ for first match's "before" (if showing from match 1)
+    # We use rating.division_starting_mu for the player's first division.
+    # For middle slices, "before" is the previous row's after.
+    first_div = rows[0][3] if rows else None
+    starting_mu = rating.division_starting_mu(first_div)
+    starting_sigma = 25.0 / 3  # OpenSkill default
+
+    # Header
+    print(f"\nMatch history for {canonical_name} (gender={gender or '?'}, {len(rows)} matches shown)\n")
+    print(
+        f"{'#':>3}  {'Date':<10}  {'Tournament':<28}  {'Rubber':<8}  "
+        f"{'Partner':<18}  {'vs':2}  {'Opponents':<32}  "
+        f"{'Score':<7}  {'μ before':>8} → {'μ after':>8}  "
+        f"{'Δμ':>6}   {'σ':>5}→{'σ':<5}"
+    )
+    print("-" * 156)
+
+    prev_mu = starting_mu
+    prev_sigma = starting_sigma
+    for i, r in enumerate(rows, 1):
+        (match_id, date, tournament, division,
+         side, p1, p2, my_games, my_won,
+         opp1, opp2, opp_games,
+         mu_after, sigma_after) = r
+
+        partner_id = p2 if p1 == player_id else p1
+        partner = short(name_map.get(partner_id), 18)
+        opp1_n = short(name_map.get(opp1), 14)
+        opp2_n = short(name_map.get(opp2), 14)
+        opponents = f"{opp1_n} + {opp2_n}"
+        score = f"{my_games}-{opp_games}"
+        result = "W" if my_won else "L"
+        delta_mu = mu_after - prev_mu
+        delta_sigma = sigma_after - prev_sigma
+
+        print(
+            f"{i:>3}  {date:<10}  {tournament[:28]:<28}  "
+            f"{(division or '?')[:8]:<8}  "
+            f"{partner:<18}  vs  {opponents[:32]:<32}  "
+            f"{score:<5}{result}  "
+            f"{prev_mu:>8.2f} → {mu_after:>8.2f}  "
+            f"{delta_mu:>+6.2f}   {prev_sigma:>5.2f}→{sigma_after:<5.2f}"
+        )
+
+        prev_mu = mu_after
+        prev_sigma = sigma_after
+
+    print()
+    print(
+        f"Final: μ={rows[-1][12]:.2f}  σ={rows[-1][13]:.2f}  "
+        f"μ-3σ={rows[-1][12] - 3*rows[-1][13]:.2f}"
+    )
+    return 0
+
+
 def cmd_merge_case_duplicates(args: argparse.Namespace) -> int:
     import db
     import players
@@ -440,6 +570,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="Recompute OpenSkill ratings for all loaded matches.",
     )
     p_rate.set_defaults(func=cmd_rate)
+
+    p_history = sub.add_parser(
+        "history",
+        help=(
+            "Show the match-by-match rating trajectory for one player: "
+            "partner, opponents, score, μ before→after, σ before→after. "
+            "Useful for understanding why a player has the rating they do."
+        ),
+    )
+    p_history.add_argument(
+        "--player",
+        required=True,
+        help='Canonical player name (exact match). E.g. "Kurt Carabott".',
+    )
+    p_history.add_argument(
+        "--recent",
+        type=int,
+        default=0,
+        help=(
+            "Limit to the most recent N matches (default 0 = show all). "
+            "First-shown match's 'before' will reflect the previous match's "
+            "after, OR the division starting-μ for match #1."
+        ),
+    )
+    p_history.set_defaults(func=cmd_history)
 
     p_merge = sub.add_parser(
         "merge-case-duplicates",
