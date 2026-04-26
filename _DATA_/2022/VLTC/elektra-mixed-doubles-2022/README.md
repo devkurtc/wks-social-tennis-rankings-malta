@@ -2,24 +2,21 @@
 
 **Club:** Vittoriosa Lawn Tennis Club (VLTC), Malta
 **Year:** 2022
-**Source:** Local file upload
-**Source filename:** `Draws and Results Elektra Mixed Doubles 2022.xlsx`
-**File mtime:** 2024-01-17 22:59 UTC
-**Last reorganized:** 2026-04-26 06:49 UTC
+**Source:** Club website
+**Source URL:** [https://www.vltc.com.mt/tournament.aspx?id=116](https://www.vltc.com.mt/tournament.aspx?id=116)
+**Extraction method:** HTTP scrape — `tournament.aspx?id=116` + Google Sheets `export?format=xlsx`
+**Last extracted:** 2026-04-26 06:56 UTC
 
 ## Files in this folder
 
-- `Draws and Results Elektra Mixed Doubles 2022.xlsx` — original local file moved here from the legacy flat
-  `_DATA_/VLTC/` layout.
+- `Elektra Mixed Doubles 2022.xlsx` (Google Sheet ID `1xUeIHRmdXtF8dlUzZm6PRKh1n4PnMjd7`, sha256 `da5c7144385c…`)
+- `raw/detail-page.html` — original HTML of the tournament detail page at scrape time.
 
 ## Provenance
 
-This file was present in the project's `_DATA_/VLTC/` directory before the
-year/club/tournament reorganization (see project memory: VLTC files are
-sourced from the public club website but were committed locally for offline
-processing). No automated scrape provenance is recorded for this file —
-the source date is the file mtime.
+This folder contains data extracted automatically from the VLTC public tournament archive
+by `scripts/scraper/vltc.py`. The detail page is captured as raw HTML for audit purposes;
+the `.xlsx` files are downloaded via Google Sheets' public `export?format=xlsx` endpoint.
 
-If a `tournament.aspx?id=N` page exists for this tournament on
-www.vltc.com.mt, run `python scripts/scraper/vltc.py all` to fetch the live
-copy alongside this local one.
+To re-extract: `python scripts/scraper/vltc.py download` (idempotent — only re-writes
+files whose Google Sheet content has changed).

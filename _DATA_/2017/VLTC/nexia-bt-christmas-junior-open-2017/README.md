@@ -5,7 +5,7 @@
 **Source:** Club website
 **Source URL:** [https://www.vltc.com.mt/tournament.aspx?id=71](https://www.vltc.com.mt/tournament.aspx?id=71)
 **Extraction method:** HTTP scrape — `tournament.aspx?id=71` + Google Sheets `export?format=xlsx`
-**Last extracted:** 2026-04-26 06:50 UTC
+**Last extracted:** 2026-04-26 06:55 UTC
 
 ## Files in this folder
 

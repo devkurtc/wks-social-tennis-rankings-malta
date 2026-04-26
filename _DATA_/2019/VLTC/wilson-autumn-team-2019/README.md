@@ -5,11 +5,11 @@
 **Source:** Club website
 **Source URL:** [https://www.vltc.com.mt/tournament.aspx?id=91](https://www.vltc.com.mt/tournament.aspx?id=91)
 **Extraction method:** HTTP scrape — `tournament.aspx?id=91` + Google Sheets `export?format=xlsx`
-**Last extracted:** 2026-04-26 06:50 UTC
+**Last extracted:** 2026-04-26 06:55 UTC
 
 ## Files in this folder
 
-- `Wilson Autumn Team 2019.xlsx` (Google Sheet ID `1yRukBviCjJE8Gsx5DsszRZdE-sK2RtYWjTdayzTuBp0`, sha256 `17488bd4ed61…`)
+- `Wilson Autumn Team 2019.xlsx` (Google Sheet ID `1yRukBviCjJE8Gsx5DsszRZdE-sK2RtYWjTdayzTuBp0`, sha256 `53e8cf0cecbb…`)
 - `raw/detail-page.html` — original HTML of the tournament detail page at scrape time.
 
 ## Provenance

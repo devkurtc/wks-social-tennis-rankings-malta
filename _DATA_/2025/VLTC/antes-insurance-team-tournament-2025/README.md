@@ -23,3 +23,7 @@ the source date is the file mtime.
 If a `tournament.aspx?id=N` page exists for this tournament on
 www.vltc.com.mt, run `python scripts/scraper/vltc.py all` to fetch the live
 copy alongside this local one.
+
+## Local file upload (alt source)
+
+- `Antes Insurance Team Tournament results with sets.xlsx` — additional local copy of the same 2025 Antes Joe Carabott Memorial tournament data, confirmed as 2025 by the user. File mtime: 2025-04-25 03:37 UTC. Companion to the IMO Joe variant in this folder.

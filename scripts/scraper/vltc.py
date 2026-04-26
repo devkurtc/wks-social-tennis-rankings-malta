@@ -49,11 +49,11 @@ GSHEET_EXPORT = "https://docs.google.com/spreadsheets/d/{id}/export?format=xlsx"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "_DATA_"
 CLUB = "VLTC"
-MANIFEST_PATH = DATA_DIR / "VLTC" / "scraped" / "manifest.json"
+MANIFEST_PATH = DATA_DIR / "_clubs" / CLUB / "manifest.json"
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.S)
 SHEET_RE = re.compile(r"docs\.google\.com/spreadsheets/d/([A-Za-z0-9_-]+)")
-YEAR_RE = re.compile(r"\b(20\d{2})\b")
+YEAR_RE = re.compile(r"(?:^|\D)(20\d{2})(?:\D|$)")  # 4-digit year, non-digit boundaries
 TITLE_PREFIX = "Vittoriosa Lawn Tennis Club (Malta) -"
 
 
@@ -98,7 +98,9 @@ def parse_detail_page(body: str) -> Optional[dict]:
     if len(body) < 11500:
         return None
     sheet_ids = sorted(set(SHEET_RE.findall(body)))
-    year_match = YEAR_RE.search(title)
+    # Try title first, fall back to body text (older tournaments sometimes have
+    # the year in a description but not in the title).
+    year_match = YEAR_RE.search(title) or YEAR_RE.search(body)
     year = int(year_match.group(1)) if year_match else None
     return {"title": title, "year": year, "sheet_ids": sheet_ids}
 

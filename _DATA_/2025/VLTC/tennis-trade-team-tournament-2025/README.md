@@ -5,7 +5,7 @@
 **Source:** Club website
 **Source URL:** [https://www.vltc.com.mt/tournament.aspx?id=20149](https://www.vltc.com.mt/tournament.aspx?id=20149)
 **Extraction method:** HTTP scrape — `tournament.aspx?id=20149` + Google Sheets `export?format=xlsx`
-**Last extracted:** 2026-04-26 06:44 UTC
+**Last extracted:** 2026-04-26 06:56 UTC
 
 ## Files in this folder
 
@@ -21,3 +21,27 @@ the `.xlsx` files are downloaded via Google Sheets' public `export?format=xlsx` 
 
 To re-extract: `python scripts/scraper/vltc.py download` (idempotent — only re-writes
 files whose Google Sheet content has changed).
+
+## Local file upload
+
+- `Results Tennis Trade Team Tournament.xlsx` — local file moved here from `_DATA_/_unsorted/` after the
+  reorganization confirmed its year. File mtime: 2025-10-10 11:18 UTC.
+
+The parser dispatcher in `scripts/phase0/cli.py` matches on filename substring
+after lowercasing, so this file can be loaded directly with `cli.py load --file <path>`.
+
+## Local file upload
+
+- `Tennis Trade Team Tournament - Results(1).xlsx` — local file moved here from `_DATA_/_unsorted/` after the
+  reorganization confirmed its year. File mtime: 2025-10-09 04:29 UTC.
+
+The parser dispatcher in `scripts/phase0/cli.py` matches on filename substring
+after lowercasing, so this file can be loaded directly with `cli.py load --file <path>`.
+
+## Local file upload
+
+- `Tennis Trade Team Tournament - Results.xlsx` — local file moved here from `_DATA_/_unsorted/` after the
+  reorganization confirmed its year. File mtime: 2026-03-20 13:29 UTC.
+
+The parser dispatcher in `scripts/phase0/cli.py` matches on filename substring
+after lowercasing, so this file can be loaded directly with `cli.py load --file <path>`.
