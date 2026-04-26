@@ -2818,6 +2818,263 @@ def build_matches_page(
 """
 
 
+def build_disagreements_page(
+    conn: sqlite3.Connection,
+    name_lookup: dict,
+    predictions: dict[str, dict[int, dict]],
+    impacts: dict | None = None,
+    *,
+    min_gap: float = 0.10,
+    max_rows: int = 300,
+) -> str:
+    """Feed of matches where the two models disagreed most about who'd win."""
+    impacts = impacts or {}
+    decay = predictions.get("openskill_pl_decay365") or {}
+    pl = predictions.get("openskill_pl_vanilla") or {}
+    common_mids = set(decay.keys()) & set(pl.keys())
+    if not common_mids:
+        return ""
+
+    placeholders = ",".join("?" * len(common_mids))
+    rows = conn.execute(
+        f"""
+        SELECT m.id, m.played_on, m.division, m.round, m.walkover,
+               t.name AS tour_name, t.year AS tour_year,
+               c.slug AS club_slug,
+               sa.player1_id, sa.player2_id, sa.games_won, sa.won,
+               sb.player1_id, sb.player2_id, sb.games_won, sb.won
+        FROM matches m
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN clubs c ON c.id = t.club_id
+        JOIN match_sides sa ON sa.match_id = m.id AND sa.side = 'A'
+        JOIN match_sides sb ON sb.match_id = m.id AND sb.side = 'B'
+        WHERE m.id IN ({placeholders})
+          AND m.superseded_by_run_id IS NULL
+        """,
+        tuple(common_mids),
+    ).fetchall()
+
+    set_scores_by_mid: dict[int, list[tuple]] = {}
+    for mid, sn, a, b, tb in conn.execute(
+        "SELECT match_id, set_number, side_a_games, side_b_games, was_tiebreak "
+        "FROM match_set_scores ORDER BY match_id, set_number"
+    ):
+        set_scores_by_mid.setdefault(mid, []).append((sn, a, b, tb))
+
+    def _name_with_rank(pid: int, mid: int) -> str:
+        if pid is None:
+            return ""
+        cid, n = name_lookup.get(pid, (pid, f"#{pid}"))
+        link = f'<a class="player-link" href="players/{cid}.html">{esc(n)}</a>'
+        imp = impacts.get((mid, pid))
+        if imp is None:
+            return link
+        return f'{link}<span class="rank-tag">#{imp["rank_after"]}</span>'
+
+    def _set_score(side: str, sets: list) -> str:
+        if not sets:
+            return ""
+        out = []
+        for _sn, a, b, tb in sets:
+            my, opp = (a, b) if side == "A" else (b, a)
+            mark = " <span class='muted'>(TB)</span>" if tb else ""
+            out.append(f"{my}-{opp}{mark}")
+        return ", ".join(out)
+
+    ordered: list[tuple[float, tuple]] = []
+    for r in rows:
+        mid = r[0]
+        gap = abs(decay[mid]["p_a"] - pl[mid]["p_a"])
+        if gap >= min_gap:
+            ordered.append((gap, r))
+    ordered.sort(key=lambda x: -x[0])
+    ordered = ordered[:max_rows]
+
+    body_rows: list[str] = []
+    years: set = set()
+    clubs: set = set()
+    n_decay_better = n_pl_better = n_both_right = n_both_wrong = 0
+    for gap, r in ordered:
+        (mid, played, division, rnd, walkover,
+         tour_name, tour_year, club_slug,
+         a1, a2, agw, awon,
+         b1, b2, bgw, bwon) = r
+        years.add(tour_year)
+        clubs.add(club_slug)
+        d_p = decay[mid]["p_a"]
+        v_p = pl[mid]["p_a"]
+        actual_a = 1 if awon else 0
+        d_correct = (d_p > 0.5) == bool(actual_a)
+        v_correct = (v_p > 0.5) == bool(actual_a)
+        if d_correct and v_correct:
+            n_both_right += 1
+            verdict = '<span class="muted">both right</span>'
+        elif d_correct:
+            n_decay_better += 1
+            verdict = '<span class="win"><strong>Decay</strong></span>'
+        elif v_correct:
+            n_pl_better += 1
+            verdict = '<span class="win"><strong>PL</strong></span>'
+        else:
+            n_both_wrong += 1
+            verdict = '<span class="loss">both wrong</span>'
+
+        sets = set_scores_by_mid.get(mid, [])
+        score_a = _set_score("A", sets)
+        score_b = _set_score("B", sets)
+        if score_a:
+            score_cell = (
+                f'<span class="score">'
+                f'<strong class="{"win" if awon else "loss"}">{score_a}</strong>'
+                f' / <span class="muted">{score_b}</span>'
+                f'</span>'
+            )
+        else:
+            score_cell = f'<span class="score muted">{agw or 0}-{bgw or 0}</span>'
+        wo = ' <span class="tag">W/O</span>' if walkover else ""
+
+        side_a_names = " / ".join(
+            x for x in (_name_with_rank(a1, mid), _name_with_rank(a2, mid)) if x
+        ) or "—"
+        side_b_names = " / ".join(
+            x for x in (_name_with_rank(b1, mid), _name_with_rank(b2, mid)) if x
+        ) or "—"
+        body_rows.append(
+            f'<tr data-year="{esc(str(tour_year))}" data-club="{esc(club_slug)}">'
+            f'<td>{esc(played)}</td>'
+            f'<td><span class="tag">{esc(club_slug)}</span> {esc(tour_name)} '
+            f'{esc(str(tour_year))}</td>'
+            f'<td>{side_a_names}</td>'
+            f'<td>{side_b_names}</td>'
+            f'<td class="score">{score_cell}{wo}</td>'
+            f'<td class="num" data-sort="{v_p:.4f}">{v_p*100:.0f}%</td>'
+            f'<td class="num" data-sort="{d_p:.4f}">{d_p*100:.0f}%</td>'
+            f'<td class="num" data-sort="{gap:.4f}"><strong>{gap*100:.0f}%</strong></td>'
+            f'<td class="num">{verdict}</td>'
+            f'</tr>'
+        )
+
+    year_options = "".join(
+        f'<option value="{y}">{y}</option>' for y in sorted(years, reverse=True)
+    )
+    club_options = "".join(
+        f'<option value="{esc(c)}">{esc(c)}</option>' for c in sorted(clubs)
+    )
+
+    js = """
+<script>
+(function(){
+  function applyFilters() {
+    const q = (document.getElementById('f-search').value || '').toLowerCase();
+    const y = document.getElementById('f-year').value;
+    const c = document.getElementById('f-club').value;
+    let visible = 0;
+    document.querySelectorAll('tbody tr').forEach((row) => {
+      const okY = !y || row.dataset.year === y;
+      const okC = !c || row.dataset.club === c;
+      const okQ = !q || row.textContent.toLowerCase().includes(q);
+      const show = okY && okC && okQ;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('count').textContent = visible + ' match(es)';
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    ['f-search','f-year','f-club'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', applyFilters);
+    });
+    document.querySelectorAll('thead th.num').forEach((th) => {
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', () => {
+        const tbody = document.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const headers = Array.from(document.querySelectorAll('thead th'));
+        const colIdx = headers.indexOf(th);
+        const cur = th.getAttribute('aria-sort');
+        const dir = cur === 'descending' ? 'ascending' : 'descending';
+        headers.forEach((o) => { if (o !== th) o.removeAttribute('aria-sort'); });
+        th.setAttribute('aria-sort', dir);
+        rows.sort((a, b) => {
+          const av = parseFloat(a.cells[colIdx].dataset.sort || '0');
+          const bv = parseFloat(b.cells[colIdx].dataset.sort || '0');
+          return dir === 'descending' ? bv - av : av - bv;
+        });
+        rows.forEach((r) => tbody.appendChild(r));
+      });
+    });
+    applyFilters();
+  });
+})();
+</script>
+"""
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Model gaps — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v={CSS_VERSION}">
+</head>
+<body>
+<header>
+  <h1>Model gaps — where the two models disagree</h1>
+  <p>Matches sorted by how differently the two production rating models
+     predicted them. Gap = |Decay% − PL%|. These are the matches where
+     captain / human input most adds information the rating system
+     can't reach on its own.</p>
+</header>
+{render_nav("", "disagreements")}
+<main>
+  <p class="muted" style="font-size:13px;">
+    Top {len(body_rows):,} matches with gap ≥ {int(min_gap*100)}% (out of
+    {len(common_mids):,} total predicted matches).
+    Verdict tally on this filtered set:
+    <strong>{n_decay_better}</strong> decay-only correct ·
+    <strong>{n_pl_better}</strong> PL-only correct ·
+    <strong>{n_both_right}</strong> both right ·
+    <strong>{n_both_wrong}</strong> both wrong.
+    Click any numeric column header to sort.
+  </p>
+  <div class="controls">
+    <input id="f-search" type="search" placeholder="Search player / tournament ...">
+    <select id="f-year">
+      <option value="">All years</option>
+      {year_options}
+    </select>
+    <select id="f-club">
+      <option value="">All clubs</option>
+      {club_options}
+    </select>
+    <span id="count" class="muted"></span>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Date</th><th>Tournament</th>
+      <th>Side A</th><th>Side B</th><th>Score</th>
+      <th class="num" title="Vanilla PL probability that side A wins">PL %</th>
+      <th class="num" title="Decay-365 probability that side A wins">Decay %</th>
+      <th class="num" title="Disagreement = |Decay% − PL%|">|Δ|</th>
+      <th class="num" title="Which model called this match correctly">Verdict</th>
+    </tr></thead>
+    <tbody>{''.join(body_rows)}</tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  Generated from {len(common_mids):,} matches with held-out predictions in
+  both <code>openskill_pl_vanilla</code> and <code>openskill_pl_decay365</code>.
+  See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a>
+  for backtest methodology.
+</footer>
+{js}
+</body>
+</html>
+"""
+
+
 def build_tournament_roster_page(conn: sqlite3.Connection, config: dict) -> str:
     """Render one tournament roster ranking page."""
     roster_path = Path(config["roster_xlsx"])
@@ -3922,6 +4179,16 @@ def main() -> int:
             build_matches_page(conn, name_lookup, impacts=match_impacts),
         )
         print(f"Wrote {OUT_DIR / 'matches.html'}")
+
+        # Model-disagreement feed: matches where the two production models
+        # predicted most differently. Only renders if predictions exist for
+        # both engines.
+        disagreements_html = build_disagreements_page(
+            conn, name_lookup, predictions, impacts=match_impacts,
+        )
+        if disagreements_html:
+            write(OUT_DIR / "disagreements.html", disagreements_html)
+            print(f"Wrote {OUT_DIR / 'disagreements.html'}")
 
         # What's new (changelog)
         changelog_html = build_changelog_page()
