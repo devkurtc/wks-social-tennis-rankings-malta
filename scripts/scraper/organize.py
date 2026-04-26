@@ -48,6 +48,25 @@ def slugify(s: str) -> str:
     return s[:80]
 
 
+CLUB_PREFIXES = {
+    "TCK": "TCK",  # TCK CHOSEN TOUNAMENT, TCK SINGLES TOURNAMENT, TCK AUTUMN
+    # Add more clubs here as we encounter them.
+}
+
+
+def infer_club(filename: str) -> str:
+    """Pick a club from a filename prefix; default VLTC (the legacy data folder).
+    Examples:
+      'TCK CHOSEN TOUNAMENT 2024.xlsx' → TCK
+      'San Michel Results 2026.xlsx'  → VLTC (default — VLTC hosts San Michel)
+    """
+    upper = filename.upper().lstrip()
+    for prefix, club in CLUB_PREFIXES.items():
+        if upper.startswith(prefix):
+            return club
+    return CLUB  # default VLTC
+
+
 def infer_tournament(filename: str) -> tuple[int | None, str | None]:
     """Return (year, slug) or (None, None) for unrecognized filenames."""
     stem = Path(filename).stem.strip()  # strip leading/trailing whitespace
@@ -191,8 +210,9 @@ def organize(dry_run: bool = False) -> None:
             print(f"[unsorted] {name}  (no year detected)")
             continue
 
-        # Build target directory
-        tournament_dir = DATA_DIR / str(year) / CLUB / slug
+        # Build target directory — club determined by filename prefix
+        club = infer_club(name)
+        tournament_dir = DATA_DIR / str(year) / club / slug
         # Preserve the original filename verbatim (parser dispatcher matches by
         # substring after lowercasing — e.g. 'Wilson Autumn Results 2020.xlsx'
         # contains 'wilson autumn results' which the dispatcher knows about).
