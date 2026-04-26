@@ -4135,6 +4135,83 @@ def build_how_it_works_page(conn: sqlite3.Connection) -> str:
     return p || null;
   }}
 
+  // Real OpenSkill Plackett-Luce update for 2 teams of 2 players each.
+  // Direct port of openskill.models.weng_lin.plackett_luce._compute (default
+  // gamma = sqrt(team_sigma_squared)/c, no scores/weights/balance), validated
+  // against the Python engine to ~4 decimal places (rest is float-order noise).
+  const KAPPA = 0.0001;
+  function plUpdate(teamA, teamB, winnerSide) {{
+    const ranks = winnerSide === 'A' ? [0, 1] : [1, 0];
+    function agg(team) {{
+      let mu = 0, varSum = 0;
+      for (const p of team) {{ mu += p.mu; varSum += p.sigma * p.sigma; }}
+      return {{ mu, varSum }};
+    }}
+    const aggA = agg(teamA), aggB = agg(teamB);
+    const c = Math.sqrt(aggA.varSum + aggB.varSum + 2 * BETA * BETA);
+    const expA = Math.exp(aggA.mu / c);
+    const expB = Math.exp(aggB.mu / c);
+    const teams = [
+      {{ mu: aggA.mu, varSum: aggA.varSum, rank: ranks[0], expMu: expA }},
+      {{ mu: aggB.mu, varSum: aggB.varSum, rank: ranks[1], expMu: expB }},
+    ];
+    // sum_q[q] = sum over teams i where rank_i >= rank_q of exp(team_mu_i / c)
+    const sum_q = [0, 0];
+    for (const ti of teams) {{
+      for (let q = 0; q < 2; q++) {{
+        if (ti.rank >= teams[q].rank) sum_q[q] += ti.expMu;
+      }}
+    }}
+    const a = [1, 1]; // teams have distinct ranks ⇒ one team per rank
+    const updated = [[], []];
+    for (let iIdx = 0; iIdx < 2; iIdx++) {{
+      const ti = teams[iIdx];
+      let omega = 0, delta = 0;
+      for (let q = 0; q < 2; q++) {{
+        if (teams[q].rank <= ti.rank) {{
+          const p = ti.expMu / sum_q[q];
+          delta += p * (1 - p) / a[q];
+          if (q === iIdx) omega += (1 - p) / a[q];
+          else omega -= p / a[q];
+        }}
+      }}
+      omega *= ti.varSum / c;
+      delta *= ti.varSum / (c * c);
+      const gammaVal = Math.sqrt(ti.varSum) / c;
+      delta *= gammaVal;
+      const team = iIdx === 0 ? teamA : teamB;
+      for (const pl of team) {{
+        const sigSq = pl.sigma * pl.sigma;
+        const ratio = sigSq / ti.varSum;
+        const newMu = pl.mu + ratio * omega;
+        const newSigma = pl.sigma * Math.sqrt(Math.max(1 - ratio * delta, KAPPA));
+        updated[iIdx].push({{
+          name: pl.name,
+          mu: newMu,
+          sigma: newSigma,
+          deltaMu: newMu - pl.mu,
+          deltaSigma: newSigma - pl.sigma,
+        }});
+      }}
+    }}
+    return {{ A: updated[0], B: updated[1] }};
+  }}
+
+  // State for the "if A wins" / "if B wins" toggle. Defaults to whichever
+  // pair is the favourite — flips automatically when the favourite changes.
+  let pickedWinner = null; // 'A' | 'B' | null (auto = favourite)
+  let lastFav = null;
+
+  function fmt2(x) {{
+    const v = x.toFixed(2);
+    return x >= 0 ? '+' + v : v; // signed for deltas; non-negative numbers get a + prefix where used
+  }}
+  function fmtSigned(x) {{ return (x >= 0 ? '+' : '') + x.toFixed(2); }}
+  function deltaClass(d) {{
+    if (Math.abs(d) < 0.005) return 'delta-zero';
+    return d > 0 ? 'delta-pos' : 'delta-neg';
+  }}
+
   function compute() {{
     const a1 = lookup('hwr-a1');
     const a2 = lookup('hwr-a2');
@@ -4148,73 +4225,199 @@ def build_how_it_works_page(conn: sqlite3.Connection) -> str:
       out.innerHTML = 'Pick four different players to see a prediction.';
       return;
     }}
-    // Reject duplicates.
     const ids = all.map(p => p.id);
-    const unique = new Set(ids);
-    if (unique.size !== 4) {{
+    if (new Set(ids).size !== 4) {{
       out.classList.add('placeholder');
       out.innerHTML = 'Pair A and Pair B must be four different players.';
       return;
     }}
 
-    const muA = a1.mu + a2.mu;
-    const muB = b1.mu + b2.mu;
-    const varA = a1.sigma * a1.sigma + a2.sigma * a2.sigma;
-    const varB = b1.sigma * b1.sigma + b2.sigma * b2.sigma;
+    // Win probability — Phi((muA - muB) / sqrt(2β² + varA + varB)).
+    const muA = a1.mu + a2.mu, muB = b1.mu + b2.mu;
+    const varA = a1.sigma**2 + a2.sigma**2;
+    const varB = b1.sigma**2 + b2.sigma**2;
     const c = Math.sqrt(2 * BETA * BETA + varA + varB);
     const pA = normalCdf((muA - muB) / c);
     const pB = 1 - pA;
+    const aPct = Math.round(pA * 100);
+    const bPct = 100 - aPct;
 
     const fav = pA >= pB ? 'A' : 'B';
     const favPct = Math.max(pA, pB);
-    const favText = fav === 'A'
-      ? `Pair A (${{a1.name}} + ${{a2.name}})`
-      : `Pair B (${{b1.name}} + ${{b2.name}})`;
-
     let verdict;
     if (favPct >= 0.85) verdict = 'a heavy favourite — an upset would be a real surprise.';
     else if (favPct >= 0.65) verdict = 'the favourite, but the underdog has a real chance.';
     else if (favPct >= 0.55) verdict = 'a slight edge — close to a coin flip.';
     else verdict = 'about a coin flip on paper.';
+    const favText = fav === 'A'
+      ? `Pair A (${{a1.name}} + ${{a2.name}})`
+      : `Pair B (${{b1.name}} + ${{b2.name}})`;
 
-    const aPctRound = Math.round(pA * 100);
-    const bPctRound = 100 - aPctRound;
+    // If favourite flipped (e.g. user swapped players), reset auto-pick to the new favourite.
+    if (lastFav !== fav) {{ pickedWinner = null; lastFav = fav; }}
+    const winner = pickedWinner || fav;
 
-    function row(p, side) {{
-      const conf = p.sigma < 4 ? 'high'
-                 : p.sigma < 6 ? 'medium' : 'low';
+    // Compute post-match ratings under the chosen scenario.
+    const teamA = [{{name: a1.name, mu: a1.mu, sigma: a1.sigma}},
+                   {{name: a2.name, mu: a2.mu, sigma: a2.sigma}}];
+    const teamB = [{{name: b1.name, mu: b1.mu, sigma: b1.sigma}},
+                   {{name: b2.name, mu: b2.mu, sigma: b2.sigma}}];
+    const after = plUpdate(teamA, teamB, winner);
+
+    function rowFor(before, side, idx) {{
+      const post = after[side][idx];
+      const conf = before.sigma < 4 ? 'high'
+                 : before.sigma < 6 ? 'medium' : 'low';
+      const dMu = post.deltaMu;
+      const dSigma = post.deltaSigma;
       return `
-        <div>${{p.name}} <span style="color: var(--muted);">(${{side}})</span></div>
-        <div class="num">${{p.mu.toFixed(2)}}</div>
-        <div class="num">${{p.sigma.toFixed(2)}}</div>
-        <div class="num" style="color: var(--muted);">${{conf}} conf · ${{p.n}} m</div>
+        <div>${{before.name}} <span style="color: var(--muted);">(${{side}})</span></div>
+        <div class="num">${{before.mu.toFixed(2)}}</div>
+        <div class="num">${{before.sigma.toFixed(2)}}</div>
+        <div class="num hide-mobile" style="color: var(--muted);">${{conf}} · ${{before.n}}m</div>
+        <div class="num ${{deltaClass(dMu)}}">${{fmtSigned(dMu)}} → ${{post.mu.toFixed(2)}}</div>
+        <div class="num ${{deltaClass(dSigma)}} hide-mobile">${{fmtSigned(dSigma)}} → ${{post.sigma.toFixed(2)}}</div>
       `;
     }}
+
+    const isUpset = (winner !== fav);
+    const upsetTag = isUpset
+      ? ` <span style="color: var(--loss); font-weight:600;">(upset!)</span>`
+      : '';
 
     out.classList.remove('placeholder');
     out.innerHTML = `
       <p><strong>${{favText}}</strong> is ${{verdict}}</p>
       <div class="calc-bar">
-        <div class="a" style="width: ${{Math.max(aPctRound, 6)}}%;">A · ${{aPctRound}}%</div>
-        <div class="b" style="width: ${{Math.max(bPctRound, 6)}}%;">B · ${{bPctRound}}%</div>
+        <div class="a" style="width: ${{Math.max(aPct, 6)}}%;">A · ${{aPct}}%</div>
+        <div class="b" style="width: ${{Math.max(bPct, 6)}}%;">B · ${{bPct}}%</div>
       </div>
+
+      <div class="calc-section-head">If the match is played</div>
+      <div class="calc-toggle" role="tablist">
+        <button data-pick="A" class="${{winner === 'A' ? 'active' : ''}}">Pair A wins</button>
+        <button data-pick="B" class="${{winner === 'B' ? 'active' : ''}}">Pair B wins</button>
+      </div>
+      <p style="margin: 8px 0 0 0; color: var(--muted); font-size: 12.5px;">Showing rating moves if <strong style="color: var(--fg);">${{winner === 'A' ? 'Pair A' : 'Pair B'}}</strong> wins${{upsetTag}}. Toggle to see the other outcome.</p>
+
       <div class="calc-table">
         <div class="calc-th">Player</div>
-        <div class="calc-th num">μ</div>
-        <div class="calc-th num">σ</div>
-        <div class="calc-th num">Confidence</div>
-        ${{row(a1, 'A')}}
-        ${{row(a2, 'A')}}
-        ${{row(b1, 'B')}}
-        ${{row(b2, 'B')}}
+        <div class="calc-th num">μ before</div>
+        <div class="calc-th num">σ before</div>
+        <div class="calc-th num hide-mobile">Conf · n</div>
+        <div class="calc-th num">Δ μ → after</div>
+        <div class="calc-th num hide-mobile">Δ σ → after</div>
+        ${{rowFor(a1, 'A', 0)}}
+        ${{rowFor(a2, 'A', 1)}}
+        ${{rowFor(b1, 'B', 0)}}
+        ${{rowFor(b2, 'B', 1)}}
       </div>
     `;
+
+    // Wire the toggle buttons inside the freshly-rendered output.
+    out.querySelectorAll('.calc-toggle button').forEach(btn => {{
+      btn.addEventListener('click', () => {{
+        pickedWinner = btn.dataset.pick;
+        compute();
+      }});
+    }});
   }}
 
   ['hwr-a1','hwr-a2','hwr-b1','hwr-b2'].forEach(id => {{
     document.getElementById(id).addEventListener('input', compute);
     document.getElementById(id).addEventListener('change', compute);
   }});
+
+  // --- Multiplier-stack diagram (interactive) ---
+  // Visualizes how the four post-match multipliers scale a baseline μ
+  // change of +1.00 for one player on the winning side. Pure illustration —
+  // numbers come from the production constants in scripts/phase0/rating.py.
+  function clamp(x, lo, hi) {{ return Math.max(lo, Math.min(hi, x)); }}
+
+  function volMult(games) {{
+    // rating.py: max(0.5, min(1.5, games / 18)) — clamped at [0.5, 1.5].
+    return clamp(games / 18, 0.5, 1.5);
+  }}
+  function timeDecayMult(days) {{
+    // openskill_pl_decay365: w = exp(-age / 365).
+    return Math.exp(-days / 365);
+  }}
+  function partnerMult(sharePct) {{
+    // Stronger partner gets larger share of pair's net Δμ. We model this
+    // as a linear amplifier: 50% share = ×1.00 (equal split), 65% = ×1.30,
+    // 35% = ×0.70. (rating.apply_partner_weighting in code; visualization
+    // keeps the linear shape since absolute size depends on partner's μ.)
+    return sharePct / 50;
+  }}
+
+  function updateStack() {{
+    const baseline = 1.00;
+    const games = parseFloat(document.getElementById('stk-vol').value);
+    const div = parseFloat(document.getElementById('stk-div').value);
+    const days = parseFloat(document.getElementById('stk-time').value);
+    const share = parseFloat(document.getElementById('stk-pw').value);
+
+    const mVol = volMult(games);
+    const mDiv = div;
+    const mTime = timeDecayMult(days);
+    const mPw = partnerMult(share);
+
+    const vBase = baseline;
+    const vVol = vBase * mVol;
+    const vDiv = vVol * mDiv;
+    const vTime = vDiv * mTime;
+    const vPw = vTime * mPw;
+
+    // Bar widths normalized so the largest of the running values uses 100%.
+    const ref = Math.max(2.0, Math.abs(vBase), Math.abs(vVol), Math.abs(vDiv), Math.abs(vTime), Math.abs(vPw));
+    const pct = (v) => Math.max(0, Math.min(100, Math.abs(v) / ref * 100));
+
+    document.getElementById('stk-base-bar').style.width = pct(vBase) + '%';
+    document.getElementById('stk-base-val').textContent = fmtSigned(vBase);
+
+    document.getElementById('stk-vol-mult').textContent = '×' + mVol.toFixed(2);
+    document.getElementById('stk-vol-bar').style.width = pct(vVol) + '%';
+    document.getElementById('stk-vol-val').textContent = fmtSigned(vVol);
+    const volLabel = games < 14 ? `${{games}} games (blowout)`
+                  : games > 22 ? `${{games}} games (long battle)`
+                  : `${{games}} games (typical)`;
+    document.getElementById('stk-vol-label').textContent = volLabel;
+
+    document.getElementById('stk-div-mult').textContent = '×' + mDiv.toFixed(2);
+    document.getElementById('stk-div-bar').style.width = pct(vDiv) + '%';
+    document.getElementById('stk-div-val').textContent = fmtSigned(vDiv);
+
+    document.getElementById('stk-time-mult').textContent = '×' + mTime.toFixed(2);
+    document.getElementById('stk-time-bar').style.width = pct(vTime) + '%';
+    document.getElementById('stk-time-val').textContent = fmtSigned(vTime);
+    let tLabel;
+    if (days === 0) tLabel = 'today';
+    else if (days < 60) tLabel = `${{Math.round(days)}} days ago`;
+    else if (days < 730) tLabel = `${{Math.round(days/30)}} months ago`;
+    else tLabel = `${{(days/365).toFixed(1)}} years ago`;
+    document.getElementById('stk-time-label').textContent = tLabel;
+
+    document.getElementById('stk-pw-mult').textContent = '×' + mPw.toFixed(2);
+    document.getElementById('stk-pw-bar').style.width = pct(vPw) + '%';
+    document.getElementById('stk-pw-val').textContent = fmtSigned(vPw);
+    let pwLabel;
+    if (share < 45) pwLabel = `${{share}}% (weaker half of pair)`;
+    else if (share > 55) pwLabel = `${{share}}% (stronger half of pair)`;
+    else pwLabel = `${{share}}% (equal partners)`;
+    document.getElementById('stk-pw-label').textContent = pwLabel;
+
+    const finalBar = document.getElementById('stk-final-bar');
+    finalBar.style.width = pct(vPw) + '%';
+    finalBar.classList.toggle('up', vPw >= 0);
+    finalBar.classList.toggle('down', vPw < 0);
+    document.getElementById('stk-final-val').textContent = fmtSigned(vPw);
+  }}
+
+  ['stk-vol', 'stk-div', 'stk-time', 'stk-pw'].forEach(id => {{
+    document.getElementById(id).addEventListener('input', updateStack);
+    document.getElementById(id).addEventListener('change', updateStack);
+  }});
+  updateStack();
 }})();
 </script>
 </body>
