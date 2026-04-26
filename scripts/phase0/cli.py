@@ -154,8 +154,6 @@ def cmd_rank(args: argparse.Namespace) -> int:
         cutoff = (date.today() - timedelta(days=args.active_months * 30)).isoformat()
         rows = [r for r in rows if r[5] and r[5] >= cutoff]
 
-    rows = rows[: args.top]
-
     if not rows:
         print(
             "rank: no players match the filters. Try --active-months 0 if "
@@ -164,6 +162,60 @@ def cmd_rank(args: argparse.Namespace) -> int:
         )
         return 0
 
+    if args.by_category:
+        # Group by normalized primary division; print top-N per group in
+        # tier order. Unrecognized divisions sink to the end.
+        from collections import OrderedDict
+
+        GROUPS_ORDERED = [
+            "Men A", "Men B", "Men C", "Men D",
+            "Men Div 1", "Men Div 2", "Men Div 3", "Men Div 4",
+            "Lad A", "Lad B", "Lad C", "Lad D",
+            "Lad Div 1", "Lad Div 2", "Lad Div 3",
+        ]
+
+        by_group: OrderedDict[str, list] = OrderedDict()
+        for name in GROUPS_ORDERED:
+            by_group[name] = []
+        other: dict[str, list] = {}
+
+        for row in rows:
+            primary = row[6]
+            norm = rating.normalize_division(primary) if primary else None
+            key = norm if norm in by_group else (norm or "(unknown)")
+            if key in by_group:
+                by_group[key].append(row)
+            else:
+                other.setdefault(key, []).append(row)
+
+        any_printed = False
+        for group_name, group_rows in by_group.items():
+            visible = group_rows[: args.top]
+            if not visible:
+                continue
+            any_printed = True
+            print(f"\n=== {group_name}  (top {len(visible)} of {len(group_rows)}) ===")
+            _print_rank_table(visible)
+
+        for group_name, group_rows in other.items():
+            visible = group_rows[: args.top]
+            if not visible:
+                continue
+            any_printed = True
+            print(f"\n=== {group_name}  (top {len(visible)} of {len(group_rows)}) ===")
+            _print_rank_table(visible)
+
+        if not any_printed:
+            print("(no rows after filters)", file=sys.stderr)
+        return 0
+
+    rows = rows[: args.top]
+    _print_rank_table(rows)
+    return 0
+
+
+def _print_rank_table(rows: list) -> None:
+    """Print the standard rank table for a list of rows from cmd_rank's SQL."""
     print(
         f"{'Rank':>4}  {'Player':<28}  {'G':1}  {'PrimaryDiv':<14}  "
         f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'n':>4}  {'last':<10}"
@@ -176,7 +228,6 @@ def cmd_rank(args: argparse.Namespace) -> int:
             f"{(primary_div or '?')[:14]:<14}  "
             f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  {n:>4}  {last or '?':<10}"
         )
-    return 0
 
 
 def cmd_recommend_pairs(args: argparse.Namespace) -> int:
@@ -320,6 +371,14 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["men", "ladies", "all"],
         default="all",
         help="Filter by gender (default: all).",
+    )
+    p_rank.add_argument(
+        "--by-category",
+        action="store_true",
+        help=(
+            "Group output by primary division/category — separate top-N per "
+            "Men A / Men B / ... / Lad A / Lad B / ... etc."
+        ),
     )
     p_rank.set_defaults(func=cmd_rank)
 

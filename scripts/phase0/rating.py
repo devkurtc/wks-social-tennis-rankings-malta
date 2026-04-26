@@ -77,26 +77,47 @@ DIVISION_STARTING_MU: dict[str, float] = {
 # research doc §8.1, §8.2 approach: Div 2 player capped below where Div 1
 # starts. Strictly enforces cross-division ordering. None = no ceiling.
 DIVISION_MU_CEILING: dict[str, float | None] = {
-    "Men Div 1": None,    # top division — can rise indefinitely
-    "Men Div 2": 34.0,    # below M1 starting (35)
-    "Men Div 3": 29.0,    # below M2 starting (30)
-    "Men Div 4": 24.0,    # below M3 starting (25)
+    # Division round-robin events
+    "Men Div 1": None,
+    "Men Div 2": 34.0,
+    "Men Div 3": 29.0,
+    "Men Div 4": 24.0,
     "Lad Div 1": None,
     "Lad Div 2": 32.0,
     "Lad Div 3": 27.0,
+    # Team-tournament rubber categories — same logic; a career Men D player
+    # who dominates D-rubbers should not numerically outrank a Men B player
+    # whose competition is tougher. Cap is applied based on the player's
+    # PRIMARY (most-common) division, not first-seen.
+    "Men A": None,
+    "Men B": 32.0,    # below Men A starting (33)
+    "Men C": 27.0,    # below Men B starting (28)
+    "Men D": 22.0,    # below Men C starting (23)
+    "Lad A": None,
+    "Lad B": 30.0,
+    "Lad C": 25.0,
+    "Lad D": 20.0,
 }
 
 # Per-division μ floors — a player CANNOT drop below their division's
 # floor. Prevents a slumping Div 1 player from numerically appearing
 # below a top Div 2 player.
 DIVISION_MU_FLOOR: dict[str, float | None] = {
-    "Men Div 1": 30.0,    # ≥ M2 ceiling (34) is too tight; use M2 starting
-    "Men Div 2": 25.0,    # ≥ M3 starting
-    "Men Div 3": 20.0,    # ≥ M4 starting
-    "Men Div 4": None,    # bottom division — no floor
+    "Men Div 1": 30.0,
+    "Men Div 2": 25.0,
+    "Men Div 3": 20.0,
+    "Men Div 4": None,
     "Lad Div 1": 28.0,
     "Lad Div 2": 23.0,
     "Lad Div 3": None,
+    "Men A": 28.0,
+    "Men B": 23.0,
+    "Men C": 18.0,
+    "Men D": None,
+    "Lad A": 26.0,
+    "Lad B": 21.0,
+    "Lad C": 16.0,
+    "Lad D": None,
 }
 
 # Per-division K-multiplier — scales how much a single match moves a
@@ -334,6 +355,28 @@ def _player_first_division(db_conn: sqlite3.Connection, player_id: int) -> str |
     return row[0] if row else None
 
 
+def _player_primary_division(db_conn: sqlite3.Connection, player_id: int) -> str | None:
+    """Return the player's MOST-COMMON division across all active matches.
+    Used for cap/floor enforcement (better than first-seen for team-rubber
+    players who are stable in one slot but may have one outlier match).
+    """
+    row = db_conn.execute(
+        """
+        SELECT m.division
+        FROM matches m
+        JOIN match_sides ms ON ms.match_id = m.id
+        WHERE (ms.player1_id = ? OR ms.player2_id = ?)
+          AND m.superseded_by_run_id IS NULL
+          AND m.division IS NOT NULL
+        GROUP BY m.division
+        ORDER BY COUNT(*) DESC, m.division
+        LIMIT 1
+        """,
+        (player_id, player_id),
+    ).fetchone()
+    return row[0] if row else None
+
+
 def _periods_between(date_from: str, date_to: str, period_days: int) -> int:
     """Number of full rating periods between two ISO dates (>= 0)."""
     if not date_from or not date_to or date_from >= date_to:
@@ -382,7 +425,8 @@ def recompute_all(
     player_ratings: dict[int, object] = {}        # player_id → current Rating
     player_last_played: dict[int, str] = {}       # player_id → ISO date string
     player_n_matches: dict[int, int] = {}         # player_id → cumulative count
-    player_first_division: dict[int, str | None] = {}  # cached first-division per player
+    player_first_division: dict[int, str | None] = {}    # cached first-division per player (for starting μ)
+    player_primary_division: dict[int, str | None] = {}  # cached most-common division (for cap/floor)
 
     n_matches = 0
 
@@ -399,6 +443,11 @@ def recompute_all(
                 if pid not in player_ratings:
                     first_div = _player_first_division(db_conn, pid)
                     player_first_division[pid] = first_div
+                    # Compute primary division ONCE per player (used for caps).
+                    # Falls back to first_div if there's no clear primary
+                    # (single-match player).
+                    primary_div = _player_primary_division(db_conn, pid) or first_div
+                    player_primary_division[pid] = primary_div
                     starting_mu = division_starting_mu(first_div)
                     player_ratings[pid] = model.rating(mu=starting_mu)
                 else:
@@ -439,14 +488,15 @@ def recompute_all(
             new_objs = (new_a[0], new_a[1], new_b[0], new_b[1])
 
             # Each player's division ceiling/floor is determined by their
-            # FIRST match's division (cached to avoid repeated DB hits).
+            # PRIMARY (most-common) division, cached at first appearance.
+            # Using primary not first ensures career-D players get capped
+            # at Men D ceiling even if their first match was elsewhere.
             scaled_objs = []
             for pid, old, new in zip(player_ids, old_objs, new_objs):
                 adj_mu = old.mu + k_combined * (new.mu - old.mu)
                 adj_sigma = old.sigma + k_combined * (new.sigma - old.sigma)
-                # Clip μ to player's first-division floor/ceiling
-                first_div = player_first_division.get(pid)
-                adj_mu = clip_mu_to_division(adj_mu, first_div)
+                primary_div = player_primary_division.get(pid)
+                adj_mu = clip_mu_to_division(adj_mu, primary_div)
                 scaled_objs.append(model.rating(mu=adj_mu, sigma=adj_sigma))
 
             player_ratings[m.side_a_player1_id] = scaled_objs[0]
