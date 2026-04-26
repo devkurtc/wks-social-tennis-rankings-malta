@@ -17,12 +17,15 @@ Orientation file for Claude Code sessions on this repo. Skim on every session st
 This file (CLAUDE.md) is just orientation. It never overrides `PLAN.md` or `TASKS.md`. If they disagree, fix CLAUDE.md.
 
 **Workflow when picking up work:**
+0. **Reconcile `TASKS.md` with reality first.** Run `git log --since=<last-update-of-TASKS.md>` (or scan since the most recent task was marked `done`). If commits exist that aren't reflected in TASKS.md — i.e. real shipped work isn't recorded — reconcile before picking new work. Either mark existing tasks `done` if they describe what shipped, or add a new section recording the work as done tasks. Never start new work on top of a stale tracker.
 1. Read `TASKS.md` "Current focus" section to find what's next.
 2. Pick a task whose `Depends on` are all `done`.
 3. Set status to `in-progress`, add a progress-log line, follow the task's "Picking up a task" protocol in `TASKS.md`.
 4. Read the task's referenced `PLAN.md` sections for context.
 5. Work the task; commit in small chunks; append progress notes.
 6. On completion: verify all acceptance criteria; mark `done`; final progress note.
+
+**Why step 0 exists:** TASKS.md is the multi-agent coordination point. A cold-pickup agent trusts it to be reality. Drift between TASKS.md and `git log` breaks that trust silently — agents pick up "next" tasks that have already shipped, or build on top of work assumed done that isn't. The cost of a 5-minute reconcile is tiny; the cost of a divergent tracker compounds fast.
 
 ## Tech stack (locked — see PLAN.md §5 for rationale)
 
@@ -64,6 +67,19 @@ Code (parsers, rating engine, web app) will land in `scripts/`, `apps/web/`, `ap
 - **SQL migrations:** plain SQL files with a versioning scheme (TBD in Phase 1).
 - **Player names:** always normalized on insert (NFKC, straight quotes, collapsed whitespace). Original names retained in `player_aliases`. Rationale in PLAN.md §5.4.
 - **Audit:** every mutation goes through a helper that writes to `audit_log` in the same transaction (PLAN.md §5.5).
+
+## Shipping user-visible changes
+
+Production is **GitHub Pages**, served from the `gh-pages` branch on `origin`. Live URL: `https://devkurtc.github.io/wks-social-tennis-rankings-malta/`.
+
+A change is not "shipped" until **both** of these have happened in the same session:
+
+1. **Source pushed to `main`** — `git push origin main`. Audit trail + history land on GitHub.
+2. **Site deployed to `gh-pages`** — run `./scripts/deploy-site.sh` from project root. The script regenerates `site/` from `phase0.sqlite`, creates an orphan commit on a temp worktree, and force-pushes to `refs/heads/gh-pages`. Idempotent and safe to re-run; never touches your working tree.
+
+Treat "the work is done" and "the work is live" as two distinct milestones. Don't claim done until both have happened, or until the user has explicitly opted into review-only. Be transparent in the end-of-turn summary about what shipped where.
+
+**Exceptions** (don't auto-deploy): destructive changes (player merges that delete data, schema migrations), changes still under user review, anything explicitly marked WIP/draft. When in doubt, ask before pushing or deploying.
 
 ## Things NOT to do
 

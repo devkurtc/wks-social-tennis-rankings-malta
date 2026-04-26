@@ -1,0 +1,152 @@
+{
+  "_doc": "Hand-curated user-facing changelog. Each entry is the ELI5 version of a feature, improvement, or fix that real users (players, captains, committee) can notice on the site. Engineering jargon stays out of `title` and `summary`; the `tasks` and `commits` fields preserve traceability for anyone curious. Voice rules: short, active, past-tense for past events. Tennis terms OK (doubles, match, leaderboard). Engineering terms not OK in user-facing fields. Add new entries to the top — the generator sorts by timestamp descending and breaks ties by JSON insertion order (stable sort).",
+
+  "_timestamp_format": "ISO 8601 with Malta offset. Malta uses CET (UTC+1) Oct-Mar and CEST (UTC+2) Mar-Oct. Pick the offset that matches the date. Example: '2026-04-26T12:27:00+02:00'.",
+
+  "_kinds": {
+    "new": "A brand-new feature or page nobody had before.",
+    "improved": "Something that already existed got better.",
+    "fixed": "A bug got squashed or a quirk got cleaned up."
+  },
+
+  "_audience": {
+    "all": "Visible / relevant to anyone who looks at the site.",
+    "captains": "Mostly relevant to team captains.",
+    "admins": "Mostly relevant to whoever runs the site."
+  },
+
+  "entries": [
+    {
+      "id": "ch-2026-04-26-roster-rankings",
+      "timestamp": "2026-04-26T12:29:00+02:00",
+      "kind": "new",
+      "title": "Pre-tournament roster ranking page",
+      "summary": "Before a tournament starts, captains can see every player on the roster ranked by skill — so picking teams isn't just guesswork.",
+      "details": "Currently active for the Antes TT 2026 (VLTC). Each player is shown with their rating and a proposed slot (A1, A2, ... B1, ...). Captains can also overlay their own rankings as extra columns to compare against the math.",
+      "audience": "captains",
+      "tasks": ["T-P0.5-005", "T-P0.5-008"],
+      "commits": ["ce69fe7", "53ae2dd", "a9092ed", "5928fe3"]
+    },
+    {
+      "id": "ch-2026-04-26-match-feed",
+      "timestamp": "2026-04-26T12:27:00+02:00",
+      "kind": "new",
+      "title": "Match feed page",
+      "summary": "Browse every match ever played, in order, with filters by player, club, year, and tournament.",
+      "details": "Useful for hunting down a specific result, seeing how a player did across recent tournaments, or just scrolling through history.",
+      "audience": "all",
+      "tasks": ["T-P0.5-005"],
+      "commits": ["cdeb9e0"]
+    },
+    {
+      "id": "ch-2026-04-26-static-site-launch",
+      "timestamp": "2026-04-26T12:26:00+02:00",
+      "kind": "new",
+      "title": "Public site launched",
+      "summary": "The leaderboard, player pages, match feed, and tournament rosters all live on a public website you can share with a link.",
+      "details": "Sortable, filterable leaderboard for men and ladies. Each player has their own page with a rating-history chart and full match log. Site is rebuilt and redeployed every time we add new tournament data.",
+      "audience": "all",
+      "tasks": ["T-P0.5-005", "T-P0.5-006"],
+      "commits": ["92cdf65", "d0cbc1f"]
+    },
+    {
+      "id": "ch-2026-04-26-multi-club",
+      "timestamp": "2026-04-26T09:56:00+02:00",
+      "kind": "new",
+      "title": "Tennis Club Kordin (TCK) added",
+      "summary": "RallyRank now tracks two clubs — VLTC and TCK — so players who compete at both can see their full picture in one place.",
+      "details": "Roughly 5,000 matches across both clubs are now in the system. Every player page shows which club(s) they've played at.",
+      "audience": "all",
+      "tasks": ["T-P0.5-001", "T-P0.5-002"],
+      "commits": ["595dd26", "c0e9fda", "bb3cd4d"]
+    },
+    {
+      "id": "ch-2026-04-26-captain-class-sort",
+      "timestamp": "2026-04-26T08:29:00+02:00",
+      "kind": "improved",
+      "title": "Leaderboard now respects captain decisions",
+      "summary": "When captains assigned you to A-team or B-team, the leaderboard groups you by that captain choice first, then ranks you by your skill within that group.",
+      "details": "Math alone can't see everything captains know. So we show both: your captain-assigned class (A1, A2, B1, etc.) + your math rating side by side. There's also a 'raw' sort option to see the math-only view if you want it.",
+      "audience": "all",
+      "tasks": ["T-P0.5-004"],
+      "commits": ["b1a05ff"]
+    },
+    {
+      "id": "ch-2026-04-26-caps-removed",
+      "timestamp": "2026-04-26T08:29:00+02:00",
+      "kind": "improved",
+      "title": "No more artificial ceilings on player ratings",
+      "summary": "Strong players in lower divisions are no longer held back by a hard cap — your rating now reflects what you actually did on court.",
+      "details": "Earlier the system clamped a Div 2 player's rating below the Div 1 starting line. That made a few outstanding players look weaker than they were. Now ratings flow freely; tier ordering is preserved by the captain-class display sort instead of by clamping the math.",
+      "audience": "all",
+      "tasks": ["T-P0.5-004"],
+      "commits": ["b1a05ff"]
+    },
+    {
+      "id": "ch-2026-04-26-partner-weighting",
+      "timestamp": "2026-04-26T08:29:00+02:00",
+      "kind": "improved",
+      "title": "Stronger partner moves more after a win",
+      "summary": "When you win a doubles match, the rating boost is now split between you and your partner based on who carried more weight — not 50/50.",
+      "details": "If a top-ranked player teams up with a beginner and they win, the top player's rating moves a bit more, the beginner's a bit less. Reflects that the stronger player's contribution probably mattered more. Loss is split the same way.",
+      "audience": "all",
+      "tasks": ["T-P0.5-004"],
+      "commits": ["b1a05ff"]
+    },
+    {
+      "id": "ch-2026-04-26-bulk-data",
+      "timestamp": "2026-04-26T03:52:00+02:00",
+      "kind": "improved",
+      "title": "32 tournaments loaded — much more accurate ratings",
+      "summary": "Earlier the rating was based on one tournament. Now it's based on every doubles tournament we have data for, going back several years.",
+      "details": "Concretely: 3,651+ matches across 32 tournaments. The more matches you've played, the more confident the system is in your rating (and the smaller your 'sigma' on your player page).",
+      "audience": "all",
+      "tasks": ["T-P0-014"],
+      "commits": ["1ae9a0b", "a91dbaf"]
+    },
+    {
+      "id": "ch-2026-04-26-history-cli",
+      "timestamp": "2026-04-26T03:35:00+02:00",
+      "kind": "new",
+      "title": "Rating-history chart on every player page",
+      "summary": "Every player page now shows a chart of how that player's rating moved over time, match by match.",
+      "details": "Click any player on the leaderboard to see their full match log + the rating trajectory chart. Useful for spotting hot streaks, long absences, or whether someone's trending up or down.",
+      "audience": "all",
+      "tasks": ["T-P0-007"],
+      "commits": ["b3a72d8"]
+    },
+    {
+      "id": "ch-2026-04-26-merge-case-duplicates",
+      "timestamp": "2026-04-26T02:56:00+02:00",
+      "kind": "fixed",
+      "title": "Duplicate name variants merged",
+      "summary": "If your name appeared as both 'John Smith' and 'JOHN SMITH' (or with different apostrophes), those are now the same person on the leaderboard.",
+      "details": "Before this fix, the same player could show up multiple times because tournament organizers spell names differently. We now collapse case-only and apostrophe-only differences automatically. ~100 duplicate records were merged into the correct canonical players.",
+      "audience": "all",
+      "tasks": ["T-P0-014"],
+      "commits": ["9daa552"]
+    },
+    {
+      "id": "ch-2026-04-26-game-volume",
+      "timestamp": "2026-04-26T01:44:00+02:00",
+      "kind": "improved",
+      "title": "Long matches count for more than blowouts",
+      "summary": "A 26-game battle (e.g. 7-6 7-6) tells the system more about both players than a 12-game blowout (6-0 6-0), so it now updates ratings accordingly.",
+      "details": "Average doubles match is around 18 games. Matches noticeably longer or shorter than that scale the rating change up or down (within sensible bounds). Walkovers count for less.",
+      "audience": "all",
+      "tasks": ["T-P0-012"],
+      "commits": ["dfced91"]
+    },
+    {
+      "id": "ch-2026-04-26-phase0-baseline",
+      "timestamp": "2026-04-26T00:57:00+02:00",
+      "kind": "new",
+      "title": "First version of the doubles ranking system",
+      "summary": "Every player who's played a VLTC doubles tournament now has a skill rating that updates automatically after every match they play.",
+      "details": "The rating uses an algorithm called OpenSkill (a modern descendant of TrueSkill). It tracks both how strong it thinks you are (μ) and how confident it is in that estimate (σ). The 'μ - 3σ' number on the leaderboard is a conservative ranking — it under-estimates new players until they've played enough matches.",
+      "audience": "all",
+      "tasks": ["T-P0-006", "T-P0-009", "T-P0-011"],
+      "commits": ["21af34b", "2ef53e4", "2f50c66"]
+    }
+  ]
+}
