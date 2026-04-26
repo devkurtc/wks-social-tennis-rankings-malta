@@ -19,6 +19,7 @@ import difflib
 import hashlib
 import html
 import json
+import math
 import os
 import sqlite3
 import sys
@@ -309,26 +310,64 @@ footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px
 .expand-trigger:hover { color: var(--accent); }
 tr.open .expand-trigger { transform: rotate(90deg); color: var(--accent); }
 tr.impact-row { background: #11151d !important; }
-tr.impact-row > td { padding: 0; border-bottom: 1px solid var(--border); }
+tr.impact-row > td {
+  padding: 0; border-bottom: 1px solid var(--border);
+  white-space: normal;          /* override the global td nowrap */
+}
 tr.impact-row[hidden] { display: none; }
+/* Match rows: allow long player names to wrap so the row grows vertically
+   instead of overflowing horizontally. */
+tr.match-row td { white-space: normal; }
+tr.match-row td.score, tr.match-row td.num { white-space: nowrap; }
+
+/* Impact box layout: 2-vs-2 visualisation.
+   Desktop: [Side A pair] | VS | [Side B pair] in three columns.
+   Mobile:  Side A pair stacked, then VS, then Side B pair stacked.
+   Inside each side, the two partners stack vertically so the doubles pair
+   reads as a unit. */
 .impact-box {
   padding: 10px 14px 12px 32px;
-  display: grid; gap: 6px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  display: grid; gap: 8px;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "a vs b";
+  align-items: stretch;
 }
+.impact-side {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.impact-side.side-A { grid-area: a; }
+.impact-side.side-B { grid-area: b; }
+.impact-vs {
+  grid-area: vs;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: var(--muted);
+  font-size: 13px; letter-spacing: 0.12em;
+  padding: 0 6px;
+  position: relative;
+}
+.impact-vs::before, .impact-vs::after {
+  content: ""; position: absolute; left: 50%; width: 1px;
+  background: var(--border); transform: translateX(-50%);
+}
+.impact-vs::before { top: 0; height: calc(50% - 14px); }
+.impact-vs::after  { bottom: 0; height: calc(50% - 14px); }
 .impact-player {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 6px; padding: 8px 10px;
   font-size: 12px;
   display: flex; flex-direction: column; gap: 3px;
+  word-break: break-word;       /* never overflow horizontally */
+  min-width: 0;                  /* flex/grid child can shrink */
 }
 .impact-player .who {
   font-weight: 600; font-size: 13px;
   display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  flex-wrap: wrap;
 }
 .impact-player .side-tag {
   font-size: 9.5px; font-weight: 700;
   padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 .impact-player .side-tag.A { background: rgba(78, 161, 255, 0.18); color: #6cb3ff; }
 .impact-player .side-tag.B { background: rgba(170, 110, 220, 0.18); color: #c39cff; }
@@ -338,8 +377,9 @@ tr.impact-row[hidden] { display: none; }
   display: flex; gap: 6px; font-variant-numeric: tabular-nums;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 11.5px;
+  flex-wrap: wrap;
 }
-.impact-player .metric .k { color: var(--muted); width: 50px; }
+.impact-player .metric .k { color: var(--muted); width: 50px; flex-shrink: 0; }
 .impact-player .metric .delta-up { color: var(--win); font-weight: 600; }
 .impact-player .metric .delta-dn { color: var(--loss); font-weight: 600; }
 .impact-player .metric .delta-z { color: var(--muted); }
@@ -348,7 +388,17 @@ tr.impact-row[hidden] { display: none; }
 .impact-player .commentary .pass-dn { color: var(--loss); }
 .impact-player .new-entry { color: var(--accent); font-style: italic; font-size: 11px; }
 @media (max-width: 700px) {
-  .impact-box { padding: 8px 10px 10px 18px; grid-template-columns: 1fr; }
+  .impact-box {
+    padding: 8px 10px 10px 18px;
+    grid-template-columns: 1fr;
+    grid-template-areas: "a" "vs" "b";
+  }
+  .impact-vs { padding: 6px 0; font-size: 12px; }
+  .impact-vs::before, .impact-vs::after {
+    width: calc(100% - 24px); height: 1px; left: 0; transform: none;
+  }
+  .impact-vs::before { top: 50%; }
+  .impact-vs::after { bottom: 50%; left: auto; right: 0; }
   .rank-tag { font-size: 10px; padding: 0 4px; }
 }
 """
@@ -1380,21 +1430,19 @@ def render_match_impact_block(
         cid, n = name_lookup.get(p, (p, f"#{p}"))
         return f'<a class="player-link" href="{players_prefix}{cid}.html">{esc(n)}</a>'
 
-    cards = []
-    for pid, _partner, side, won in participants:
+    def _card(pid: int, side: str, won: bool) -> str:
         imp = impacts.get((mid, pid))
         link = _link(pid)
         wl_cls = "win" if won else "loss"
         wl_txt = "W" if won else "L"
         if imp is None:
-            cards.append(
+            return (
                 f'<div class="impact-player">'
                 f'<div class="who">{link}'
                 f'<span class="side-tag {wl_cls}">{side} · {wl_txt}</span></div>'
                 f'<div class="new-entry">No rating change recorded</div>'
                 f'</div>'
             )
-            continue
         rank_before = imp["rank_before"]
         rank_after = imp["rank_after"]
         score_before = imp["score_before"]
@@ -1445,7 +1493,7 @@ def render_match_impact_block(
                 f'</div>'
             )
 
-        cards.append(
+        return (
             f'<div class="impact-player">'
             f'<div class="who">{link}'
             f'<span class="side-tag {wl_cls}">{side} · {wl_txt}</span></div>'
@@ -1454,7 +1502,19 @@ def render_match_impact_block(
             f'{commentary}'
             f'</div>'
         )
-    return f'<div class="impact-box">{"".join(cards)}</div>'
+
+    # Group cards by side, preserving partner order within each side. The
+    # 2-vs-2 layout reads as: [pair A] | VS | [pair B].
+    side_a_cards = [_card(pid, side, won) for pid, _p, side, won in participants if side == "A"]
+    side_b_cards = [_card(pid, side, won) for pid, _p, side, won in participants if side == "B"]
+
+    return (
+        f'<div class="impact-box">'
+        f'<div class="impact-side side-A">{"".join(side_a_cards)}</div>'
+        f'<div class="impact-vs">VS</div>'
+        f'<div class="impact-side side-B">{"".join(side_b_cards)}</div>'
+        f'</div>'
+    )
 
 
 def build_player_page(
@@ -1463,12 +1523,15 @@ def build_player_page(
     name_lookup: dict[int, str],
     neighbours_by_gender: dict[str, list[dict]] | None = None,
     impacts: dict | None = None,
+    predictions: dict[str, dict[int, dict]] | None = None,
 ) -> str:
     info = conn.execute(PLAYER_INFO_SQL, (pid,)).fetchone()
     if info is None:
         return ""
     _, name, gender = info
     impacts = impacts or {}
+    # predictions = {model_name: {match_id: {p_a, actual_a, log_loss, ...}}}
+    predictions = predictions or {}
 
     rating = conn.execute(PLAYER_RATING_SQL, (pid, MODEL)).fetchone()
     mu, sigma = (rating if rating else (None, None))
@@ -1513,6 +1576,14 @@ def build_player_page(
     # Match rows. Δμ must be computed in chronological order (per match it's
     # mu_after − mu_after_of_prior_match), but the table is rendered newest
     # first. Build the rows then reverse before joining.
+    # Per-player calibration: log-loss, accuracy, and best/worst-prediction
+    # under each model on this player's actual matches. Computed inline below.
+    pred_stats: dict[str, dict] = {
+        m: {"n": 0, "log_loss_sum": 0.0, "correct": 0,
+            "best_called": None, "worst_called": None}
+        for m in predictions
+    }
+
     match_rows = []
     swing_data = []  # for biggest-swings analysis
     last_mu, last_sig = None, None
@@ -1520,6 +1591,37 @@ def build_player_page(
         (mid, played, division, rnd, walkover, _tid, tname, tyear, club_name, club_slug,
          side, my_p1, my_p2, my_games, my_sets, my_won,
          opp_p1, opp_p2, opp_games, opp_sets, mu_after, sigma_after) = m
+
+        # Predicted P(this player's side wins) under each model. The CSV
+        # stores P(side A wins); flip if this player is on side B.
+        my_predictions: dict[str, float | None] = {}
+        for model_name, pred_map in predictions.items():
+            entry = pred_map.get(mid)
+            if entry is None:
+                my_predictions[model_name] = None
+                continue
+            p_a = entry["p_a"]
+            p_me = p_a if side == "A" else 1.0 - p_a
+            my_predictions[model_name] = p_me
+            # Update calibration stats for this model.
+            actual_me = 1 if my_won else 0
+            stats = pred_stats[model_name]
+            stats["n"] += 1
+            stats["log_loss_sum"] += -(
+                actual_me * math.log(max(min(p_me, 1 - 1e-9), 1e-9))
+                + (1 - actual_me) * math.log(max(min(1 - p_me, 1 - 1e-9), 1e-9))
+            )
+            if (p_me > 0.5) == bool(actual_me):
+                stats["correct"] += 1
+            # Track best-called (highest confidence in correct outcome) and
+            # worst-called (highest confidence in wrong outcome).
+            confidence_in_actual = p_me if actual_me else (1 - p_me)
+            if (stats["best_called"] is None
+                    or confidence_in_actual > stats["best_called"][0]):
+                stats["best_called"] = (confidence_in_actual, mid, played, tname)
+            if (stats["worst_called"] is None
+                    or confidence_in_actual < stats["worst_called"][0]):
+                stats["worst_called"] = (confidence_in_actual, mid, played, tname)
         sets = conn.execute(SET_SCORES_SQL, (mid,)).fetchall()
         partner = render_partner(my_p1, my_p2, pid, name_lookup)
         opps = render_opponents(opp_p1, opp_p2, name_lookup)
@@ -1565,6 +1667,33 @@ def build_player_page(
             else '<td class="muted" style="text-align:center;">·</td>'
         )
 
+        # Decay model is the better-calibrated predictor (per backtest);
+        # show its prediction inline. Tooltip shows vanilla PL prediction
+        # so the user can compare without an extra column.
+        pred_decay = my_predictions.get("openskill_pl_decay365")
+        pred_pl = my_predictions.get("openskill_pl_vanilla")
+        if pred_decay is None:
+            pred_cell = '<td class="num muted" data-sort="-1">—</td>'
+        else:
+            actual_me = 1 if my_won else 0
+            # Colour: green if predicted correctly with confidence, red if
+            # predicted wrong with confidence, muted if unsure.
+            if (pred_decay > 0.5) == bool(actual_me):
+                colour = "win" if abs(pred_decay - 0.5) > 0.15 else "muted"
+            else:
+                colour = "loss" if abs(pred_decay - 0.5) > 0.15 else "muted"
+            tooltip = (
+                f'Decay-365 said {pred_decay*100:.0f}% chance of winning. '
+                f'Vanilla PL said {pred_pl*100:.0f}%.'
+                if pred_pl is not None else
+                f'Decay-365 said {pred_decay*100:.0f}% chance of winning.'
+            )
+            pred_cell = (
+                f'<td class="num" data-sort="{pred_decay:.4f}" '
+                f'title="{esc(tooltip)}">'
+                f'<span class="{colour}">{pred_decay*100:.0f}%</span></td>'
+            )
+
         main_row = (
             f'<tr class="match-row" data-mid="{mid}">'
             f'{trigger_cell}'
@@ -1576,6 +1705,7 @@ def build_player_page(
             f'<td class="score">{score}{wo}</td>'
             f'<td class="num"><span class="{result_cls}">{result_txt}</span> '
             f'{my_games}-{opp_games}</td>'
+            f'{pred_cell}'
             f'<td class="num">{mu_cell}{my_rank_tag}</td>'
             f'<td class="num">{d_mu}</td>'
             f'<td class="num">{sig_cell}</td>'
@@ -1599,7 +1729,7 @@ def build_player_page(
             )
             impact_row = (
                 f'<tr class="impact-row" data-mid="{mid}" hidden>'
-                f'<td colspan="12">{impact_html}</td>'
+                f'<td colspan="13">{impact_html}</td>'
                 f'</tr>'
             )
         # Pair them so reversing keeps the impact row immediately after its
@@ -1710,6 +1840,82 @@ def build_player_page(
         f'<span class="{"win" if cur_kind=="W" else "loss"}">{cur_streak}{cur_kind}</span>'
         if cur_streak else "—"
     )
+
+    # Per-player calibration summary: under each model, how well did its
+    # predictions track this player's actual results? Useful as both a
+    # signal of model quality and a way to spot outliers — players where
+    # one model is dramatically more accurate than the other.
+    pred_summary_block = ""
+    if pred_stats and any(s["n"] > 0 for s in pred_stats.values()):
+        cells = []
+        MODEL_LABEL = {
+            "openskill_pl_vanilla": "Vanilla PL",
+            "openskill_pl_decay365": "Decay-365",
+        }
+        for model_name in ("openskill_pl_vanilla", "openskill_pl_decay365"):
+            stats = pred_stats.get(model_name)
+            if not stats or stats["n"] == 0:
+                continue
+            label = MODEL_LABEL.get(model_name, model_name)
+            acc = stats["correct"] / stats["n"]
+            avg_ll = stats["log_loss_sum"] / stats["n"]
+            cells.append(
+                f'<div class="stat">'
+                f'<div class="label">{esc(label)}</div>'
+                f'<div class="value">{acc * 100:.0f}%</div>'
+                f'<div class="muted" style="font-size:10px;">'
+                f'log-loss {avg_ll:.3f}</div>'
+                f'</div>'
+            )
+
+        # Biggest model surprise: where the two models' predictions for the
+        # same match diverged most. Reveals matches where Lonia-style
+        # judgment may be needed.
+        max_div = 0.0
+        max_div_match: dict | None = None
+        decay_preds = predictions.get("openskill_pl_decay365", {})
+        vanilla_preds = predictions.get("openskill_pl_vanilla", {})
+        for m in matches:
+            mid, played, _div, _rnd, _wo, _tid, tname = m[0], m[1], m[2], m[3], m[4], m[5], m[6]
+            side = m[10]; my_won = m[15]
+            d_entry = decay_preds.get(mid)
+            v_entry = vanilla_preds.get(mid)
+            if not d_entry or not v_entry:
+                continue
+            d_p = d_entry["p_a"] if side == "A" else 1 - d_entry["p_a"]
+            v_p = v_entry["p_a"] if side == "A" else 1 - v_entry["p_a"]
+            div = abs(d_p - v_p)
+            if div > max_div:
+                max_div = div
+                actual_me = 1 if my_won else 0
+                max_div_match = {
+                    "played": played, "tname": tname, "d_p": d_p,
+                    "v_p": v_p, "actual": actual_me, "won": bool(my_won),
+                }
+        divergence_html = ""
+        if max_div_match and max_div >= 0.10:
+            d = max_div_match
+            divergence_html = (
+                f'<p class="muted" style="font-size:12px;margin-top:8px;">'
+                f'<strong>Biggest model disagreement</strong> on this player\'s '
+                f'matches: {esc(d["played"])} vs {esc(d["tname"])} — Vanilla PL '
+                f'said {d["v_p"]*100:.0f}%, Decay said {d["d_p"]*100:.0f}% '
+                f'({"WIN" if d["won"] else "LOSS"} actually). The bigger this '
+                f'gap, the more useful captain knowledge could be.</p>'
+            )
+
+        if cells:
+            pred_summary_block = (
+                '<h2 class="section-title">Prediction quality on this player\'s matches</h2>'
+                '<p class="muted" style="font-size:12px;margin-top:-4px;">'
+                'Held-out prediction accuracy (model never saw a match before '
+                'predicting it). Lower log-loss is better; perfect = 0, random '
+                '= 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.'
+                '</p>'
+                f'<div class="stat-grid">{"".join(cells)}</div>'
+                f'{divergence_html}'
+            )
+
     rating_block = ""
     if mu is not None:
         rating_block = f"""
@@ -1790,11 +1996,15 @@ def build_player_page(
   </table>
   </div>
 
+  {pred_summary_block}
+
   <h2 id="match-log" class="section-title">Match log ({n})</h2>
   <p class="muted" style="font-size: 12px; margin-top: -4px;">
     Number next to "μ after" is this player's rank in their gender bucket
-    immediately AFTER the match. Click ▶ to see every player's rank/score
-    impact for that match.
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
   </p>
   <div class="table-wrap">
   <table id="player-match-log">
@@ -1803,10 +2013,11 @@ def build_player_page(
       <th>Date</th><th>Tournament</th><th>Round</th>
       <th>Partner</th><th>Opponents</th><th>Score</th>
       <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
       <th class="num">μ after</th><th class="num">Δμ</th>
       <th class="num">σ after</th><th class="num">Δσ</th>
     </tr></thead>
-    <tbody>{''.join(main + imp for main, imp in reversed(match_rows)) if match_rows else '<tr><td colspan="12" class="muted">No matches.</td></tr>'}</tbody>
+    <tbody>{''.join(main + imp for main, imp in reversed(match_rows)) if match_rows else '<tr><td colspan="13" class="muted">No matches.</td></tr>'}</tbody>
   </table>
   </div>
 </main>
@@ -3232,6 +3443,33 @@ def build_aliases_page(conn: sqlite3.Connection, name_lookup: dict) -> str:
 # --- Main --------------------------------------------------------------------
 
 
+def _load_predictions(csv_path: Path) -> dict[int, dict]:
+    """Load per-match predictions from a backtest CSV. Returns
+    {match_id: {p_a, actual_a, log_loss, brier, correct}}.
+
+    File is generated by `scripts/phase0/backtest.py --out <path>`; if the
+    file doesn't exist the result is an empty dict (no Pred column rendered).
+    """
+    import csv as _csv
+    out: dict[int, dict] = {}
+    if not csv_path.exists():
+        return out
+    with csv_path.open() as f:
+        reader = _csv.DictReader(f)
+        for row in reader:
+            try:
+                out[int(row["match_id"])] = {
+                    "p_a": float(row["p_a"]),
+                    "actual_a": int(row["actual_a"]),
+                    "log_loss": float(row["log_loss"]),
+                    "brier": float(row["brier"]),
+                    "correct": int(row["correct"]),
+                }
+            except (KeyError, ValueError):
+                continue
+    return out
+
+
 def main() -> int:
     if not os.path.exists(DB_PATH):
         print(f"DB not found: {DB_PATH}", file=sys.stderr)
@@ -3254,6 +3492,23 @@ def main() -> int:
         print("Computing per-match impacts ...")
         match_impacts = compute_match_impacts(conn)
         print(f"  {len(match_impacts):,} (match, player) impact rows")
+
+        # Load held-out predictions for per-player calibration. Source files
+        # are produced by `scripts/phase0/backtest.py --out`. If they don't
+        # exist, the Pred column / summary block silently disappears.
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        pred_dir = repo_root / "_ANALYSIS_" / "model_evaluation" / "predictions"
+        predictions: dict[str, dict[int, dict]] = {
+            "openskill_pl_vanilla": _load_predictions(
+                pred_dir / "openskill_pl_vanilla.csv"
+            ),
+            "openskill_pl_decay365": _load_predictions(
+                pred_dir / "openskill_pl_decay365.csv"
+            ),
+        }
+        n_pred = sum(len(p) for p in predictions.values())
+        print(f"  Loaded {n_pred:,} prediction rows across "
+              f"{len(predictions)} models")
 
         # Index
         write(OUT_DIR / "index.html", build_index(conn))
@@ -3289,6 +3544,7 @@ def main() -> int:
             html_text = build_player_page(
                 conn, pid, name_lookup, neighbours_by_gender,
                 impacts=match_impacts,
+                predictions=predictions,
             )
             if html_text:
                 write(OUT_DIR / player_filename(pid), html_text)
