@@ -275,10 +275,10 @@ def _print_rank_table(rows: list) -> None:
     """Print the standard rank table for a list of rows from cmd_rank's SQL."""
     print(
         f"{'Rank':>4}  {'Player':<26}  {'G':1}  {'PrimaryDiv':<13}  "
-        f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'W':>3}-{'L':<3}  "
-        f"{'win%':>4}  {'last':<10}"
+        f"{'mu':>6}  {'σ':>5}  {'μ-3σ':>6}  {'n':>4}  "
+        f"{'W':>3}-{'L':<3}  {'win%':>4}  {'last':<10}"
     )
-    print("-" * 100)
+    print("-" * 106)
     for i, (name, gender, mu, sigma, n, last, primary_div, wins) in enumerate(rows, 1):
         cons = mu - 3 * sigma
         losses = n - wins
@@ -286,7 +286,7 @@ def _print_rank_table(rows: list) -> None:
         print(
             f"{i:>4}  {name[:26]:<26}  {gender or '?':1}  "
             f"{(primary_div or '?')[:13]:<13}  "
-            f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  "
+            f"{mu:>6.2f}  {sigma:>5.2f}  {cons:>6.2f}  {n:>4}  "
             f"{wins:>3}-{losses:<3}  {win_pct:>3.0f}%  {last or '?':<10}"
         )
 
