@@ -32,8 +32,12 @@ from typing import Callable, Iterable
 
 # Allow running from anywhere — the existing rating module has helpers we reuse.
 SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent.parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
+# Anchor phase0.sqlite to repo root via __file__, never cwd — running from a
+# different cwd would otherwise silently target a different DB.
+DEFAULT_DB = REPO_ROOT / "phase0.sqlite"
 
 from rating import (  # noqa: E402
     DEFAULT_RATING_PERIOD_DAYS,
@@ -338,9 +342,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="backtest")
     parser.add_argument("--cutoff", default="2025-10-01",
                         help="Held-out matches are those with played_on >= cutoff (ISO date).")
-    from pathlib import Path as _P
-    _default_db = str(_P(__file__).resolve().parent.parent.parent / "phase0.sqlite")
-    parser.add_argument("--db", default=_default_db)
+    parser.add_argument("--db", default=str(DEFAULT_DB))
     parser.add_argument("--engine", default="openskill_pl_vanilla",
                         choices=list(ENGINES.keys()))
     parser.add_argument("--out", default=None,

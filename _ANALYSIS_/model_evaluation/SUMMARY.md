@@ -45,6 +45,46 @@ The vanilla model treats a 4-year-old win the same as last week's. Players whose
 
 So Spring 2022 results barely move the needle today; recent results dominate.
 
+## Lonia validation — surprising result
+
+After computing full-history decay-365 ratings via `recompute_all`, Spearman ρ
+of system rank vs Lonia rank within the matched pool actually *worsens* under
+the better-predicting model:
+
+| Pool | Vanilla PL ρ (μ-3σ) | Decay-365 ρ (μ-3σ) |
+|---|---:|---:|
+| Men (n=58) | **0.704** | 0.600 |
+| Ladies (n=55) | **0.569** | 0.527 |
+
+So the model that predicts match outcomes more accurately agrees *less* with
+the captain. That's not a contradiction — it's evidence that **Lonia's
+rankings reflect long-running impressions** more than they reflect recent
+form, and the captain's mental model is closer to vanilla PL's slow-moving
+average than to a recency-weighted view.
+
+Per-player look at the six biggest divergences:
+
+| Player | Vanilla # | Decay # | Lonia # | Decay closer to Lonia? |
+|---|---:|---:|---:|---|
+| Cory Greenland (M) | 17 | 10 | 53 | NO — moves further from Lonia |
+| Bernardette Fenech (L) | 10 | 16 | 56 | YES — moves toward Lonia |
+| Jin Attard (L) | 5 | 5 | 30 | tied |
+| Stefan Holmin (M) | 51 | 52 | 24 | NO |
+| A. Spiteri Willets (M) | 33 | 35 | 10 | NO |
+| Kelsey Gauci (L) | 54 | 43 | 17 | YES |
+
+Decay agrees with Lonia in 2 of 6 cases (Bernardette, Kelsey — both
+"system overrates / underrates because of opponent quality"). Decay
+disagrees with Lonia in 3 of 6 (Cory Greenland is most striking — recent
+match data actually supports keeping his rating high; Lonia may be
+working off older impressions).
+
+**Reframe: Lonia is right about specific failure modes, not about specific
+players.** The opponent-quality bias she flags is real and the data backs
+it. But her per-player ranking incorporates information (or assumptions)
+beyond what rating models can see, and isn't a ground-truth reference for
+the system to chase.
+
 ## What this does NOT prove
 
 - **Lonia's specific picks**: she may still be wrong on individual players (e.g. Bernardette Fenech, Stefan Holmin) where the model already had the right answer. Backtest log-loss is averaged across all matches; per-player calibration would be the next analysis.

@@ -108,14 +108,16 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 ## Current focus
 
-**Phase 0 — local proof of concept.** See `PLAN.md` §7 for phase definition.
+**Phase 0.5 — Public-site push (interim, in flight).** Phase 0 closed 2026-04-26; instead of jumping straight to Phase 1 (Postgres port + Modified Glicko-2 challenger), the next session pivoted to building a static public site so non-technical stakeholders can interact with the rankings. See "Phase 0.5" section below for the detail. Phase 1 stubs remain queued.
 
 | State | Tasks |
 |---|---|
 | `in-progress` | (none) |
-| `up next` (todo, deps satisfied) | T-P1-001 (Postgres schema port); T-P1-009 (Modified Glicko-2 challenger); T-P1-008 (player merge fuzzy-match tooling) |
-| `blocked` | (none) |
-| `recently done` | **✅ Phase 0 closed 2026-04-26** — see PLAN.md §10.1 retrospective |
+| `up next — site / data hygiene` | T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-017 (non-case alias variants like `Mangion AnnMarie` ↔ `Annmarie Mangion`); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
+| `up next — pre-launch gates` | T-P1-019 (draft trust + legality ADRs 002-006); T-P1-020 (public-launch checklist — privacy notice, takedown channel, robots.txt) |
+| `up next — Phase 1 platform` | T-P1-001 (Postgres port); T-P1-008 (fuzzy-match merge CLI); T-P1-009 (Modified Glicko-2 challenger); T-P1-002 (migration tooling) |
+| `blocked` | T-P1-020 (public-launch checklist) — depends on T-P1-019 ADR decisions |
+| `recently done` | **Phase 0.5 interim** — multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
 
 ## ✅ Phase 0 — COMPLETE (2026-04-26)
 
@@ -548,6 +550,121 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
 
 ---
 
+## Phase 0.5 — Interim public-site push (post-P0, undocumented work being recorded)
+
+**Why this section exists.** Phase 0 closed 2026-04-26. The retrospective said "next session should do T-P1-001 (Postgres) / T-P1-008 (fuzzy merge) / T-P1-009 (Modified Glicko-2)." In practice the next 15 commits went a different direction — a public-site push so non-technical stakeholders could see and react to rankings. That work is real, shipped, and not previously tracked here. Recording it now so the multi-agent tracker reflects reality.
+
+**The pivot was probably correct** — getting feedback from real users is higher leverage than building Phase 1 platform infra in a vacuum. But it consumed the time budget that PLAN.md §7 allocated to Phase 1, so the queue order in "Current focus" is rebalanced.
+
+### T-P0.5-001 — Multi-club support (TCK)
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commit:** `595dd26`
+- **Goal:** Generalize hard-coded `clubs.id = 1 (VLTC)` so a second club (TCK — Tennis Club Kordin) can be loaded.
+- **What landed:** Parser dispatch by file path now routes to `(club, tournament)` correctly; `_DATA_/` reorganized by `<year>/<club>/<tournament>/` (commit `c0e9fda`); bulk-load across both clubs hit 4,796 active matches (`bb3cd4d`).
+- **Note:** Originally Phase 5 territory — jumped early because TCK data was already available and the abstraction cost was small.
+
+### T-P0.5-002 — Year-organized data layout + bulk re-load
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commit:** `c0e9fda`, `bb3cd4d`
+- **Goal:** Reorganize `_DATA_/` from flat per-club to `<year>/<club>/<tournament>/` so cross-club / cross-year navigation is sane.
+- **What landed:** 4,796 matches across 2 clubs after re-load.
+
+### T-P0.5-003 — Scrapers for both clubs
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commit:** `c0e9fda`
+- **What landed:** `scripts/scraper/{vltc.py, tck.py, organize.py}` so new tournament uploads to the club websites can be auto-fetched.
+- **Open:** No CI / scheduled run — scrapers are manual-trigger-only. Promote to Phase 1+ if needed.
+
+### T-P0.5-004 — v2 rating model: caps removed + captain-class display + partner weighting
+
+- **Status:** `done` (with open doubts — see T-P1-018)
+- **Phase:** 0.5
+- **Commit:** `b1a05ff`
+- **References:** `_RESEARCH_/Doubles_Tennis_Ranking_System.docx` §7 (partner weighting); friend's review of v1 leaderboard
+- **What landed:**
+  - Schema: `player_team_assignments` (tournament_id, player_id, team_letter, captain_name, class_label, tier_letter, slot_number, gender)
+  - `team_selection.py` parses Team Selection sheet from team-tournament XLSX (handles both `'A'` and `'TEAM A'` layouts). 9 team tournaments backfilled → 1,134 captain assignments → 259/1006 canonical players have a class.
+  - `rank` CLI now sorts by captain-assigned class first (A1, A2, …, ?), μ-3σ secondary. New `--sort raw` flag exposes math-only view.
+  - μ ceilings/floors removed (`DIVISION_MU_CEILING={}, DIVISION_MU_FLOOR={}`); tier ordering now preserved by display sort, not math.
+  - `DIVISION_K` softened to {1.00, 0.85, 0.70, 0.55} (kept moderate; not aggressive 1/0.75/0.50/0.30).
+  - `division_k_multiplier_for_match` looks up gendered-primary tier for mixed-doubles "Division N" matches (per-match K averaged across the 4 players).
+  - `apply_partner_weighting(p1_old, p2_old, p1_new, p2_new)` redistributes team's total Δμ by partner-weight ratio per friend's research §7. Net team Δμ preserved.
+  - 145 tests passing.
+- **Open doubts** (filed as T-P1-018):
+  - #1 Captain bias: Karl Debattista (μ=23.67, 15% wins) ranks #13 of A1 because his captain insists; math says way lower.
+  - #2 Two scoreboards: class+μ both shown in default; --sort raw exposes math-only. UX may need to make "the official one" clearer.
+  - #4 No team assignments: 75% of canonical players have no class → fall back to derived class from primary division (`B?`) or `?` sorts last. Leaderboard for non-team-tournament players is muddled.
+
+### T-P0.5-005 — Static site generator
+
+- **Status:** `done`
+- **Phase:** 0.5 (overlaps Phase 2 P2-004 / P2-005)
+- **Commit:** `92cdf65`, `ce69fe7`, `53ae2dd`
+- **What landed:** `scripts/phase0/generate_site.py` produces:
+  - `site/index.html` — sortable leaderboard (men + ladies)
+  - `site/players/<id>.html` — per-player page with rating-history chart
+  - `site/tournaments/<slug>.html` — pre-tournament roster ranking page (one per `TOURNAMENT_ROSTERS` entry); class assigned by rank (6 captains × 4 slots/tier — see commit `53ae2dd`)
+  - `site/matches.html` — chronological filterable match feed (commit `cdeb9e0`)
+- **Note:** This was originally Phase 2 territory (`T-P2-004`, `T-P2-005`). Static generator is a cheaper path than Next.js + Postgres for the read-only public view, but it doesn't satisfy Phase 2's auth + admin UI scope. Phase 2 is still required for HITL workflows.
+
+### T-P0.5-006 — Cloudflare-tunnel deployment + content-hash dup detection + manual aliases
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commit:** `d0cbc1f`
+- **References:** `DESIGN/adr/014-hosting-cloudflare-tunnel.md`
+- **What landed:**
+  - `scripts/deploy-site.sh` deploys `site/` behind a Cloudflare Tunnel (no public IP, no inbound port).
+  - Token-fingerprint duplicate detection during ingestion (catches re-uploaded files with cosmetic changes).
+  - `scripts/phase0/manual_aliases.json` lets humans pin `(raw_name → canonical_player_id)` mappings the parser can't infer.
+- **Note:** Hosting is currently runnable but not GDPR-compliant. T-P1-020 lists what's missing before public launch.
+
+### T-P0.5-007 — Design dossier + ADRs
+
+- **Status:** `done` (5 ADRs accepted/proposed; 20 not drafted)
+- **Phase:** 0.5
+- **Commit:** `c41120c`
+- **What landed:** `DESIGN/{repo-layout.md, architecture.md, diagrams.md, README.md}`, `DESIGN/adr/{INDEX, 001 design-first, 007 API as standalone service, 008 FastAPI/Python, 014 Cloudflare Tunnel hosting}` + research dossier.
+- **Critical gap:** Trust + legality ADRs 002–006 (consent, visibility, real-name display, takedown, audit/GDPR) are `not drafted`. **These gate any public launch.** Filed as T-P1-019.
+
+### T-P0.5-008 — Captain-Lonia roster ranking analysis
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commit:** `a9092ed`, `5928fe3`
+- **What landed:** `_ANALYSIS_/NewTournamentRanking/` with `rank_roster.py`, `Players List.xlsx`, `ranking.html`, `ranking_output.txt`. Plus a fix for indexing captain rankings under name-order rotations (`5928fe3`).
+- **Note:** One-off — useful as a template for the per-tournament reports T-P1-021 will systematize.
+
+### T-P0.5-009 — `rank` CLI extras + history command + merge-case-duplicates
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commits:** `b4388a2` (wins/losses/win%), `92b69e8` (n column), `7866f27` (gW-gL + game-win%), `b3a72d8` (`history` CLI), `9daa552` (merge-case-duplicates), `2dab66e` (tier merge), `31f60c8` (team-rubber caps + by-category view), `a219ad4` (team-rubber categories + primary-division column)
+- **Note:** These mostly landed before Phase 0 closed but post-T-P0-014; they're fine where they sit on T-P0-007 / T-P0-014's progress logs. Listed here for continuity.
+
+### T-P0.5-010 — Backtest harness + time-decay challenger model
+
+- **Status:** `done`
+- **Phase:** 0.5
+- **Commits:** `c685f08` (harness + 4 PL variants + 888-match backtest), follow-up commit (production decay model + Lonia comparison + Decay # column on tournament page)
+- **Goal:** Validate hypotheses raised by Captain Lonia's roster ranking with held-out match data. Build infrastructure that can compare any rating engine against any other.
+- **What landed:**
+  - `scripts/phase0/backtest.py` — model-agnostic harness (online evaluation, log-loss + Brier + accuracy + 10-decile calibration)
+  - `OpenSkillPLEngine` (vanilla) and `OpenSkillPLDecayEngine` (τ ∈ {180, 365, 730}) in the harness
+  - `rating.recompute_all` extended with `decay_tau_days` parameter; full-history `openskill_pl_decay365` ratings now exist alongside `openskill_pl` in the production DB
+  - Tournament-roster page exposes a sortable **Decay #** column (recency-weighted rank within the same gender pool)
+  - `_ANALYSIS_/model_evaluation/SUMMARY.md` — full writeup of methodology, headline numbers, calibration tables, and the surprising Lonia-validation result
+- **Headline finding:** Decay τ=365 cuts log-loss by 5.8% (0.6526 → 0.6147) and nearly eliminates the low-probability miscalibration. Lonia agreement *worsens* under decay (men ρ 0.704 → 0.600), revealing that the captain's ranking reflects long-running impressions more than recent form. Both can be true simultaneously.
+- **Foreshadows T-P1-009.** Modified Glicko-2 challenger now has a harness ready and a baseline to beat.
+
+---
+
 ## Phase 1 — Data foundation (stubs, not yet actionable)
 
 Tasks below are intentionally sketchy until Phase 0 lands and we know what concrete shape Phase 1 takes. Don't expand to acceptance-criteria detail before Phase 0's retrospective informs them.
@@ -569,6 +686,13 @@ Tasks below are intentionally sketchy until Phase 0 lands and we know what concr
 - **T-P1-015** — Investigate fuzzy match for variants WITHOUT case difference (e.g. "Angele Pule" vs "Angele Pule'", "Andrew Pule" vs "Andrew Pule'"). Phase 0 case-merge only collapsed canonical-form-equivalent records.
 - **T-P1-016** — `team_tournament` parser misses the **Final** sheet. Surfaced 2026-04-26 loading `_DATA_/VLTC/scraped/San Michel Results 2026 (live gsheet 2026-04-26).xlsx`: Days 1–10 + Semi Final loaded fine (224 matches), but the Final sheet contributes **zero** matches even though it has played fixtures (Men A/B/C/D + Lad C visible). Root cause is the column-offset auto-detect in `_find_sheet_panels` — Day/SF sheets start match panels at column index 1 (col 0 is None padding); the Final sheet starts at column index 0 (no leading None column), and the detector falls through. Fix: extend the heuristic to try (col=0) as a fallback when no panels are found at (col=1..3), or detect by sheet name. Affects every team-tournament file with a Final round (~10 files in `_DATA_/VLTC/`). Add a test on the San Michel 2026 file asserting `round='final'` exists with ≥4 matches.
 - **T-P1-017** — Strengthen player-name aliasing for non-case variants. Surfaced 2026-04-26 generating `reports/san_michel_2026_team_selection.md`; 6 names in the Team Selection grid didn't resolve to DB players, all explainable: (1) **last-name-first vs first-name-first** (`Mangion AnnMarie` exists with no gender; `Annmarie Mangion` exists with gender F — should merge); (2) **case-collapsed first names** (`AnnMarie` vs `Annmarie`, `AnnMarie Attard` vs `Ann Marie Attard` — same person, hyphen/space/case disagree); (3) **suffix-character spelling** (`Christabel Chetcuti` vs `Christabelle Chetcuti` — match data uses the longer form); (4) **source typos** (`Willlem Steenkamer` with three l's vs the correct `Willem Steenkamer`). Approach: build a normalizer pipeline that collapses to a canonical key (lowercase + strip diacritics + strip non-letters + sort name-tokens alphabetically) and use that as the alias-merge match key, with a confidence score; high-confidence pairs auto-merge, marginal ones go to T-P1-008 fuzzy-match CLI for human review. Cross-references T-P1-008 (fuzzy-match tooling) and T-P1-015 (apostrophe variants).
+- **T-P1-018** — Resolve the v2 rating model open doubts (filed 2026-04-26, commit `b1a05ff`). Three live concerns: (a) **captain bias** — Karl Debattista is ranked A1 by his captain despite μ=23.67 / 15% win-rate; `--sort raw` exposes the math view but the default class-sort lets a captain stamp dominate the leaderboard; need a UX answer (badge? secondary "math-rank" column? "captain says X, math says Y" callout?); (b) **two scoreboards** — class+μ both shown means new readers don't know which is "the official one"; need either a clear primary and a labeled secondary, or a single fused metric; (c) **no-team-assignment fallback** — 75% of canonical players (747/1006) have no class because they only show up in division round-robins, not team tournaments; their ranking falls back to derived class from primary division (e.g. `B?`) or `?` (sorts last). For non-team-tournament players the leaderboard is muddled. **Decisions needed before any public launch.**
+- **T-P1-019** — Draft trust + legality ADRs 002–006 (`DESIGN/adr/INDEX.md` lists them as "not drafted"). 002 player-consent model (opt-in / opt-out / public-by-default), 003 visibility matrix (anon / member / captain / admin), 004 player real-name display (full / initials / handle), 005 disagreement / takedown channel, 006 audit retention vs GDPR Art. 17. **Gates everything else** — schema, page specs, takedown SOP, privacy.md all depend on these. Likely needs stakeholder input (committee? external lawyer?) so schedule a longer planning session before drafting.
+- **T-P1-020** — Public-launch checklist for the static site at `site/`. **Depends on T-P1-019 ADR decisions.** Acceptance includes: privacy notice page (per PLAN.md §5.9), takedown channel (form? email? Slack?), `robots.txt` (allow vs disallow indexing — depends on consent model), GDPR Art. 17 player-removal SOP wired to `audit_log`, opt-out signal honored in the static generator, hosting decision (current Cloudflare Tunnel from a home Proxmox vs a real provider) reaffirmed in light of legal exposure.
+- **T-P1-021** — Per-tournament report infrastructure. `reports/` currently has only `san_michel_2026_team_selection.md` (one-off). Need a generator that produces "what's coming up" / "results recap" reports per tournament — pre-tournament roster grid + post-tournament leaderboard impact. The Captain-Lonia analysis in `_ANALYSIS_/NewTournamentRanking/` is a good template. Folds into the static-site generator pipeline.
+- **T-P1-022** — Multi-club separation in the site nav. Currently the leaderboard mixes VLTC + TCK players without distinction; the player page doesn't show club affiliation. Need either a per-club site (two separate static-site builds) or a club-toggle / club-column UI. Cross-references PLAN.md §5.9 (public visibility — per-club opt-out semantics).
+- **T-P1-023** — Phase D position-bonus K decision. Was "deliberately skipped per recommendation" in the v2 rating commit (`b1a05ff`); reaffirm whether to leave skipped or implement. Position bonus K = give larger Δ to wins played in higher-tier positions within a team rubber. Trade-off: more accurate rating signal vs adding a new lever Kurt has to explain to non-technical users. Decide and either close as `won't-do` or implement.
+- **T-P1-024** — Manual-alias coverage audit. `scripts/phase0/manual_aliases.json` is a JSON file editable by hand; no admin UI yet. Two issues: (1) it's not version-controlled in git (intentional? it currently is ignored?) — confirm; (2) it has no audit trail — adding a manual alias should write `audit_log` like every other mutation per PLAN.md §5.5. Either route through `audit_log` or document why it's exempt.
 
 ---
 

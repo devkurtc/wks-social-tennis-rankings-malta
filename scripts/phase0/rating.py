@@ -471,6 +471,7 @@ def recompute_all(
     model_name: str = CHAMPION_MODEL,
     tau: float = DEFAULT_TAU,
     rating_period_days: int = DEFAULT_RATING_PERIOD_DAYS,
+    decay_tau_days: float | None = None,
 ) -> int:
     """Recompute ratings for all active matches, chronologically. Returns
     the number of matches processed.
@@ -493,6 +494,16 @@ def recompute_all(
     from openskill.models import PlackettLuce
 
     model = PlackettLuce(tau=tau)
+
+    # If time-decay is requested, anchor "now" at the latest match in the
+    # dataset so the most recent match always has weight 1.0 and matches
+    # decay relative to it. Pure date math — no openskill state involved.
+    decay_anchor: str | None = None
+    if decay_tau_days and decay_tau_days > 0:
+        row = db_conn.execute(
+            "SELECT MAX(played_on) FROM matches WHERE superseded_by_run_id IS NULL"
+        ).fetchone()
+        decay_anchor = row[0] if row else None
 
     # Wipe prior state for this model_name (full recompute semantics)
     with db_conn:
@@ -572,6 +583,19 @@ def recompute_all(
             k_vol = volume_k_multiplier(total_games, walkover=m.walkover)
             k_ups = upset_k_multiplier(s_a, e_a)
             k_combined = k_div * k_vol * k_ups
+
+            # Time-decay weighting: old matches contribute less. Combined with
+            # K above, so newer matches get the full effect of all multipliers
+            # while older matches taper out. Recommended τ ≈ 365d (see
+            # _ANALYSIS_/model_evaluation/SUMMARY.md backtest results).
+            if decay_anchor and decay_tau_days:
+                from datetime import date
+                age_days = max(
+                    0,
+                    (date.fromisoformat(decay_anchor)
+                     - date.fromisoformat(m.played_on)).days,
+                )
+                k_combined *= math.exp(-age_days / decay_tau_days)
 
             # Apply K_combined to scale the OpenSkill-recommended delta.
             # OpenSkill doesn't expose a per-match K-factor, so we scale
