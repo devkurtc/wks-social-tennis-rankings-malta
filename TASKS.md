@@ -518,6 +518,10 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 **Progress log:**
 - 2026-04-26 02:08 — Claude (Opus 4.7) — picked up after Kurt confirmed "we need more data to evaluate if this is working well." Plan: commit T-P0-011/T-P0-012 first, then spawn parser-implementer agents for additional template families. Start with the easy ones (test existing parser on SE 2024 + similar-format files) before spawning new-parser work.
+- 2026-04-26 02:25 — Claude (Opus 4.7) — first parallel batch landed (Wilson + mixed-doubles + team-tournament). Loaded 24 files, 2712 matches. Skipped 7 files (5 older-team-tournament + Elektra 2022 cross-tab + TCK 2024 flat-list).
+- 2026-04-26 02:30 — Claude (Opus 4.7) — Kurt iteration on rating math: T-P0-011/012 with division weights + ceilings/floors + tier merge merged-via-PRIMARY-division.
+- 2026-04-26 02:50 — Claude (Opus 4.7) — Kurt asked for case-merge → built `merge-case-duplicates` CLI (96 tests). 102 records collapsed → 711 canonical. Kurt now 41 matches; Duncan D'Alessandro 61.
+- 2026-04-26 03:10 — Claude (Opus 4.7) — second parallel batch picked up: 3 new parser-implementer subagents spawned for the remaining 7 files: (a) legacy team-tournament for PKF 2023/24 + Tennis Trade 2023 + San Michel 2023/25 + " Team Tournament 2024" (5+1 files), (b) Elektra Mixed Doubles 2022 cross-tab matrix, (c) TCK Chosen 2024 flat-list.
 
 ---
 
