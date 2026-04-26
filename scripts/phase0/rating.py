@@ -49,27 +49,28 @@ DEFAULT_STARTING_MU = 25.0
 # OpenSkill units). Values tunable; keys must match parser-emitted
 # `matches.division` strings (after normalization via _normalize_division).
 # Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §2.2
+# Tier mapping per Kurt's domain knowledge: a "Men A" player (team-rubber
+# slot) is the same tier as a "Men Div 1" player (division-tournament tier).
+# Same for B↔Div 2, C↔Div 3, D↔Div 4. Same for Lad A/B/C↔Lad Div 1/2/3 +
+# new Lad D bottom slot.
+#
+# All rating constants below are keyed by raw division name but values are
+# IDENTICAL within a tier — so a player who plays mostly Men A and a player
+# who plays mostly Men Div 1 are treated equivalently by the rating engine.
 DIVISION_STARTING_MU: dict[str, float] = {
-    # Division round-robin events (SE / ESS / Elektra / SE-style)
-    "Men Div 1": 35.0,
-    "Men Div 2": 30.0,
-    "Men Div 3": 25.0,
-    "Men Div 4": 20.0,
-    "Lad Div 1": 33.0,
-    "Lad Div 2": 28.0,
-    "Lad Div 3": 23.0,
-    # Team-tournament RUBBER categories (Antes / Tennis Trade / San Michel /
-    # Samsung / Wilson). A = team's #1 player slot, D = #4 slot. Slightly
-    # below division ratings because team rubbers have rotating partners
-    # (an A player paired with a B partner sometimes loses to a B+A pair).
-    "Men A": 33.0,
-    "Men B": 28.0,
-    "Men C": 23.0,
-    "Men D": 18.0,
-    "Lad A": 31.0,
-    "Lad B": 26.0,
-    "Lad C": 21.0,
-    "Lad D": 16.0,
+    # Tier 1 — Men A / Men Div 1
+    "Men A": 33.0, "Men Div 1": 33.0,
+    # Tier 2 — Men B / Men Div 2
+    "Men B": 28.0, "Men Div 2": 28.0,
+    # Tier 3 — Men C / Men Div 3
+    "Men C": 23.0, "Men Div 3": 23.0,
+    # Tier 4 — Men D / Men Div 4
+    "Men D": 18.0, "Men Div 4": 18.0,
+    # Ladies tiers
+    "Lad A": 31.0, "Lad Div 1": 31.0,
+    "Lad B": 26.0, "Lad Div 2": 26.0,
+    "Lad C": 21.0, "Lad Div 3": 21.0,
+    "Lad D": 16.0,  # no Lad Div 4 observed in current data
 }
 
 # Per-division μ ceilings — a player CANNOT rise above their division's
@@ -77,25 +78,15 @@ DIVISION_STARTING_MU: dict[str, float] = {
 # research doc §8.1, §8.2 approach: Div 2 player capped below where Div 1
 # starts. Strictly enforces cross-division ordering. None = no ceiling.
 DIVISION_MU_CEILING: dict[str, float | None] = {
-    # Division round-robin events
-    "Men Div 1": None,
-    "Men Div 2": 34.0,
-    "Men Div 3": 29.0,
-    "Men Div 4": 24.0,
-    "Lad Div 1": None,
-    "Lad Div 2": 32.0,
-    "Lad Div 3": 27.0,
-    # Team-tournament rubber categories — same logic; a career Men D player
-    # who dominates D-rubbers should not numerically outrank a Men B player
-    # whose competition is tougher. Cap is applied based on the player's
-    # PRIMARY (most-common) division, not first-seen.
-    "Men A": None,
-    "Men B": 32.0,    # below Men A starting (33)
-    "Men C": 27.0,    # below Men B starting (28)
-    "Men D": 22.0,    # below Men C starting (23)
-    "Lad A": None,
-    "Lad B": 30.0,
-    "Lad C": 25.0,
+    # Tier 1 — top of pyramid, no ceiling
+    "Men A": None, "Men Div 1": None,
+    # Tier 2 — ceiling below Tier 1's starting (33)
+    "Men B": 32.0, "Men Div 2": 32.0,
+    "Men C": 27.0, "Men Div 3": 27.0,
+    "Men D": 22.0, "Men Div 4": 22.0,
+    "Lad A": None, "Lad Div 1": None,
+    "Lad B": 30.0, "Lad Div 2": 30.0,
+    "Lad C": 25.0, "Lad Div 3": 25.0,
     "Lad D": 20.0,
 }
 
@@ -103,20 +94,14 @@ DIVISION_MU_CEILING: dict[str, float | None] = {
 # floor. Prevents a slumping Div 1 player from numerically appearing
 # below a top Div 2 player.
 DIVISION_MU_FLOOR: dict[str, float | None] = {
-    "Men Div 1": 30.0,
-    "Men Div 2": 25.0,
-    "Men Div 3": 20.0,
-    "Men Div 4": None,
-    "Lad Div 1": 28.0,
-    "Lad Div 2": 23.0,
-    "Lad Div 3": None,
-    "Men A": 28.0,
-    "Men B": 23.0,
-    "Men C": 18.0,
-    "Men D": None,
-    "Lad A": 26.0,
-    "Lad B": 21.0,
-    "Lad C": 16.0,
+    # Tier 1 — floor at Tier 2 starting (28)
+    "Men A": 28.0, "Men Div 1": 28.0,
+    "Men B": 23.0, "Men Div 2": 23.0,
+    "Men C": 18.0, "Men Div 3": 18.0,
+    "Men D": None, "Men Div 4": None,
+    "Lad A": 26.0, "Lad Div 1": 26.0,
+    "Lad B": 21.0, "Lad Div 2": 21.0,
+    "Lad C": 16.0, "Lad Div 3": 16.0,
     "Lad D": None,
 }
 
@@ -125,25 +110,18 @@ DIVISION_MU_FLOOR: dict[str, float | None] = {
 # competition = more meaningful rating change").
 # Source: T-P0-011, _RESEARCH_/Doubles_Tennis_Ranking_System.docx §8.1, §8.2
 DIVISION_K: dict[str, float] = {
-    # Division round-robin events
-    "Men Div 1": 1.00,
-    "Men Div 2": 0.90,
-    "Men Div 3": 0.80,
-    "Men Div 4": 0.70,
-    "Lad Div 1": 1.00,
-    "Lad Div 2": 0.87,
-    "Lad Div 3": 0.73,
-    # Team-tournament RUBBER categories — smaller spread than divisions
-    # because the same player often plays multiple categories across
-    # tournaments. A B-rubber win still counts substantially, just less
-    # than an A-rubber win against equivalent opposition.
-    "Men A": 1.00,
-    "Men B": 0.85,
-    "Men C": 0.70,
-    "Men D": 0.60,
-    "Lad A": 1.00,
-    "Lad B": 0.85,
-    "Lad C": 0.70,
+    # Tier 1
+    "Men A": 1.00, "Men Div 1": 1.00,
+    # Tier 2
+    "Men B": 0.85, "Men Div 2": 0.85,
+    # Tier 3
+    "Men C": 0.70, "Men Div 3": 0.70,
+    # Tier 4
+    "Men D": 0.60, "Men Div 4": 0.60,
+    # Ladies
+    "Lad A": 1.00, "Lad Div 1": 1.00,
+    "Lad B": 0.85, "Lad Div 2": 0.85,
+    "Lad C": 0.70, "Lad Div 3": 0.70,
     "Lad D": 0.60,
 }
 

@@ -163,38 +163,61 @@ def cmd_rank(args: argparse.Namespace) -> int:
         return 0
 
     if args.by_category:
-        # Group by normalized primary division; print top-N per group in
-        # tier order. Unrecognized divisions sink to the end.
+        # Group by TIER (per Kurt's domain knowledge: Men A ≡ Men Div 1,
+        # Men B ≡ Men Div 2, etc.). Print top-N per tier in canonical order.
+        # Unrecognized divisions sink to the end.
         from collections import OrderedDict
 
-        GROUPS_ORDERED = [
-            "Men A", "Men B", "Men C", "Men D",
-            "Men Div 1", "Men Div 2", "Men Div 3", "Men Div 4",
-            "Lad A", "Lad B", "Lad C", "Lad D",
-            "Lad Div 1", "Lad Div 2", "Lad Div 3",
+        # Map canonical division name → tier-display label. Both legs of
+        # each tier (e.g. "Men A" and "Men Div 1") map to the same label
+        # so they appear in the same group.
+        DIV_TO_TIER_LABEL: dict[str, str] = {
+            "Men A": "Men Tier 1  (A / Div 1)",
+            "Men Div 1": "Men Tier 1  (A / Div 1)",
+            "Men B": "Men Tier 2  (B / Div 2)",
+            "Men Div 2": "Men Tier 2  (B / Div 2)",
+            "Men C": "Men Tier 3  (C / Div 3)",
+            "Men Div 3": "Men Tier 3  (C / Div 3)",
+            "Men D": "Men Tier 4  (D / Div 4)",
+            "Men Div 4": "Men Tier 4  (D / Div 4)",
+            "Lad A": "Ladies Tier 1  (A / Div 1)",
+            "Lad Div 1": "Ladies Tier 1  (A / Div 1)",
+            "Lad B": "Ladies Tier 2  (B / Div 2)",
+            "Lad Div 2": "Ladies Tier 2  (B / Div 2)",
+            "Lad C": "Ladies Tier 3  (C / Div 3)",
+            "Lad Div 3": "Ladies Tier 3  (C / Div 3)",
+            "Lad D": "Ladies Tier 4  (D)",
+        }
+        TIER_ORDER = [
+            "Men Tier 1  (A / Div 1)",
+            "Men Tier 2  (B / Div 2)",
+            "Men Tier 3  (C / Div 3)",
+            "Men Tier 4  (D / Div 4)",
+            "Ladies Tier 1  (A / Div 1)",
+            "Ladies Tier 2  (B / Div 2)",
+            "Ladies Tier 3  (C / Div 3)",
+            "Ladies Tier 4  (D)",
         ]
 
-        by_group: OrderedDict[str, list] = OrderedDict()
-        for name in GROUPS_ORDERED:
-            by_group[name] = []
+        by_tier: OrderedDict[str, list] = OrderedDict((t, []) for t in TIER_ORDER)
         other: dict[str, list] = {}
 
         for row in rows:
             primary = row[6]
             norm = rating.normalize_division(primary) if primary else None
-            key = norm if norm in by_group else (norm or "(unknown)")
-            if key in by_group:
-                by_group[key].append(row)
+            tier = DIV_TO_TIER_LABEL.get(norm) if norm else None
+            if tier:
+                by_tier[tier].append(row)
             else:
-                other.setdefault(key, []).append(row)
+                other.setdefault(norm or "(unknown)", []).append(row)
 
         any_printed = False
-        for group_name, group_rows in by_group.items():
-            visible = group_rows[: args.top]
+        for tier_label, tier_rows in by_tier.items():
+            visible = tier_rows[: args.top]
             if not visible:
                 continue
             any_printed = True
-            print(f"\n=== {group_name}  (top {len(visible)} of {len(group_rows)}) ===")
+            print(f"\n=== {tier_label}  —  top {len(visible)} of {len(tier_rows)} ===")
             _print_rank_table(visible)
 
         for group_name, group_rows in other.items():
@@ -202,7 +225,7 @@ def cmd_rank(args: argparse.Namespace) -> int:
             if not visible:
                 continue
             any_printed = True
-            print(f"\n=== {group_name}  (top {len(visible)} of {len(group_rows)}) ===")
+            print(f"\n=== {group_name}  —  top {len(visible)} of {len(group_rows)} ===")
             _print_rank_table(visible)
 
         if not any_printed:

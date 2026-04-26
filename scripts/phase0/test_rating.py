@@ -236,11 +236,17 @@ class TestDivisionHelpers(unittest.TestCase):
     def test_normalize_division_unknown_passes_through(self):
         self.assertEqual(rating.normalize_division("Mixed Doubles"), "Mixed Doubles")
 
-    def test_division_k_multiplier_per_division(self):
+    def test_division_k_multiplier_per_tier(self):
+        # Per Kurt's domain knowledge, Men A ≡ Men Div 1 (same tier),
+        # Men B ≡ Men Div 2, etc. Tier values must match within a tier.
         self.assertEqual(rating.division_k_multiplier("Men Div 1"), 1.00)
-        self.assertEqual(rating.division_k_multiplier("Men Div 2"), 0.90)
-        self.assertEqual(rating.division_k_multiplier("Men Div 4"), 0.70)
-        self.assertEqual(rating.division_k_multiplier("Lad Div 3"), 0.73)
+        self.assertEqual(rating.division_k_multiplier("Men A"), 1.00)
+        self.assertEqual(rating.division_k_multiplier("Men Div 2"), 0.85)
+        self.assertEqual(rating.division_k_multiplier("Men B"), 0.85)
+        self.assertEqual(rating.division_k_multiplier("Men Div 4"), 0.60)
+        self.assertEqual(rating.division_k_multiplier("Men D"), 0.60)
+        self.assertEqual(rating.division_k_multiplier("Lad Div 3"), 0.70)
+        self.assertEqual(rating.division_k_multiplier("Lad C"), 0.70)
 
     def test_division_k_multiplier_unknown_returns_one(self):
         # Unknown divisions: better to count fully than silently dampen
