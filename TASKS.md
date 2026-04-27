@@ -112,13 +112,13 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | (none) |
+| `in-progress` | T-P0.5-018 (4-verdict identity triage UI + de-merge + manual reprocess button) |
 | `decision pending` | T-P0.5-011 (promote `openskill_pl_decay365` to `CHAMPION_MODEL` or keep vanilla — backtest data already in hand) |
-| `up next — site / data hygiene` | T-P0.5-012 (μ-Nσ display-metric tuning); T-P0.5-013 (gh-pages orphan-player-file cleanup); T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
+| `up next — site / data hygiene` | T-P0.5-012 (μ-Nσ display-metric tuning); T-P0.5-013 (gh-pages orphan-player-file cleanup); T-P0.5-019 (auto-reprocess daemon, deferred until pair volume justifies it); T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
 | `up next — pre-launch gates` | T-P1-019 (draft trust + legality ADRs 002-006); T-P1-020 (public-launch checklist — privacy notice, takedown channel, robots.txt) |
 | `up next — Phase 1 platform` | T-P1-001 (Postgres port); T-P1-008 (fuzzy-match merge CLI); T-P1-009 (Modified Glicko-2 challenger — **harness now ready**, see T-P0.5-010); T-P1-002 (migration tooling) |
 | `blocked` | T-P1-020 (public-launch checklist) — depends on T-P1-019 ADR decisions |
-| `recently done` | **T-P0.5-014 identity-resolution overhaul** (2026-04-26) — typo auto-merger, captain-class confidence dampener, auto-merge on load, mapping-transparency UI at `/aliases.html` with per-merge deeplinks, `cli.py review` (terminal) + `cli.py review-server` (local web UI) + `known_distinct.json` filter; closes T-P1-015 + T-P1-017, substantially advances T-P1-008. Net: 200 → 56 pending fuzzy candidates, 12 → 585 audit-log merges, 837 → 732 active players. **Phase 0.5 prior:** multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed, **model-evaluation suite (T-P0.5-010): backtest harness + time-decay challenger + per-player calibration + Model gaps page**. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
+| `recently done` | **T-P0.5-017 identity-eval harness** (2026-04-27) — `eval_identity.py` scores the fuzzy `_confidence` function against `manual_aliases.json` (positives) + `known_distinct.json` (negatives) with per-threshold recall/FP-rate/precision; `cli.py eval-identity` exposes it; 15 tests; reveals 91% recall at production T=0.78 with 5 misses (all surname-change cases the algorithm legitimately can't catch from name similarity alone). **T-P0.5-016 site test harness** (2026-04-27) — 222 tests, 80% line coverage across `generate_site.py`/`players.py`/`cli.py`/`eval_identity.py`/`db.py` (was 37% before); end-to-end `gs.main()` test against the real DB exercises ~700 lines in one shot. **T-P0.5-015 per-match impact UI** (2026-04-26 deploy 2026-04-27 record) — `compute_match_impacts(conn)` replays rating_history chronologically to produce per-(match, player) rank/score deltas + bypassed/passed-by lists; All Matches page + per-player match log gain a 2-vs-2 expansion (Side A pair / VS / Side B pair) with proper set scores and rank-at-the-time tags next to every name. **T-P0.5-014 identity-resolution overhaul** (2026-04-26) — typo auto-merger, captain-class confidence dampener, auto-merge on load, mapping-transparency UI at `/aliases.html` with per-merge deeplinks, `cli.py review` (terminal) + `cli.py review-server` (local web UI) + `known_distinct.json` filter; closes T-P1-015 + T-P1-017, substantially advances T-P1-008. Net: 200 → 56 pending fuzzy candidates, 12 → 585 audit-log merges, 837 → 732 active players. **Phase 0.5 prior:** multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed, **model-evaluation suite (T-P0.5-010): backtest harness + time-decay challenger + per-player calibration + Model gaps page**. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
 
 ## ✅ Phase 0 — COMPLETE (2026-04-26)
 
@@ -731,6 +731,88 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
 - **Net effect:** 200 → 56 pending fuzzy candidates after one full pipeline run; 585 total merges in the audit_log (was 12 at session start); 837 → 732 active player records.
 - **Tests:** 18 new unit tests covering `_is_typo_pair` boundaries, lopsided-merge end-to-end, the `known_distinct` filter, and the recorder helpers. All 38 player tests pass. Parser/rating tests untouched (still passing).
 - **Memory entries written:** `feedback_db_path_anchor.md` (the cwd foot-gun), `project_pending_match_row_enrichment.md` (carried-forward request).
+
+### T-P0.5-015 — Per-match impact UI: rank tags + 2-vs-2 expansion + set scores
+
+- **Status:** `done` (2026-04-26 deploy / 2026-04-27 recorded)
+- **Phase:** 0.5
+- **Goal:** Make every match in the All Matches feed and per-player match log self-explanatory: show the players' rank-at-the-time, the proper set score, and one click away the per-player rank/score impact (with bypassed/passed-by commentary).
+- **What shipped:**
+  1. **`compute_match_impacts(conn)`** in `generate_site.py` — replays every active match chronologically, snapshotting per-(match, player) `rank_before` / `rank_after` / `score_before` / `score_after` / `mu_delta` / `score_delta` plus `bypassed` (overtaken on the way up) and `passed_by` (overtaken on the way down) lists. Per-gender bucket. ~2s for 4,891 matches × 19,357 (match, player) impact rows.
+  2. **All Matches page** — every player name carries a `#NN` rank-tag reflecting their gender-bucket position immediately AFTER that match; ▶ expander reveals a 2-vs-2 layout (Side A pair on the left, "VS" divider in the middle, Side B pair on the right) with per-player rank and score deltas plus "↑ bypassed X" / "↓ passed by Y" commentary; set-by-set scores in the score column (falls back to total games when set scores missing).
+  3. **Per-player match log** — same expansion on every match row; partner/opponent names link to their pages; `μ after` cell carries the player's own rank-tag.
+  4. **2-vs-2 CSS** — `grid-template-areas: "a vs b"` desktop / `"a" "vs" "b"` mobile; row heights expand naturally (`white-space: normal` override on the global `td` nowrap rule); cards `word-break: break-word` so long bypassed lists wrap inside.
+  5. **CSS cache-busting** — `CSS_VERSION = sha1(CSS).hexdigest()[:10]` appended as `?v=...` to every `<link rel="stylesheet">` so GH Pages serves the new styles immediately.
+- **Net effect:** every match is now traceable to its rating impact — no more "why did Player X jump 12 places?" questions. The rank tag also implicitly answers "where did this player stand back then?" historically.
+
+### T-P0.5-016 — Comprehensive site test harness + 80% line coverage
+
+- **Status:** `done` (2026-04-27)
+- **Phase:** 0.5
+- **Goal:** Give a supporting dev (and future agents) confidence to refactor by anchoring the codebase to a fast, deterministic test suite. Get coverage of the in-tree modules (excluding parsers + .venv) above 80%.
+- **What shipped:**
+  1. **`scripts/phase0/test_generate_site.py`** — 36 test classes / ~120 tests covering: pure helpers (`esc`, `_delta_span`, `_rank_delta_span`, `player_link`, `CSS_VERSION`); `compute_match_impacts` scenarios (empty DB, single match, bypass + passed-by sequences, gender buckets, singles, superseded matches, walkovers); `render_match_impact_block` structure (2-vs-2 layout, new entries, +N more overflow, win/loss tags, root vs `/players/X.html` link prefix); page builders (`build_matches_page`, `build_player_page`, `build_index`, `build_aliases_page`); statistics (`compute_form` / `compute_streaks` / `compute_yearly_summary` / `compute_swings` / `render_trajectory_svg`); cross-cutting (`fetch_neighbour_index`, `render_neighbours`, `render_partner`, `render_opponents`, `render_score`, `render_identity_section`); a single big-leverage `TestMainEndToEnd` that runs `gs.main()` against the real `phase0.sqlite` in a tempdir; CLI smoke (every subparser `--help`, `load --init-only` against tempfile, `rank` / `history` / `suggest-merges` / `merge-token-duplicates --dry-run` / `apply-manual-aliases --dry-run` / `recommend-pairs` against the real DB); `players.merge_player_into`; `team_selection.store_team_selection` + `player_current_class` + `player_class_history`.
+  2. **CLI test fixture** — `_patch_db()` wraps `db.init_db` with a closure that injects a temp DB path. (Naive `db.DEFAULT_DB_PATH = ...` doesn't work because Python freezes default-arg values at function-def time.)
+  3. **Coverage report**: `db.py` 100%, `eval_identity.py` 91%, `generate_site.py` 95%, `players.py` 91%, `cli.py` 53%, `rating.py` 86%, `team_selection.py` 28%. Total: **80%** (was 37%).
+- **Net effect:** 222 tests, ~7s wall-clock, run via `python -m unittest scripts.phase0.test_generate_site scripts.phase0.test_eval_identity scripts.phase0.test_players scripts.phase0.test_rating scripts.phase0.test_team_selection`.
+- **Known gaps:** `cli.py` 53% — the `cmd_load` parser-driven path is hard to unit-test without xlsx fixtures; `team_selection.py` 28% — the openpyxl extractor needs xlsx fixtures too. Both could rise via subprocess-style integration tests against the real `_DATA_/` corpus. Out of scope for this task.
+
+### T-P0.5-017 — Identity-resolution evaluation harness
+
+- **Status:** `done` (2026-04-27)
+- **Phase:** 0.5
+- **Goal:** Quantify how well the fuzzy `_confidence` scorer covers the labelled ground-truth pairs (`manual_aliases.json` = same person, `known_distinct.json` = different people) so future score-function tweaks are testable, not vibes.
+- **What shipped:**
+  1. **`scripts/phase0/eval_identity.py`** — `evaluate(conn, aliases, distinct, thresholds)` returns per-threshold {recall, FP-rate, precision, TP/FN/FP/TN}. Uses `players._confidence` and `_token_fingerprint` so the scoring stays in sync. Best-effort enriches each side from the DB (gender, n_matches, latest_class, clubs); falls back to a name-only stub when the loser record was deleted post-merge (flagged `[stub]` in the report).
+  2. **`cli.py eval-identity`** — `python scripts/phase0/cli.py eval-identity [--aliases X.json] [--distinct Y.json]`.
+  3. **`scripts/phase0/test_eval_identity.py`** — 15 tests including a snapshot regression (`TestProductionDataFile`) that fails if recall@0.78 drops below 50% on the live ground-truth set.
+- **Findings against live data (2026-04-27):** 55 positive pairs, 0 negative pairs (known_distinct empty). **91% recall at production T=0.78**; 100% recall at T=0.50. The 5 misses at T=0.78 are all surname-change-after-marriage cases (`Leanne Vassallo` ↔ `SCHEMBRI LEANNE` / `Leanne Schembri`; `Alexia Spiteri Willets` ↔ `Alexia Carabott` / `SPITERI WILLETTS ALEXIA` / `Alexia Spiteri`) — the algorithm legitimately can't catch these from name similarity alone; they require human-only knowledge.
+- **Net effect:** every signal-weight tweak in `_confidence` (the `+0.02 / +0.04 / -0.05 / -0.15` constants) can now be measured. The harness IS the optimisation loop. FP-rate is undefined until `known_distinct.json` is populated — the natural feeder is `cli.py review` / `review-server` (and the upcoming T-P0.5-018 4-verdict UI).
+
+### T-P0.5-018 — 4-verdict identity-triage UI (Merge / De-merge / Don't know / Skip) + manual reprocess button
+
+- **Status:** `in-progress` (2026-04-27)
+- **Phase:** 0.5
+- **Goal:** Give the human reviewer a screen that walks every pending fuzzy pair one-by-one and lets them apply one of four verdicts that the system learns from. The current `cli.py review-server` has 3 verdicts (Same / Different / Defer) and no de-merge action; this task extends it to 4 verdicts plus an explicit de-merge flow plus a manual "Reprocess pending changes" button.
+- **What it covers:**
+  1. **4-verdict UI** in `cli.py review-server`:
+     - **Merge** — same person; appends to `manual_aliases.json` via `players.record_same_person()`; the existing pipeline picks it up at next `apply-manual-aliases` run.
+     - **De-merge** — wrong merge; finds the most-recent `audit_log` `player.merged` event for the pair and undoes it: `UPDATE players SET merged_into_id = NULL` on the loser; restore `match_sides.player1_id/player2_id` to the loser's original ID via the `before_jsonb` snapshot; write a new `audit_log` entry of type `player.unmerged` with the operator and reason; remove the entry from `manual_aliases.json` (if present); add to `known_distinct.json` so the suggester won't re-propose the merge.
+     - **Don't know** — write to a new `defer.json` with a `revisit_after` timestamp (default: now + 14 days). Suggester filters these out until the timestamp passes.
+     - **Skip** — don't persist anything; just move to the next pair in this session. (Different from "Don't know" which permanently defers.)
+  2. **Pending-change counter** — every verdict appends a row to a new `scripts/phase0/pending_changes.jsonl` with `{ts, verdict, a_name, b_name, audit_log_id?}`. The reprocess button reads + clears this file.
+  3. **"Reprocess pending changes" button** in the UI that runs synchronously: `apply-manual-aliases` → `rate` → `generate_site.main()` → `deploy-site.sh`. Disabled when `pending_changes.jsonl` is empty. After success, the JSONL is moved to a timestamped archive (`pending_changes.<ts>.jsonl`).
+  4. **Tests** in `test_eval_identity.py` (or a new `test_review_server.py`):
+     - de-merge correctly restores `match_sides.player1_id` from `before_jsonb`
+     - de-merge writes `audit_log` `player.unmerged` entry
+     - de-merge appends pair to `known_distinct.json`
+     - "Don't know" filters the pair from suggester output until `revisit_after`
+     - "Reprocess" pipeline is idempotent (running twice with no new changes = no-op)
+- **Acceptance criteria:**
+  - [ ] `cli.py review-server` UI shows 4 buttons per pair: Merge / De-merge / Don't know / Skip
+  - [ ] Each verdict persists to the right file with the right shape
+  - [ ] De-merge actually undoes the merge in the DB (verified by reading `players.merged_into_id` and `match_sides`)
+  - [ ] `pending_changes.jsonl` accumulates verdicts and the "Reprocess" button consumes + archives it
+  - [ ] After reprocess: `eval-identity` shows the new state (recall changed, miss list updated)
+  - [ ] At least 6 new unit tests pass; existing tests unaffected
+  - [ ] `eval_identity.evaluate()` reflects the new verdicts on next run
+- **Out of scope:** the auto-trigger daemon (10-changes-or-30-min) — that's T-P0.5-019.
+- **References:** `players.merge_player_into` (the inverse of de-merge), `players.record_same_person` / `record_distinct` (existing recorders), `audit_log.before_jsonb` (the snapshot that makes de-merge safe), T-P0.5-014 (the original review-server), T-P0.5-017 (the eval harness that measures the impact of each verdict).
+
+### T-P0.5-019 — Auto-reprocess daemon (10 changes OR ≥1 change AND 30+ min elapsed)
+
+- **Status:** `todo` (deferred)
+- **Phase:** 0.5
+- **Goal:** Replace the manual "Reprocess pending changes" button (T-P0.5-018) with a `launchd` daemon that watches `pending_changes.jsonl` and fires automatically when either threshold is hit, so the live site reflects review verdicts within minutes without requiring the operator to remember to click.
+- **Trigger logic:** every 60s, if `pending_changes.jsonl` is non-empty: count changes (lines), check the timestamp of the first change. Fire reprocess if `count >= 10` OR `(count >= 1 AND now - first_change >= 30min)`.
+- **Reprocess command:** same pipeline as the manual button — `apply-manual-aliases` → `rate` → `generate_site.main()` → `deploy-site.sh`. After success, archive `pending_changes.jsonl` to `pending_changes.<ts>.jsonl`.
+- **Operational surface area:** a stuck/crashed daemon = stale rankings until manually restarted. Want a `launchd` plist with `KeepAlive=true` and a small Slack/Pushover error notifier. Adds another process to monitor.
+- **Why deferred:** at current pair volume (~55 pairs over months) the manual button (T-P0.5-018) covers 90% of the value. Revisit when batch frequency justifies the operational overhead — likely after the next 100+ reviewed pairs.
+- **Acceptance criteria (when picked up):**
+  - [ ] `scripts/phase0/reprocess_daemon.py` polls every 60s and fires the pipeline on threshold
+  - [ ] `launchd` plist installed under `~/Library/LaunchAgents/com.rallyrank.reprocess.plist`
+  - [ ] On pipeline failure: archive `pending_changes.jsonl` to `pending_changes.failed.<ts>.jsonl` so a re-run starts clean; surface error somewhere visible (logfile + optional notification)
+  - [ ] Two consecutive failures pause the daemon (require manual `launchctl kickstart` to resume)
 
 Tasks below are intentionally sketchy until Phase 0 lands and we know what concrete shape Phase 1 takes. Don't expand to acceptance-criteria detail before Phase 0's retrospective informs them.
 
