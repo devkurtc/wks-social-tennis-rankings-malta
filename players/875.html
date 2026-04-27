@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Christan Xuereb — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Christan Xuereb</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #875
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">24.82</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.54</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">2.21</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">5</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">4</span>-<span class="loss">1</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">80%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">45-32</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">4W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">4</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">1</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span><span class="b w">W</span><span class="b w">W</span><span class="b w">W</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">234</td><td class="cls"></td><td><a class="player-link" href="1090.html">Osbert Xuereb</a></td><td class="num">22.31</td><td class="num">6.66</td><td class="num"><strong>2.32</strong></td><td class="num"><span class="loss">+0.11</span></td><td class="num">15</td><td class="num"><span class="win">5</span>-<span class="loss">10</span></td><td class="num">33%</td></tr><tr><td class="num">235</td><td class="cls">B4</td><td><a class="player-link" href="612.html">Donald Deguzman</a></td><td class="num">21.43</td><td class="num">6.38</td><td class="num"><strong>2.30</strong></td><td class="num"><span class="loss">+0.09</span></td><td class="num">20</td><td class="num"><span class="win">9</span>-<span class="loss">11</span></td><td class="num">45%</td></tr><tr><td class="num">236</td><td class="cls">D1</td><td><a class="player-link" href="206.html">Ryan Ebejer</a></td><td class="num">18.12</td><td class="num">5.30</td><td class="num"><strong>2.21</strong></td><td class="num"><span class="loss">+0.01</span></td><td class="num">36</td><td class="num"><span class="win">15</span>-<span class="loss">21</span></td><td class="num">42%</td></tr><tr style="background:#22304a"><td class="num">237</td><td class="cls"></td><td><strong>Christan Xuereb</strong></td><td class="num">24.82</td><td class="num">7.54</td><td class="num"><strong>2.21</strong></td><td class="num"><span class="muted">—</span></td><td class="num">5</td><td class="num"><span class="win">4</span>-<span class="loss">1</span></td><td class="num">80%</td></tr><tr><td class="num">238</td><td class="cls"></td><td><a class="player-link" href="1051.html">Albert Pace Axiaq</a></td><td class="num">26.33</td><td class="num">8.09</td><td class="num"><strong>2.06</strong></td><td class="num"><span class="win">-0.14</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">239</td><td class="cls">C3</td><td><a class="player-link" href="414.html">Jean Paul Sciberras</a></td><td class="num">20.29</td><td class="num">6.08</td><td class="num"><strong>2.05</strong></td><td class="num"><span class="win">-0.15</span></td><td class="num">19</td><td class="num"><span class="win">4</span>-<span class="loss">15</span></td><td class="num">21%</td></tr><tr><td class="num">240</td><td class="cls">D3</td><td><a class="player-link" href="368.html">Mario Abdilla</a></td><td class="num">16.81</td><td class="num">4.94</td><td class="num"><strong>2.00</strong></td><td class="num"><span class="win">-0.20</span></td><td class="num">59</td><td class="num"><span class="win">10</span>-<span class="loss">49</span></td><td class="num">17%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="225.0" x2="904" y2="225.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="228.0" text-anchor="end" fill="#8b96a8" font-size="10">0</text><line x1="50" y1="185.7" x2="904" y2="185.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="188.7" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="146.3" x2="904" y2="146.3" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="149.3" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="107.0" x2="904" y2="107.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="110.0" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="67.7" x2="904" y2="67.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="70.7" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="28.3" x2="904" y2="28.3" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="31.3" text-anchor="end" fill="#8b96a8" font-size="10">25</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2025</text>
+  <polyline points="50.0,242.1 263.5,234.2 477.0,228.1 690.5,220.8 904.0,207.7" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,88.0 263.5,105.3 477.0,130.1 690.5,144.5 904.0,176.0" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,50.2 263.5,45.0 477.0,42.8 690.5,37.8 904.0,29.7" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">7.0</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.8</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2025</strong></td><td class="num">5</td><td class="num"><span class="win">4</span>-<span class="loss">1</span></td><td class="num">80%</td><td class="num">45-32</td><td class="num">22.22 → 24.82</td><td class="num"><span class="win">+2.60</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2025-05-01</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2025</td><td><a class="player-link" href="676.html">Roberta Fenech</a></td><td><a class="player-link" href="677.html">Sam Zammit</a> / <a class="player-link" href="488.html">Sarah Axiaq</a></td><td class="score">6-1, 6-4</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+1.03</span></td></tr><tr><td>2025-01-01</td><td><span class="tag">vltc</span> Sports Experience Chosen Doubles 2025</td><td><a class="player-link" href="232.html">Cory Greenland</a></td><td><a class="player-link" href="251.html">David Camilleri</a> / <a class="player-link" href="874.html">Joseph Zammit</a></td><td class="score">6-1, 6-3</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+0.65</span></td></tr><tr><td>2025-01-01</td><td><span class="tag">vltc</span> Sports Experience Chosen Doubles 2025</td><td><a class="player-link" href="232.html">Cory Greenland</a></td><td><a class="player-link" href="385.html">Aaron Micallef Piccione</a> / <a class="player-link" href="833.html">Clinton Cutajar</a></td><td class="score">6-2, 6-2</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+0.64</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td colspan="7" class="muted">No negative swings recorded.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Christan Xuereb</td><td class="muted">—</td><td class="muted">(canonical)</td></tr><tr><td>Christian Xuereb</td><td class="muted">2026-04-26</td><td class="muted">SAN MICHEL TEAM TOURNAMENT 2025.xlsx</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td><span class="tag">id #675</span> Christian Xuereb</td><td class="muted">2026-04-26</td><td>typo auto-merge: &#x27;Christian Xuereb&#x27; (2m) ≈ &#x27;Christan Xuereb&#x27; (4m), shared club</td><td><a href="../aliases.html#m-521" title="Permalink in mapping log">#521 ↗</a></td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">100%</div><div class="muted" style="font-size:10px;">log-loss 0.346</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">75%</div><div class="muted" style="font-size:10px;">log-loss 0.499</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2025-05-01 vs SAN MICHEL TEAM TOURNAMENT 2025 — Vanilla PL said 64%, Decay said 45% (WIN actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (5)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="11760"><td class="expand-trigger" data-mid="11760">▶</td><td>2025-05-01</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2025 2025</td><td class="muted">Mixed B/A day 2</td><td><a class="player-link" href="676.html">Roberta Fenech</a></td><td><a class="player-link" href="677.html">Sam Zammit</a> / <a class="player-link" href="488.html">Sarah Axiaq</a></td><td class="score">6-1, 6-4</td><td class="num"><span class="win">W</span> 12-5</td><td class="num" data-sort="0.4508" title="Decay-365 said 45% chance of winning. Vanilla PL said 64%."><span class="muted">45%</span></td><td class="num">24.82<span class="rank-tag">#209</span></td><td class="num"><span class="win">+1.03</span></td><td class="num">7.54</td><td class="num"><span class="muted">-0.21</span></td></tr><tr class="impact-row" data-mid="11760" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="875.html">Christan Xuereb</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#229 <span class="delta-up">+20</span> = #209</span></div><div class="metric"><span class="k">Score</span><span>0.5 <span class="delta-up">+1.67</span> = 2.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="946.html">John Sciberras</a>, <a class="player-link" href="251.html">David Camilleri</a>, <a class="player-link" href="1082.html">Alex Falzon</a>, <a class="player-link" href="1098.html">Rinaldo D&#x27;Alessandro</a>, <a class="player-link" href="1103.html">Frans Ellul (pro) Marco Borg</a> + 15 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="676.html">Roberta Fenech</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#15 <span class="delta-up">+3</span> = #12</span></div><div class="metric"><span class="k">Score</span><span>23.0 <span class="delta-up">+1.46</span> = 24.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="390.html">Christina Bonett</a>, <a class="player-link" href="691.html">Rebecca Pace</a>, <a class="player-link" href="372.html">Maria Angela Gambin</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="677.html">Sam Zammit</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#148 <span class="delta-dn">-12</span> = #160</span></div><div class="metric"><span class="k">Score</span><span>6.1 <span class="delta-dn">-0.79</span> = 5.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="368.html">Mario Abdilla</a>, <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="934.html">Eric Micallef</a>, <a class="player-link" href="261.html">Charles Micallef</a> + 6 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="488.html">Sarah Axiaq</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#57 <span class="delta-dn">-13</span> = #70</span></div><div class="metric"><span class="k">Score</span><span>12.1 <span class="delta-dn">-1.09</span> = 11.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="467.html">Doriana Portelli</a>, <a class="player-link" href="871.html">Helga Azzopardi</a>, <a class="player-link" href="246.html">Annabelle Abela</a>, <a class="player-link" href="1075.html">Christine Muscat</a>, <a class="player-link" href="935.html">Kristina Cauchi</a> + 8 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11294"><td class="expand-trigger" data-mid="11294">▶</td><td>2025-01-01</td><td><span class="tag">vltc</span> Sports Experience Chosen Doubles 2025 2025</td><td class="muted">Men Division 3 - Group B </td><td><a class="player-link" href="232.html">Cory Greenland</a></td><td><a class="player-link" href="385.html">Aaron Micallef Piccione</a> / <a class="player-link" href="833.html">Clinton Cutajar</a></td><td class="score">6-2, 6-2</td><td class="num"><span class="win">W</span> 12-4</td><td class="num" data-sort="0.6808" title="Decay-365 said 68% chance of winning. Vanilla PL said 84%."><span class="win">68%</span></td><td class="num">23.79<span class="rank-tag">#210</span></td><td class="num"><span class="win">+0.64</span></td><td class="num">7.75</td><td class="num"><span class="muted">-0.10</span></td></tr><tr class="impact-row" data-mid="11294" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="232.html">Cory Greenland</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#82 <span class="delta-up">+4</span> = #78</span></div><div class="metric"><span class="k">Score</span><span>10.6 <span class="delta-up">+0.72</span> = 11.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="258.html">Roderick Spiteri</a>, <a class="player-link" href="640.html">CASSAR BRUNO</a>, <a class="player-link" href="382.html">Sean Cachia</a>, <a class="player-link" href="212.html">Jean Attard</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="875.html">Christan Xuereb</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#218 <span class="delta-up">+8</span> = #210</span></div><div class="metric"><span class="k">Score</span><span>-0.4 <span class="delta-up">+0.93</span> = 0.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1081.html">Ricky Galea</a>, <a class="player-link" href="982.html">Franco Montesin (pro) Julian Esposito</a>, <a class="player-link" href="1021.html">Jesmond Cachia (pro) John Sciberras</a>, <a class="player-link" href="493.html">Dayle Scicluna</a>, <a class="player-link" href="487.html">Dylan Birmingham</a> + 3 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="385.html">Aaron Micallef Piccione</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#243 <span class="delta-dn">-6</span> = #249</span></div><div class="metric"><span class="k">Score</span><span>-2.6 <span class="delta-dn">-0.58</span> = -3.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1089.html">Omar Debono</a>, <a class="player-link" href="1035.html">Shawn Roderick Sciberras</a>, <a class="player-link" href="1162.html">Twanny Pule&#x27; (Pro Neville Cassar)</a>, <a class="player-link" href="1174.html">Julian Esposito (Pro Frank Camilleri)</a>, <a class="player-link" href="1176.html">Raymond Cardona</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="833.html">Clinton Cutajar</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#245 <span class="delta-dn">-7</span> = #252</span></div><div class="metric"><span class="k">Score</span><span>-2.7 <span class="delta-dn">-0.59</span> = -3.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1089.html">Omar Debono</a>, <a class="player-link" href="1035.html">Shawn Roderick Sciberras</a>, <a class="player-link" href="1174.html">Julian Esposito (Pro Frank Camilleri)</a>, <a class="player-link" href="1176.html">Raymond Cardona</a>, <a class="player-link" href="503.html">Sammy Ben Tamer</a> + 2 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11292"><td class="expand-trigger" data-mid="11292">▶</td><td>2025-01-01</td><td><span class="tag">vltc</span> Sports Experience Chosen Doubles 2025 2025</td><td class="muted">Men Division 3 - Group B </td><td><a class="player-link" href="232.html">Cory Greenland</a></td><td><a class="player-link" href="205.html">Manuel Mifsud</a> / <a class="player-link" href="249.html">Julian Esposito</a></td><td class="score">6-1, 1-6, 10-5 <span class='muted'>(TB)</span></td><td class="num"><span class="win">W</span> 7-7</td><td class="num muted" data-sort="-1">—</td><td class="num">23.16<span class="rank-tag">#218</span></td><td class="num"><span class="win">+0.28</span></td><td class="num">7.85</td><td class="num"><span class="muted">-0.17</span></td></tr><tr class="impact-row" data-mid="11292" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="205.html">Manuel Mifsud</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#77 <span class="delta-dn">-1</span> = #78</span></div><div class="metric"><span class="k">Score</span><span>11.3 <span class="delta-dn">-0.07</span> = 11.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="212.html">Jean Attard</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="249.html">Julian Esposito</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#65 <span class="delta-z">±0</span> = #65</span></div><div class="metric"><span class="k">Score</span><span>12.9 <span class="delta-dn">-0.08</span> = 12.8</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="232.html">Cory Greenland</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#84 <span class="delta-up">+2</span> = #82</span></div><div class="metric"><span class="k">Score</span><span>10.3 <span class="delta-up">+0.38</span> = 10.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="404.html">Twanny Pule&#x27;</a>, <a class="player-link" href="126.html">ANDREOZZI IGNAZIO</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="875.html">Christan Xuereb</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#227 <span class="delta-up">+9</span> = #218</span></div><div class="metric"><span class="k">Score</span><span>-1.2 <span class="delta-up">+0.78</span> = -0.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="263.html">Darrell Pace</a>, <a class="player-link" href="964.html">Antoine Chircop</a>, <a class="player-link" href="1078.html">Lorenzo Donato</a>, <a class="player-link" href="937.html">Joseph Attard</a>, <a class="player-link" href="620.html">Anthony Pule&#x27;</a> + 4 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11290"><td class="expand-trigger" data-mid="11290">▶</td><td>2025-01-01</td><td><span class="tag">vltc</span> Sports Experience Chosen Doubles 2025 2025</td><td class="muted">Men Division 3 - Group B </td><td><a class="player-link" href="232.html">Cory Greenland</a></td><td><a class="player-link" href="251.html">David Camilleri</a> / <a class="player-link" href="874.html">Joseph Zammit</a></td><td class="score">6-1, 6-3</td><td class="num"><span class="win">W</span> 12-4</td><td class="num" data-sort="0.7335" title="Decay-365 said 73% chance of winning. Vanilla PL said 66%."><span class="win">73%</span></td><td class="num">22.88<span class="rank-tag">#227</span></td><td class="num"><span class="win">+0.65</span></td><td class="num">8.02</td><td class="num"><span class="muted">-0.12</span></td></tr><tr class="impact-row" data-mid="11290" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="251.html">David Camilleri</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#188 <span class="delta-dn">-8</span> = #196</span></div><div class="metric"><span class="k">Score</span><span>2.3 <span class="delta-dn">-0.61</span> = 1.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="866.html">Charles Grech</a>, <a class="player-link" href="1082.html">Alex Falzon</a>, <a class="player-link" href="1122.html">Matthias Nussbaum</a>, <a class="player-link" href="400.html">Charles Sacco</a>, <a class="player-link" href="1051.html">Albert Pace Axiaq</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="874.html">Joseph Zammit</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#283 <span class="delta-dn">-1</span> = #284</span></div><div class="metric"><span class="k">Score</span><span>-5.7 <span class="delta-dn">-0.36</span> = -6.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1130.html">Sean Micallef</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="232.html">Cory Greenland</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#88 <span class="delta-up">+4</span> = #84</span></div><div class="metric"><span class="k">Score</span><span>9.5 <span class="delta-up">+0.75</span> = 10.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1183.html">Jack Steenkamer (pro) Andrew Spiteri</a>, <a class="player-link" href="939.html">Richard Magri</a>, <a class="player-link" href="211.html">Duncan D&#x27;Alessandro</a>, <a class="player-link" href="482.html">Dunstan Vella</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="875.html">Christan Xuereb</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#238 <span class="delta-up">+11</span> = #227</span></div><div class="metric"><span class="k">Score</span><span>-2.2 <span class="delta-up">+1.00</span> = -1.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1061.html">Victor Zammit</a>, <a class="player-link" href="989.html">Simon Micallef</a>, <a class="player-link" href="990.html">Neville Cassar</a>, <a class="player-link" href="1120.html">Kit Brewer</a>, <a class="player-link" href="957.html">Chris Farrugia</a> + 6 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11287"><td class="expand-trigger" data-mid="11287">▶</td><td>2025-01-01</td><td><span class="tag">vltc</span> Sports Experience Chosen Doubles 2025 2025</td><td class="muted">Men Division 3 - Group B </td><td><a class="player-link" href="232.html">Cory Greenland</a></td><td><a class="player-link" href="482.html">Dunstan Vella</a> / <a class="player-link" href="257.html">Cyril Lastimosa</a></td><td class="score">1-6, 1-6</td><td class="num"><span class="loss">L</span> 2-12</td><td class="num" data-sort="0.3954" title="Decay-365 said 40% chance of winning. Vanilla PL said 29%."><span class="muted">40%</span></td><td class="num">22.22<span class="rank-tag">#238</span></td><td class="num"></td><td class="num">8.13</td><td class="num"></td></tr><tr class="impact-row" data-mid="11287" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="482.html">Dunstan Vella</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#88 <span class="delta-up">+1</span> = #87</span></div><div class="metric"><span class="k">Score</span><span>9.6 <span class="delta-up">+0.28</span> = 9.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="232.html">Cory Greenland</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="257.html">Cyril Lastimosa</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#21 <span class="delta-up">+1</span> = #20</span></div><div class="metric"><span class="k">Score</span><span>20.6 <span class="delta-up">+0.38</span> = 21.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="539.html">Chi Chi Canonce</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="232.html">Cory Greenland</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#85 <span class="delta-dn">-3</span> = #88</span></div><div class="metric"><span class="k">Score</span><span>10.2 <span class="delta-dn">-0.72</span> = 9.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1183.html">Jack Steenkamer (pro) Andrew Spiteri</a>, <a class="player-link" href="939.html">Richard Magri</a>, <a class="player-link" href="482.html">Dunstan Vella</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="875.html">Christan Xuereb</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #238</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -2.2</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":875,"focal_name":"Christan Xuereb","window_start":"2024-12-31","window_end":"2025-05-01","chart_pids":[875,232,482,257,251,874,205,249],"players":{"257":{"name":"Cyril Lastimosa","short":"Cyril"},"482":{"name":"Dunstan Vella","short":"Dunstan"},"385":{"name":"Aaron Micallef Piccione","short":"Aaron"},"833":{"name":"Clinton Cutajar","short":"Clinton"},"676":{"name":"Roberta Fenech","short":"Roberta"},"677":{"name":"Sam Zammit","short":"Sam"},"232":{"name":"Cory Greenland","short":"Cory"},"488":{"name":"Sarah Axiaq","short":"Sarah"},"874":{"name":"Joseph Zammit","short":"Joseph"},"875":{"name":"Christan Xuereb","short":"Christan"},"205":{"name":"Manuel Mifsud","short":"Manuel"},"249":{"name":"Julian Esposito","short":"Julian"},"251":{"name":"David Camilleri","short":"David"}},"events":[{"match_id":11287,"date":"2025-01-01","tournament":"Sports Experience Chosen Doubles 2025","division":"Men Division 3 - Group B","team1":[482,257],"team2":[232,875],"winner":1,"is_tied":false,"score":"6-1 6-1","a_games":12,"b_games":2,"expected1":0.6671,"deltas":{"482":0.2751,"257":0.3794,"232":-0.7157,"875":-2.1774},"mu_pre":{"482":22.043,"257":32.51,"232":24.115,"875":25.0},"sigma_pre":{"482":4.156,"257":3.955,"232":4.628,"875":8.333},"new_player":{"482":false,"257":false,"232":false,"875":true},"upset":false},{"match_id":11290,"date":"2025-01-01","tournament":"Sports Experience Chosen Doubles 2025","division":"Men Division 3 - Group B","team1":[251,874],"team2":[232,875],"winner":2,"is_tied":false,"score":"1-6 3-6","a_games":4,"b_games":12,"expected1":0.2726,"deltas":{"251":-0.6124,"874":-0.3644,"232":0.7467,"875":1.0048},"mu_pre":{"251":18.433,"874":18.226,"232":23.301,"875":22.224},"sigma_pre":{"251":5.384,"874":7.99,"232":4.595,"875":8.134},"new_player":{"251":false,"874":true,"232":false,"875":true},"upset":false},{"match_id":11292,"date":"2025-01-01","tournament":"Sports Experience Chosen Doubles 2025","division":"Men Division 3 - Group B","team1":[205,249],"team2":[232,875],"winner":2,"is_tied":false,"score":"1-6 6-1 5-10","a_games":7,"b_games":7,"expected1":0.7063,"deltas":{"205":-0.0702,"249":-0.0825,"232":0.3829,"875":0.7816},"mu_pre":{"205":26.249,"249":27.666,"232":23.987,"875":22.878},"sigma_pre":{"205":4.983,"249":4.915,"232":4.575,"875":8.017},"new_player":{"205":false,"249":false,"232":false,"875":true},"upset":true},{"match_id":11294,"date":"2025-01-01","tournament":"Sports Experience Chosen Doubles 2025","division":"Men Division 3 - Group B","team1":[232,875],"team2":[385,833],"winner":1,"is_tied":false,"score":"6-2 6-2","a_games":12,"b_games":4,"expected1":0.706,"deltas":{"232":0.7218,"875":0.9275,"385":-0.582,"833":-0.5916},"mu_pre":{"232":24.278,"875":23.156,"385":18.401,"833":20.86},"sigma_pre":{"232":4.544,"875":7.849,"385":6.994,"833":7.85},"new_player":{"232":false,"875":true,"385":false,"833":true},"upset":false},{"match_id":11760,"date":"2025-05-01","tournament":"SAN MICHEL TEAM TOURNAMENT 2025","division":"Mixed B/A","team1":[875,676],"team2":[677,488],"winner":1,"is_tied":false,"score":"6-1 6-4","a_games":12,"b_games":5,"expected1":0.5947,"deltas":{"875":1.6692,"676":1.462,"677":-0.789,"488":-1.094},"mu_pre":{"875":23.792,"676":32.959,"677":27.796,"488":25.749},"sigma_pre":{"875":7.752,"676":3.318,"677":7.229,"488":4.564},"new_player":{"875":true,"676":false,"677":true,"488":false},"upset":false}],"series":{"875":[{"date":"2024-12-31","score":0.0},{"date":"2025-01-01","score":-2.1774},{"date":"2025-01-01","score":-1.1727},{"date":"2025-01-01","score":-0.3911},{"date":"2025-01-01","score":0.5364},{"date":"2025-05-01","score":2.2056}],"232":[{"date":"2024-12-31","score":10.2314},{"date":"2025-01-01","score":9.5157},{"date":"2025-01-01","score":10.2624},{"date":"2025-01-01","score":10.6453},{"date":"2025-01-01","score":11.3671},{"date":"2025-05-01","score":11.3671}],"482":[{"date":"2024-12-31","score":9.3358},{"date":"2025-01-01","score":9.8495},{"date":"2025-05-01","score":9.8495}],"257":[{"date":"2024-12-31","score":20.3638},{"date":"2025-01-01","score":21.0254},{"date":"2025-05-01","score":21.0254}],"251":[{"date":"2024-12-31","score":2.3351},{"date":"2025-01-01","score":1.6694},{"date":"2025-05-01","score":1.6694}],"874":[{"date":"2024-12-31","score":-6.2234},{"date":"2025-01-01","score":-6.1086},{"date":"2025-05-01","score":-6.1086}],"205":[{"date":"2024-12-31","score":10.778},{"date":"2025-01-01","score":11.2302},{"date":"2025-05-01","score":11.2302}],"249":[{"date":"2024-12-31","score":12.3944},{"date":"2025-01-01","score":12.8382},{"date":"2025-05-01","score":12.8382}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

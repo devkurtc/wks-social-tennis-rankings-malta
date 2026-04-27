@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Max Junior Anastasi — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Max Junior Anastasi</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #1053
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">19.88</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">8.21</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">-4.74</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">1</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">0</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">100%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">12-6</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">1W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">0</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">330</td><td class="cls">D3</td><td><a class="player-link" href="972.html">Mario Morales</a></td><td class="num">15.53</td><td class="num">6.68</td><td class="num"><strong>-4.52</strong></td><td class="num"><span class="loss">+0.22</span></td><td class="num">20</td><td class="num"><span class="win">3</span>-<span class="loss">17</span></td><td class="num">15%</td></tr><tr><td class="num">331</td><td class="cls">D1</td><td><a class="player-link" href="545.html">Jake Gatt</a></td><td class="num">15.92</td><td class="num">6.85</td><td class="num"><strong>-4.64</strong></td><td class="num"><span class="loss">+0.10</span></td><td class="num">15</td><td class="num"><span class="win">5</span>-<span class="loss">10</span></td><td class="num">33%</td></tr><tr><td class="num">332</td><td class="cls"></td><td><a class="player-link" href="876.html">Luke Gambin</a></td><td class="num">18.72</td><td class="num">7.80</td><td class="num"><strong>-4.68</strong></td><td class="num"><span class="loss">+0.06</span></td><td class="num">5</td><td class="num"><span class="win">4</span>-<span class="loss">1</span></td><td class="num">80%</td></tr><tr style="background:#22304a"><td class="num">333</td><td class="cls"></td><td><strong>Max Junior Anastasi</strong></td><td class="num">19.88</td><td class="num">8.21</td><td class="num"><strong>-4.74</strong></td><td class="num"><span class="muted">—</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">334</td><td class="cls"></td><td><a class="player-link" href="133.html">ZAMMIT ROBERT</a></td><td class="num">16.08</td><td class="num">6.96</td><td class="num"><strong>-4.80</strong></td><td class="num"><span class="win">-0.06</span></td><td class="num">11</td><td class="num"><span class="win">2</span>-<span class="loss">9</span></td><td class="num">18%</td></tr><tr><td class="num">335</td><td class="cls"></td><td><a class="player-link" href="35.html">Daryl John Ellul</a></td><td class="num">14.64</td><td class="num">6.52</td><td class="num"><strong>-4.94</strong></td><td class="num"><span class="win">-0.20</span></td><td class="num">16</td><td class="num"><span class="win">4</span>-<span class="loss">12</span></td><td class="num">25%</td></tr><tr><td class="num">336</td><td class="cls">C4</td><td><a class="player-link" href="679.html">Zammit Anthony</a></td><td class="num">18.81</td><td class="num">7.96</td><td class="num"><strong>-5.05</strong></td><td class="num"><span class="win">-0.31</span></td><td class="num">2</td><td class="num"><span class="win">0</span>-<span class="loss">2</span></td><td class="num">0%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  <p class="muted">Not enough rated matches to draw a trajectory.</p>
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2021</strong></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td><td class="num">12-6</td><td class="num">19.88 → 19.88</td><td class="num"><span class="muted">+0.00</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Max Junior Anastasi</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">0%</div><div class="muted" style="font-size:10px;">log-loss 1.150</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">0%</div><div class="muted" style="font-size:10px;">log-loss 0.948</div></div></div>
+
+  <h2 id="match-log" class="section-title">Match log (1)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="14995"><td class="expand-trigger" data-mid="14995">▶</td><td>2021-10-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021 2021</td><td class="muted">Men D semi-final</td><td><a class="player-link" href="603.html">Kenneth Caruana</a></td><td><a class="player-link" href="385.html">Aaron Micallef Piccione</a> / <a class="player-link" href="751.html">Franco Montesin</a></td><td class="score">6-3, 6-3</td><td class="num"><span class="win">W</span> 12-6</td><td class="num" data-sort="0.3876" title="Decay-365 said 39% chance of winning. Vanilla PL said 32%."><span class="muted">39%</span></td><td class="num">19.88<span class="rank-tag">#159</span></td><td class="num"></td><td class="num">8.21</td><td class="num"></td></tr><tr class="impact-row" data-mid="14995" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="385.html">Aaron Micallef Piccione</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #179</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -7.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="751.html">Franco Montesin</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#75 <span class="delta-dn">-18</span> = #93</span></div><div class="metric"><span class="k">Score</span><span>5.2 <span class="delta-dn">-1.50</span> = 3.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="602.html">Frans Ellul</a>, <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="262.html">Mavric Sawyer</a> + 13 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="603.html">Kenneth Caruana</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#176 <span class="delta-up">+11</span> = #165</span></div><div class="metric"><span class="k">Score</span><span>-7.8 <span class="delta-up">+2.11</span> = -5.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="263.html">Darrell Pace</a>, <a class="player-link" href="1093.html">Malcolm Pace</a>, <a class="player-link" href="369.html">Isaac Zammit</a>, <a class="player-link" href="400.html">Charles Sacco</a>, <a class="player-link" href="1169.html">Charles Sacco (Pro Daniel Magrin)</a> + 7 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1053.html">Max Junior Anastasi</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #159</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -4.7</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":1053,"focal_name":"Max Junior Anastasi","window_start":"2021-10-14","window_end":"2021-10-15","chart_pids":[1053,385,751,603],"players":{"385":{"name":"Aaron Micallef Piccione","short":"Aaron"},"603":{"name":"Kenneth Caruana","short":"Kenneth"},"1053":{"name":"Max Junior Anastasi","short":"Max"},"751":{"name":"Franco Montesin","short":"Franco"}},"events":[{"match_id":14995,"date":"2021-10-15","tournament":"Wilson Autumn Team Tournament 2021","division":"Men D","team1":[385,751],"team2":[603,1053],"winner":2,"is_tied":false,"score":"3-6 3-6","a_games":6,"b_games":12,"expected1":0.6665,"deltas":{"385":-7.8963,"751":-1.5041,"603":2.1127,"1053":-4.7395},"mu_pre":{"385":25.0,"751":23.966,"603":16.767,"1053":25.0},"sigma_pre":{"385":8.333,"751":6.254,"603":8.193,"1053":8.333},"new_player":{"385":true,"751":false,"603":true,"1053":true},"upset":true}],"series":{"1053":[{"date":"2021-10-14","score":0.0},{"date":"2021-10-15","score":-4.7395}],"385":[{"date":"2021-10-14","score":0.0},{"date":"2021-10-15","score":-7.8963}],"751":[{"date":"2021-10-14","score":5.2025},{"date":"2021-10-15","score":3.6984}],"603":[{"date":"2021-10-14","score":-7.8119},{"date":"2021-10-15","score":-5.6992}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

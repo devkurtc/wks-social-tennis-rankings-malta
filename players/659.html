@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Daryl Xuereb — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Daryl Xuereb</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #659
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">26.33</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">6.97</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">5.41</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">7</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">3</span>-<span class="loss">4</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">43%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">60-57</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="loss">3L</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">2</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">3</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b l">L*</span><span class="b l">L</span><span class="b l">L</span><span class="b w">W</span><span class="b l">L*</span><span class="b w">W</span><span class="b w">W</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">169</td><td class="cls">B4</td><td><a class="player-link" href="959.html">Paul Micallef</a></td><td class="num">25.70</td><td class="num">6.63</td><td class="num"><strong>5.82</strong></td><td class="num"><span class="loss">+0.42</span></td><td class="num">14</td><td class="num"><span class="win">3</span>-<span class="loss">11</span></td><td class="num">21%</td></tr><tr><td class="num">170</td><td class="cls"></td><td><a class="player-link" href="1133.html">David Mifsud (pro) Matthew Borg</a></td><td class="num">30.08</td><td class="num">8.09</td><td class="num"><strong>5.80</strong></td><td class="num"><span class="loss">+0.39</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">171</td><td class="cls">D2</td><td><a class="player-link" href="496.html">Chris Vella</a></td><td class="num">23.80</td><td class="num">6.01</td><td class="num"><strong>5.76</strong></td><td class="num"><span class="loss">+0.35</span></td><td class="num">29</td><td class="num"><span class="win">13</span>-<span class="loss">16</span></td><td class="num">45%</td></tr><tr style="background:#22304a"><td class="num">172</td><td class="cls">A4</td><td><strong>Daryl Xuereb</strong></td><td class="num">26.33</td><td class="num">6.97</td><td class="num"><strong>5.41</strong></td><td class="num"><span class="muted">—</span></td><td class="num">7</td><td class="num"><span class="win">3</span>-<span class="loss">4</span></td><td class="num">43%</td></tr><tr><td class="num">173</td><td class="cls"></td><td><a class="player-link" href="1240.html">ALAN LAW</a></td><td class="num">27.13</td><td class="num">7.26</td><td class="num"><strong>5.36</strong></td><td class="num"><span class="win">-0.04</span></td><td class="num">8</td><td class="num"><span class="win">5</span>-<span class="loss">3</span></td><td class="num">62%</td></tr><tr><td class="num">174</td><td class="cls">D3</td><td><a class="player-link" href="413.html">Andrew Spiteri</a></td><td class="num">23.29</td><td class="num">6.00</td><td class="num"><strong>5.28</strong></td><td class="num"><span class="win">-0.12</span></td><td class="num">28</td><td class="num"><span class="win">11</span>-<span class="loss">17</span></td><td class="num">39%</td></tr><tr><td class="num">175</td><td class="cls">B3</td><td><a class="player-link" href="741.html">Jean Paul Holland</a></td><td class="num">29.51</td><td class="num">8.09</td><td class="num"><strong>5.24</strong></td><td class="num"><span class="win">-0.16</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="238.8" x2="904" y2="238.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="241.8" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="196.4" x2="904" y2="196.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="199.4" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="153.9" x2="904" y2="153.9" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="156.9" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="111.4" x2="904" y2="111.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="114.4" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="69.0" x2="904" y2="69.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="72.0" text-anchor="end" fill="#8b96a8" font-size="10">25</text><line x1="50" y1="26.5" x2="904" y2="26.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="29.5" text-anchor="end" fill="#8b96a8" font-size="10">30</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2024</text><line x1="904.0" y1="14" x2="904.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="904.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2025</text>
+  <polyline points="50.0,241.5 220.8,234.5 391.6,233.0 562.4,222.3 733.2,226.2 904.0,235.4" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,69.0 220.8,83.6 391.6,122.9 562.4,141.9 733.2,165.0 904.0,195.0" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,34.6 220.8,31.0 391.6,38.6 562.4,32.2 733.2,41.5 904.0,57.7" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">6.5</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.5</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2024</strong></td><td class="num">5</td><td class="num"><span class="win">3</span>-<span class="loss">2</span></td><td class="num">60%</td><td class="num">52-35</td><td class="num">29.05 → 28.23</td><td class="num"><span class="loss">-0.82</span></td></tr><tr><td><strong>2025</strong></td><td class="num">2</td><td class="num"><span class="win">0</span>-<span class="loss">2</span></td><td class="num">0%</td><td class="num">8-22</td><td class="num">26.33 → 26.33</td><td class="num"><span class="muted">+0.00</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2024-12-01</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024</td><td><a class="player-link" href="518.html">James Farrugia</a></td><td><a class="player-link" href="934.html">Eric Micallef</a> / <a class="player-link" href="257.html">Cyril Lastimosa</a></td><td class="score">6-1, 6-0</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+0.74</span></td></tr><tr><td>2024-11-03</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024</td><td><a class="player-link" href="473.html">Cristian Andreozzi</a></td><td><a class="player-link" href="73.html">Vella Lydon</a> / <a class="player-link" href="665.html">Lawrence Micallef</a></td><td class="score">6-2, 7-5 <span class='muted'>(TB)</span></td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+0.42</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2025-04-27</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2025</td><td><a class="player-link" href="532.html">Adrian Chetcuti</a></td><td><a class="player-link" href="534.html">Adrian Manduca</a> / <a class="player-link" href="663.html">David Mifsud</a></td><td class="score">2-6, 6-4</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-1.91</span></td></tr><tr><td>2024-12-07</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024</td><td><a class="player-link" href="518.html">James Farrugia</a></td><td><a class="player-link" href="539.html">Chi Chi Canonce</a> / <a class="player-link" href="257.html">Cyril Lastimosa</a></td><td class="score">3-6, 2-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.09</span></td></tr><tr><td>2024-11-17</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024</td><td><a class="player-link" href="473.html">Cristian Andreozzi</a></td><td><a class="player-link" href="378.html">Ivan Cachia</a> / <a class="player-link" href="384.html">Willem Steenkamer</a></td><td class="score">4-6, 6-4</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-0.89</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Daryl Xuereb</td><td class="muted">—</td><td class="muted">(canonical)</td></tr><tr><td>XUEREB DARYL</td><td class="muted">2026-04-26</td><td class="muted">BAY STREET TEAM TOURNAMENT 2024.xlsx</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td><span class="tag">id #1260</span> XUEREB DARYL</td><td class="muted">2026-04-26</td><td>token-equivalent of &#x27;Daryl Xuereb&#x27;</td><td><a href="../aliases.html#m-412" title="Permalink in mapping log">#412 ↗</a></td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2025</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2025</td><td>Team B</td><td class="muted">DEBONO DIANE</td><td class="cls">A4</td></tr><tr><td>2025</td><td><span class="tag">tck</span> SAN MICHEL TEAM TOURNAMENT 2025</td><td>Team B</td><td class="muted">DEBONO DIANE</td><td class="cls">A4</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">80%</div><div class="muted" style="font-size:10px;">log-loss 0.465</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">80%</div><div class="muted" style="font-size:10px;">log-loss 0.524</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2024-12-07 vs BAY STREET TEAM TOURNAMENT 2024 — Vanilla PL said 25%, Decay said 52% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (7)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="11754"><td class="expand-trigger" data-mid="11754">▶</td><td>2025-04-27</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2025 2025</td><td class="muted">Men A day 1</td><td><a class="player-link" href="532.html">Adrian Chetcuti</a></td><td><a class="player-link" href="534.html">Adrian Manduca</a> / <a class="player-link" href="663.html">David Mifsud</a></td><td class="score">2-6, 6-4</td><td class="num"><span class="loss">L (g)</span> 8-10</td><td class="num" data-sort="0.4973" title="Decay-365 said 50% chance of winning. Vanilla PL said 69%."><span class="muted">50%</span></td><td class="num">26.33<span class="rank-tag">#159</span></td><td class="num"><span class="loss">-1.91</span></td><td class="num">6.97</td><td class="num"><span class="muted">-0.27</span></td></tr><tr class="impact-row" data-mid="11754" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="534.html">Adrian Manduca</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#55 <span class="delta-up">+10</span> = #45</span></div><div class="metric"><span class="k">Score</span><span>14.9 <span class="delta-up">+1.58</span> = 16.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="518.html">James Farrugia</a>, <a class="player-link" href="240.html">Kurt Carabott</a>, <a class="player-link" href="230.html">Jonathan Vella</a> + 5 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="663.html">David Mifsud</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#57 <span class="delta-up">+7</span> = #50</span></div><div class="metric"><span class="k">Score</span><span>14.7 <span class="delta-up">+1.33</span> = 16.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="240.html">Kurt Carabott</a>, <a class="player-link" href="223.html">Kristen Cachia</a> + 2 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="532.html">Adrian Chetcuti</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#13 <span class="delta-dn">-8</span> = #21</span></div><div class="metric"><span class="k">Score</span><span>23.3 <span class="delta-dn">-2.19</span> = 21.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="273.html">John Azzopardi</a>, <a class="player-link" href="945.html">Richard Byrne</a>, <a class="player-link" href="256.html">Keith Micallef</a>, <a class="player-link" href="732.html">Nicholas Gollcher</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#143 <span class="delta-dn">-16</span> = #159</span></div><div class="metric"><span class="k">Score</span><span>6.5 <span class="delta-dn">-1.09</span> = 5.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="368.html">Mario Abdilla</a>, <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="934.html">Eric Micallef</a>, <a class="player-link" href="261.html">Charles Micallef</a> + 11 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11751"><td class="expand-trigger" data-mid="11751">▶</td><td>2025-04-24</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2025 2025</td><td class="muted">Singles day 1</td><td><span class="muted">—</span></td><td><a class="player-link" href="272.html">Matthew Mifsud</a></td><td class="score">0-6, 0-6</td><td class="num"><span class="loss">L</span> 0-12</td><td class="num muted" data-sort="-1">—</td><td class="num"><span class="muted">—</span><span class="rank-tag">#144</span></td><td class="num"></td><td class="num"><span class="muted">—</span></td><td class="num"></td></tr><tr class="impact-row" data-mid="11751" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="272.html">Matthew Mifsud</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#6 <span class="delta-z">±0</span> = #6</span></div><div class="metric"><span class="k">Score</span><span>30.7 <span class="delta-z">±0</span> = 30.7</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#144 <span class="delta-z">±0</span> = #144</span></div><div class="metric"><span class="k">Score</span><span>6.5 <span class="delta-z">±0</span> = 6.5</span></div></div></div></div></td></tr><tr class="match-row" data-mid="13879"><td class="expand-trigger" data-mid="13879">▶</td><td>2024-12-07</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024 2024</td><td class="muted">Men B final</td><td><a class="player-link" href="518.html">James Farrugia</a></td><td><a class="player-link" href="539.html">Chi Chi Canonce</a> / <a class="player-link" href="257.html">Cyril Lastimosa</a></td><td class="score">3-6, 2-6</td><td class="num"><span class="loss">L</span> 5-12</td><td class="num" data-sort="0.5243" title="Decay-365 said 52% chance of winning. Vanilla PL said 25%."><span class="muted">52%</span></td><td class="num">28.23<span class="rank-tag">#128</span></td><td class="num"><span class="loss">-1.09</span></td><td class="num">7.25</td><td class="num"><span class="muted">-0.21</span></td></tr><tr class="impact-row" data-mid="13879" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="539.html">Chi Chi Canonce</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#21 <span class="delta-up">+1</span> = #20</span></div><div class="metric"><span class="k">Score</span><span>20.3 <span class="delta-up">+0.62</span> = 20.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="256.html">Keith Micallef</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="257.html">Cyril Lastimosa</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#23 <span class="delta-up">+1</span> = #22</span></div><div class="metric"><span class="k">Score</span><span>19.8 <span class="delta-up">+0.56</span> = 20.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="711.html">Gareth Magri</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#119 <span class="delta-dn">-9</span> = #128</span></div><div class="metric"><span class="k">Score</span><span>6.9 <span class="delta-dn">-0.46</span> = 6.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="1092.html">Owen Scicluna</a>, <a class="player-link" href="207.html">Sebastian Attard</a>, <a class="player-link" href="830.html">Tobias Kristensen</a>, <a class="player-link" href="1182.html">Keith Micallef (pro) Jesmond Pule,</a> + 4 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="518.html">James Farrugia</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#38 <span class="delta-dn">-4</span> = #42</span></div><div class="metric"><span class="k">Score</span><span>17.1 <span class="delta-dn">-1.01</span> = 16.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="944.html">Dave Elden</a>, <a class="player-link" href="924.html">Jack Steenkamer</a>, <a class="player-link" href="473.html">Cristian Andreozzi</a>, <a class="player-link" href="890.html">SULTANA GLEN</a></div></div></div></div></td></tr><tr class="match-row" data-mid="13871"><td class="expand-trigger" data-mid="13871">▶</td><td>2024-12-01</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024 2024</td><td class="muted">Men B day 6</td><td><a class="player-link" href="518.html">James Farrugia</a></td><td><a class="player-link" href="934.html">Eric Micallef</a> / <a class="player-link" href="257.html">Cyril Lastimosa</a></td><td class="score">6-1, 6-0</td><td class="num"><span class="win">W</span> 12-1</td><td class="num" data-sort="0.5853" title="Decay-365 said 59% chance of winning. Vanilla PL said 56%."><span class="muted">59%</span></td><td class="num">29.32<span class="rank-tag">#118</span></td><td class="num"><span class="win">+0.74</span></td><td class="num">7.46</td><td class="num"><span class="muted">-0.17</span></td></tr><tr class="impact-row" data-mid="13871" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="934.html">Eric Micallef</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#131 <span class="delta-dn">-3</span> = #134</span></div><div class="metric"><span class="k">Score</span><span>6.1 <span class="delta-dn">-0.18</span> = 5.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1112.html">Claude M. Wismayer</a>, <a class="player-link" href="1137.html">Ivan Cachia (pro) Matthew Borg</a>, <a class="player-link" href="659.html">Daryl Xuereb</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="257.html">Cyril Lastimosa</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#23 <span class="delta-z">±0</span> = #23</span></div><div class="metric"><span class="k">Score</span><span>20.1 <span class="delta-dn">-0.35</span> = 19.8</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#137 <span class="delta-up">+19</span> = #118</span></div><div class="metric"><span class="k">Score</span><span>5.7 <span class="delta-up">+1.26</span> = 6.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="934.html">Eric Micallef</a>, <a class="player-link" href="1092.html">Owen Scicluna</a> + 14 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="518.html">James Farrugia</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#41 <span class="delta-up">+3</span> = #38</span></div><div class="metric"><span class="k">Score</span><span>16.2 <span class="delta-up">+0.94</span> = 17.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="944.html">Dave Elden</a>, <a class="player-link" href="924.html">Jack Steenkamer</a>, <a class="player-link" href="473.html">Cristian Andreozzi</a></div></div></div></div></td></tr><tr class="match-row" data-mid="13837"><td class="expand-trigger" data-mid="13837">▶</td><td>2024-11-17</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024 2024</td><td class="muted">Men B day 4</td><td><a class="player-link" href="473.html">Cristian Andreozzi</a></td><td><a class="player-link" href="378.html">Ivan Cachia</a> / <a class="player-link" href="384.html">Willem Steenkamer</a></td><td class="score">4-6, 6-4</td><td class="num"><span class="loss">L (g)</span> 10-10</td><td class="num muted" data-sort="-1">—</td><td class="num">28.58<span class="rank-tag">#135</span></td><td class="num"><span class="loss">-0.89</span></td><td class="num">7.63</td><td class="num"><span class="muted">-0.36</span></td></tr><tr class="impact-row" data-mid="13837" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="378.html">Ivan Cachia</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#48 <span class="delta-up">+1</span> = #47</span></div><div class="metric"><span class="k">Score</span><span>14.9 <span class="delta-up">+0.29</span> = 15.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="605.html">Claude Mifsud Wismayer</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="384.html">Willem Steenkamer</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#49 <span class="delta-up">+1</span> = #48</span></div><div class="metric"><span class="k">Score</span><span>14.9 <span class="delta-up">+0.29</span> = 15.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="605.html">Claude Mifsud Wismayer</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="473.html">Cristian Andreozzi</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#32 <span class="delta-dn">-6</span> = #38</span></div><div class="metric"><span class="k">Score</span><span>17.5 <span class="delta-dn">-0.75</span> = 16.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="944.html">Dave Elden</a>, <a class="player-link" href="228.html">Nikolai Belli</a>, <a class="player-link" href="954.html">Eugene Debono</a>, <a class="player-link" href="222.html">David Schembri</a>, <a class="player-link" href="116.html">FARRUGIA JAMES-2</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#137 <span class="delta-up">+2</span> = #135</span></div><div class="metric"><span class="k">Score</span><span>5.5 <span class="delta-up">+0.18</span> = 5.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="934.html">Eric Micallef</a></div></div></div></div></td></tr><tr class="match-row" data-mid="13805"><td class="expand-trigger" data-mid="13805">▶</td><td>2024-11-03</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024 2024</td><td class="muted">Men B day 2</td><td><a class="player-link" href="473.html">Cristian Andreozzi</a></td><td><a class="player-link" href="73.html">Vella Lydon</a> / <a class="player-link" href="665.html">Lawrence Micallef</a></td><td class="score">6-2, 7-5 <span class='muted'>(TB)</span></td><td class="num"><span class="win">W</span> 13-7</td><td class="num" data-sort="0.7107" title="Decay-365 said 71% chance of winning. Vanilla PL said 96%."><span class="win">71%</span></td><td class="num">29.47<span class="rank-tag">#135</span></td><td class="num"><span class="win">+0.42</span></td><td class="num">7.99</td><td class="num"><span class="muted">-0.13</span></td></tr><tr class="impact-row" data-mid="13805" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="473.html">Cristian Andreozzi</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#27 <span class="delta-up">+1</span> = #26</span></div><div class="metric"><span class="k">Score</span><span>17.9 <span class="delta-up">+0.54</span> = 18.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="234.html">Victor Rutter</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#152 <span class="delta-up">+17</span> = #135</span></div><div class="metric"><span class="k">Score</span><span>4.7 <span class="delta-up">+0.82</span> = 5.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="1074.html">Antoine Muscat</a>, <a class="player-link" href="199.html">Ray Ciantar</a>, <a class="player-link" href="1077.html">Etienne Micallef</a>, <a class="player-link" href="1079.html">Ian Gusman</a> + 12 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="73.html">Vella Lydon</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#238 <span class="delta-dn">-2</span> = #240</span></div><div class="metric"><span class="k">Score</span><span>-2.9 <span class="delta-dn">-0.11</span> = -3.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="262.html">Mavric Sawyer</a>, <a class="player-link" href="1089.html">Omar Debono</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="665.html">Lawrence Micallef</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#116 <span class="delta-dn">-7</span> = #123</span></div><div class="metric"><span class="k">Score</span><span>7.0 <span class="delta-dn">-0.25</span> = 6.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="1092.html">Owen Scicluna</a>, <a class="player-link" href="830.html">Tobias Kristensen</a>, <a class="player-link" href="1182.html">Keith Micallef (pro) Jesmond Pule,</a>, <a class="player-link" href="1003.html">Andrew SpiteriWillets</a> + 2 more</div></div></div></div></td></tr><tr class="match-row" data-mid="13802"><td class="expand-trigger" data-mid="13802">▶</td><td>2024-10-27</td><td><span class="tag">tck</span> BAY STREET TEAM TOURNAMENT 2024 2024</td><td class="muted">Men B day 1</td><td><a class="player-link" href="518.html">James Farrugia</a></td><td><a class="player-link" href="223.html">Kristen Cachia</a> / <a class="player-link" href="27.html">Vella Jeanpaul</a></td><td class="score">6-1, 6-4</td><td class="num"><span class="win">W</span> 12-5</td><td class="num" data-sort="0.7320" title="Decay-365 said 73% chance of winning. Vanilla PL said 78%."><span class="win">73%</span></td><td class="num">29.05<span class="rank-tag">#150</span></td><td class="num"></td><td class="num">8.12</td><td class="num"></td></tr><tr class="impact-row" data-mid="13802" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="223.html">Kristen Cachia</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#39 <span class="delta-dn">-4</span> = #43</span></div><div class="metric"><span class="k">Score</span><span>16.4 <span class="delta-dn">-0.72</span> = 15.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="518.html">James Farrugia</a>, <a class="player-link" href="534.html">Adrian Manduca</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="27.html">Vella Jeanpaul</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#163 <span class="delta-dn">-5</span> = #168</span></div><div class="metric"><span class="k">Score</span><span>3.5 <span class="delta-dn">-0.38</span> = 3.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="620.html">Anthony Pule&#x27;</a>, <a class="player-link" href="1007.html">Silvan Gauci</a>, <a class="player-link" href="62.html">Degiorgio Matthew</a>, <a class="player-link" href="655.html">ANASTAZI MAX</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="518.html">James Farrugia</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#45 <span class="delta-up">+7</span> = #38</span></div><div class="metric"><span class="k">Score</span><span>15.4 <span class="delta-up">+1.29</span> = 16.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="924.html">Jack Steenkamer</a>, <a class="player-link" href="223.html">Kristen Cachia</a>, <a class="player-link" href="16.html">Baldacchino Luke</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="659.html">Daryl Xuereb</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #150</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 4.7</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":659,"focal_name":"Daryl Xuereb","window_start":"2024-10-26","window_end":"2025-04-27","chart_pids":[659,518,473,257,223,27,73,665],"players":{"384":{"name":"Willem Steenkamer","short":"Willem"},"257":{"name":"Cyril Lastimosa","short":"Cyril"},"518":{"name":"James Farrugia","short":"James"},"934":{"name":"Eric Micallef","short":"Eric"},"73":{"name":"Vella Lydon","short":"Vella L."},"272":{"name":"Matthew Mifsud","short":"Matthew"},"665":{"name":"Lawrence Micallef","short":"Lawrence"},"659":{"name":"Daryl Xuereb","short":"Daryl"},"532":{"name":"Adrian Chetcuti","short":"Adrian C."},"534":{"name":"Adrian Manduca","short":"Adrian M."},"663":{"name":"David Mifsud","short":"David"},"539":{"name":"Chi Chi Canonce","short":"Chi"},"473":{"name":"Cristian Andreozzi","short":"Cristian"},"378":{"name":"Ivan Cachia","short":"Ivan"},"27":{"name":"Vella Jeanpaul","short":"Vella J."},"223":{"name":"Kristen Cachia","short":"Kristen"}},"events":[{"match_id":13802,"date":"2024-10-27","tournament":"BAY STREET TEAM TOURNAMENT 2024","division":"Men B","team1":[223,27],"team2":[518,659],"winner":2,"is_tied":false,"score":"1-6 4-6","a_games":5,"b_games":12,"expected1":0.4039,"deltas":{"223":-0.7235,"27":-0.3785,"518":1.2886,"659":4.6859},"mu_pre":{"223":28.896,"27":23.384,"518":30.646,"659":25.0},"sigma_pre":{"223":4.154,"27":6.645,"518":5.078,"659":8.333},"new_player":{"223":false,"27":false,"518":false,"659":true},"upset":false},{"match_id":13805,"date":"2024-11-03","tournament":"BAY STREET TEAM TOURNAMENT 2024","division":"Men B","team1":[473,659],"team2":[73,665],"winner":1,"is_tied":false,"score":"6-2 7-5","a_games":13,"b_games":7,"expected1":0.9845,"deltas":{"473":0.5399,"659":0.8213,"73":-0.1063,"665":-0.2468},"mu_pre":{"473":32.048,"659":29.05,"73":12.508,"665":20.481},"sigma_pre":{"473":4.719,"659":8.121,"73":5.146,"665":4.507},"new_player":{"473":false,"659":true,"73":false,"665":false},"upset":false},{"match_id":13837,"date":"2024-11-17","tournament":"BAY STREET TEAM TOURNAMENT 2024","division":"Men B","team1":[378,384],"team2":[473,659],"winner":0,"is_tied":true,"score":"6-4 4-6","a_games":10,"b_games":10,"expected1":0.1873,"deltas":{"378":0.2892,"384":0.2942,"473":-0.7454,"659":0.1804},"mu_pre":{"378":25.007,"384":25.218,"473":31.382,"659":29.471},"sigma_pre":{"378":3.38,"384":3.454,"473":4.628,"659":7.988},"new_player":{"378":false,"384":false,"473":false,"659":true},"upset":false},{"match_id":13871,"date":"2024-12-01","tournament":"BAY STREET TEAM TOURNAMENT 2024","division":"Men B","team1":[934,257],"team2":[659,518],"winner":2,"is_tied":false,"score":"1-6 0-6","a_games":1,"b_games":12,"expected1":0.2311,"deltas":{"934":-0.1752,"257":-0.3455,"659":1.2622,"518":0.9416},"mu_pre":{"934":18.298,"257":32.218,"659":28.58,"518":30.94},"sigma_pre":{"934":4.061,"257":4.024,"659":7.631,"518":4.928},"new_player":{"934":false,"257":false,"659":true,"518":false},"upset":false},{"match_id":13879,"date":"2024-12-07","tournament":"BAY STREET TEAM TOURNAMENT 2024","division":"Men B","team1":[539,257],"team2":[659,518],"winner":1,"is_tied":false,"score":"6-3 6-2","a_games":12,"b_games":5,"expected1":0.6421,"deltas":{"539":0.6191,"257":0.5638,"659":-0.4585,"518":-1.0058},"mu_pre":{"539":33.703,"257":31.827,"659":29.323,"518":31.745},"sigma_pre":{"539":4.473,"257":4.009,"659":7.458,"518":4.882},"new_player":{"539":false,"257":false,"659":true,"518":false},"upset":false},{"match_id":11751,"date":"2025-04-24","tournament":"SAN MICHEL TEAM TOURNAMENT 2025","division":"Singles","team1":[272],"team2":[659],"winner":1,"is_tied":false,"score":"6-0 6-0","a_games":12,"b_games":0,"expected1":0.9201,"deltas":{"272":0.0,"659":0.0},"mu_pre":{"272":42.475,"659":28.233},"sigma_pre":{"272":3.93,"659":7.247},"new_player":{"272":false,"659":true},"upset":false},{"match_id":11754,"date":"2025-04-27","tournament":"SAN MICHEL TEAM TOURNAMENT 2025","division":"Men A","team1":[534,663],"team2":[532,659],"winner":1,"is_tied":true,"score":"6-2 4-6","a_games":10,"b_games":8,"expected1":0.317,"deltas":{"534":1.5753,"663":1.3279,"532":-2.1886,"659":-1.0857},"mu_pre":{"534":29.793,"663":26.537,"532":33.722,"659":28.233},"sigma_pre":{"534":4.979,"663":3.937,"532":3.485,"659":7.247},"new_player":{"534":false,"663":false,"532":false,"659":true},"upset":true}],"series":{"659":[{"date":"2024-10-26","score":0.0},{"date":"2024-10-27","score":4.6859},{"date":"2024-11-03","score":5.5072},{"date":"2024-11-17","score":5.6875},{"date":"2024-12-01","score":6.9497},{"date":"2024-12-07","score":6.4912},{"date":"2025-04-24","score":6.4912},{"date":"2025-04-27","score":5.4055}],"518":[{"date":"2024-10-26","score":15.4116},{"date":"2024-10-27","score":16.7001},{"date":"2024-12-01","score":17.0975},{"date":"2024-12-07","score":16.0917},{"date":"2025-04-27","score":16.0917}],"473":[{"date":"2024-10-26","score":17.8909},{"date":"2024-11-03","score":18.4308},{"date":"2024-11-17","score":16.7532},{"date":"2025-04-27","score":16.7532}],"257":[{"date":"2024-10-26","score":17.2675},{"date":"2024-12-01","score":19.7999},{"date":"2024-12-07","score":20.3638},{"date":"2025-04-27","score":20.3638}],"223":[{"date":"2024-10-26","score":16.4351},{"date":"2024-10-27","score":15.7116},{"date":"2025-04-27","score":15.7116}],"27":[{"date":"2024-10-26","score":3.4503},{"date":"2024-10-27","score":3.0717},{"date":"2025-04-27","score":3.0717}],"73":[{"date":"2024-10-26","score":-3.2109},{"date":"2024-11-03","score":-3.0374},{"date":"2025-04-27","score":-3.0374}],"665":[{"date":"2024-10-26","score":6.9589},{"date":"2024-11-03","score":6.7121},{"date":"2025-04-27","score":6.7121}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

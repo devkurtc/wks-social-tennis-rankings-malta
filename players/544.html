@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Karl Azzopardi — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-">Karl Azzopardi</div>
+      <div class="meta">
+        Unknown gender &middot;
+        Player ID #544
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">22.74</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.59</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">-0.02</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">5</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">4</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">20%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">34-44</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="loss">1L</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">3</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b l">L</span><span class="b w">W</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">495</td><td class="cls"></td><td><a class="player-link" href="503.html">Sammy Ben Tamer</a></td><td class="num">20.72</td><td class="num">6.85</td><td class="num"><strong>0.16</strong></td><td class="num"><span class="loss">+0.18</span></td><td class="num">17</td><td class="num"><span class="win">6</span>-<span class="loss">11</span></td><td class="num">35%</td></tr><tr><td class="num">496</td><td class="cls"></td><td><a class="player-link" href="812.html">Matthias Scihira</a></td><td class="num">24.49</td><td class="num">8.11</td><td class="num"><strong>0.15</strong></td><td class="num"><span class="loss">+0.18</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">497</td><td class="cls">B3</td><td><a class="player-link" href="836.html">Sandro Pecorella</a></td><td class="num">21.64</td><td class="num">7.21</td><td class="num"><strong>0.01</strong></td><td class="num"><span class="loss">+0.03</span></td><td class="num">5</td><td class="num"><span class="win">0</span>-<span class="loss">5</span></td><td class="num">0%</td></tr><tr style="background:#22304a"><td class="num">498</td><td class="cls"></td><td><strong>Karl Azzopardi</strong></td><td class="num">22.74</td><td class="num">7.59</td><td class="num"><strong>-0.02</strong></td><td class="num"><span class="muted">—</span></td><td class="num">5</td><td class="num"><span class="win">1</span>-<span class="loss">4</span></td><td class="num">20%</td></tr><tr><td class="num">499</td><td class="cls"></td><td><a class="player-link" href="800.html">Brenda Baldacchino (pro Anthea Gauci)</a></td><td class="num">23.97</td><td class="num">8.08</td><td class="num"><strong>-0.27</strong></td><td class="num"><span class="win">-0.25</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">500</td><td class="cls"></td><td><a class="player-link" href="1021.html">Jesmond Cachia (pro) John Sciberras</a></td><td class="num">24.26</td><td class="num">8.18</td><td class="num"><strong>-0.28</strong></td><td class="num"><span class="win">-0.26</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">501</td><td class="cls">D2</td><td><a class="player-link" href="620.html">Anthony Pule&#x27;</a></td><td class="num">20.81</td><td class="num">7.04</td><td class="num"><strong>-0.32</strong></td><td class="num"><span class="win">-0.30</span></td><td class="num">12</td><td class="num"><span class="win">5</span>-<span class="loss">7</span></td><td class="num">42%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="212.2" x2="904" y2="212.2" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="215.2" text-anchor="end" fill="#8b96a8" font-size="10">0</text><line x1="50" y1="172.8" x2="904" y2="172.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="175.8" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="133.4" x2="904" y2="133.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="136.4" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="94.0" x2="904" y2="94.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="97.0" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="54.6" x2="904" y2="54.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="57.6" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="15.2" x2="904" y2="15.2" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="18.2" text-anchor="end" fill="#8b96a8" font-size="10">25</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2023</text>
+  <polyline points="50.0,222.1 263.5,236.7 477.0,242.1 690.5,225.3 904.0,212.4" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,90.4 263.5,116.2 477.0,134.4 690.5,154.3 904.0,173.6" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,29.8 263.5,48.3 477.0,56.6 690.5,42.8 904.0,32.9" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">7.1</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.9</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2023</strong></td><td class="num">5</td><td class="num"><span class="win">1</span>-<span class="loss">4</span></td><td class="num">20%</td><td class="num">34-44</td><td class="num">23.15 → 22.74</td><td class="num"><span class="loss">-0.40</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023</td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="489.html">Matthew Micallef</a> / <a class="player-link" href="490.html">Josette D&#x27;Alessandro</a></td><td class="score">6-0, 6-0</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+1.75</span></td></tr><tr><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023</td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="545.html">Jake Gatt</a> / <a class="player-link" href="546.html">Nicole Lia</a></td><td class="score">6-2, 4-6, 5-10 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span></td><td class="num"><span class="win">+1.25</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023</td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="206.html">Ryan Ebejer</a> / <a class="player-link" href="485.html">Sophia Re</a></td><td class="score">3-6, 2-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-2.35</span></td></tr><tr><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023</td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="482.html">Dunstan Vella</a> / <a class="player-link" href="279.html">Heidi Tabone</a></td><td class="score">3-6, 2-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.05</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Karl Azzopardi</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">40%</div><div class="muted" style="font-size:10px;">log-loss 0.720</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">60%</div><div class="muted" style="font-size:10px;">log-loss 0.841</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2023-01-01 vs Elektra Mixed Doubles 2023 — Vanilla PL said 14%, Decay said 48% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (5)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="14359"><td class="expand-trigger" data-mid="14359">▶</td><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023 2023</td><td class="muted">Division 5 - Group B </td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="545.html">Jake Gatt</a> / <a class="player-link" href="546.html">Nicole Lia</a></td><td class="score">6-2, 4-6, 5-10 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span> 10-8</td><td class="num" data-sort="0.7298" title="Decay-365 said 73% chance of winning. Vanilla PL said 71%."><span class="loss">73%</span></td><td class="num">22.74<span class="rank-tag">#14</span></td><td class="num"><span class="win">+1.25</span></td><td class="num">7.59</td><td class="num"><span class="muted">-0.13</span></td></tr><tr class="impact-row" data-mid="14359" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="544.html">Karl Azzopardi</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#21 <span class="delta-up">+7</span> = #14</span></div><div class="metric"><span class="k">Score</span><span>-1.7 <span class="delta-up">+1.63</span> = -0.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1067.html">Matthias Nasbaum</a>, <a class="player-link" href="1101.html">Mattias Nasbaum</a>, <a class="player-link" href="1110.html">Michela Di Giorgio (pro) Josette Cassar</a>, <a class="player-link" href="1116.html">Matthew Schembri (pro)</a>, <a class="player-link" href="1048.html">Charles Sacco (pro) Roberto Murdocca</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="512.html">Dawn Azzopardi</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#141 <span class="delta-up">+16</span> = #125</span></div><div class="metric"><span class="k">Score</span><span>-1.7 <span class="delta-up">+1.63</span> = -0.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="921.html">Audrey Friggieri</a>, <a class="player-link" href="216.html">Christine Scerri</a>, <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="988.html">Grace Barbara</a>, <a class="player-link" href="1107.html">Rose Falzon (pro) Mary Borg</a> + 11 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="545.html">Jake Gatt</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#188 <span class="delta-dn">-8</span> = #196</span></div><div class="metric"><span class="k">Score</span><span>-3.9 <span class="delta-dn">-0.77</span> = -4.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1063.html">Ralph Bahmuller</a>, <a class="player-link" href="972.html">Mario Morales</a>, <a class="player-link" href="1086.html">Silvio Gusman</a>, <a class="player-link" href="470.html">Gene Zammit</a>, <a class="player-link" href="943.html">Marcus Mamo</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="546.html">Nicole Lia</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#150 <span class="delta-dn">-5</span> = #155</span></div><div class="metric"><span class="k">Score</span><span>-3.4 <span class="delta-dn">-0.83</span> = -4.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="979.html">Joyce Xerri</a>, <a class="player-link" href="1172.html">Ben Fenech</a>, <a class="player-link" href="996.html">Marcelle Borg</a>, <a class="player-link" href="1042.html">Yvette Rutter</a></div></div></div></div></td></tr><tr class="match-row" data-mid="14356"><td class="expand-trigger" data-mid="14356">▶</td><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023 2023</td><td class="muted">Division 5 - Group B </td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="489.html">Matthew Micallef</a> / <a class="player-link" href="490.html">Josette D&#x27;Alessandro</a></td><td class="score">6-0, 6-0</td><td class="num"><span class="win">W</span> 12-0</td><td class="num" data-sort="0.5863" title="Decay-365 said 59% chance of winning. Vanilla PL said 47%."><span class="muted">59%</span></td><td class="num">21.49<span class="rank-tag">#21</span></td><td class="num"><span class="win">+1.75</span></td><td class="num">7.72</td><td class="num"><span class="muted">-0.13</span></td></tr><tr class="impact-row" data-mid="14356" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="489.html">Matthew Micallef</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#174 <span class="delta-dn">-10</span> = #184</span></div><div class="metric"><span class="k">Score</span><span>-2.3 <span class="delta-dn">-1.09</span> = -3.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1089.html">Omar Debono</a>, <a class="player-link" href="1097.html">Frank Camilleri</a>, <a class="player-link" href="1035.html">Shawn Roderick Sciberras</a>, <a class="player-link" href="400.html">Charles Sacco</a>, <a class="player-link" href="1162.html">Twanny Pule&#x27; (Pro Neville Cassar)</a> + 5 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="490.html">Josette D&#x27;Alessandro</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#102 <span class="delta-dn">-11</span> = #113</span></div><div class="metric"><span class="k">Score</span><span>2.8 <span class="delta-dn">-1.27</span> = 1.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="399.html">Deborah Farrugia</a>, <a class="player-link" href="244.html">Brenda Baldacchino</a>, <a class="player-link" href="1105.html">Yanika Gusman</a>, <a class="player-link" href="1149.html">Mona Camilleri</a>, <a class="player-link" href="1155.html">Diane Debono (pro) Annabelle Abela</a> + 6 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="544.html">Karl Azzopardi</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#21 <span class="delta-z">±0</span> = #21</span></div><div class="metric"><span class="k">Score</span><span>-3.8 <span class="delta-up">+2.14</span> = -1.7</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="512.html">Dawn Azzopardi</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#152 <span class="delta-up">+11</span> = #141</span></div><div class="metric"><span class="k">Score</span><span>-3.8 <span class="delta-up">+2.14</span> = -1.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="1080.html">Marcon Gusman</a>, <a class="player-link" href="1083.html">Yanica Gusman</a>, <a class="player-link" href="1166.html">Rose Ann Portellin(Pro Mary Ciantar)</a>, <a class="player-link" href="1172.html">Ben Fenech</a> + 6 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14355"><td class="expand-trigger" data-mid="14355">▶</td><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023 2023</td><td class="muted">Division 5 - Group B </td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="482.html">Dunstan Vella</a> / <a class="player-link" href="279.html">Heidi Tabone</a></td><td class="score">3-6, 2-6</td><td class="num"><span class="loss">L</span> 5-12</td><td class="num" data-sort="0.4845" title="Decay-365 said 48% chance of winning. Vanilla PL said 14%."><span class="muted">48%</span></td><td class="num">19.74<span class="rank-tag">#21</span></td><td class="num"><span class="loss">-1.05</span></td><td class="num">7.85</td><td class="num"><span class="muted">-0.12</span></td></tr><tr class="impact-row" data-mid="14355" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="544.html">Karl Azzopardi</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#21 <span class="delta-z">±0</span> = #21</span></div><div class="metric"><span class="k">Score</span><span>-3.1 <span class="delta-dn">-0.69</span> = -3.8</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="512.html">Dawn Azzopardi</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#148 <span class="delta-dn">-4</span> = #152</span></div><div class="metric"><span class="k">Score</span><span>-3.1 <span class="delta-dn">-0.69</span> = -3.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="1080.html">Marcon Gusman</a>, <a class="player-link" href="1172.html">Ben Fenech</a>, <a class="player-link" href="996.html">Marcelle Borg</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="482.html">Dunstan Vella</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#113 <span class="delta-up">+19</span> = #94</span></div><div class="metric"><span class="k">Score</span><span>4.2 <span class="delta-up">+1.05</span> = 5.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="205.html">Manuel Mifsud</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="1074.html">Antoine Muscat</a>, <a class="player-link" href="199.html">Ray Ciantar</a> + 14 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="279.html">Heidi Tabone</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#73 <span class="delta-up">+11</span> = #62</span></div><div class="metric"><span class="k">Score</span><span>5.7 <span class="delta-up">+1.31</span> = 7.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="948.html">Carmen Difesa</a>, <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="247.html">Jennifer Mifsud</a>, <a class="player-link" href="213.html">Josette Cassar</a>, <a class="player-link" href="949.html">Natasha Hedley</a> + 6 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14352"><td class="expand-trigger" data-mid="14352">▶</td><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023 2023</td><td class="muted">Division 5 - Group B </td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="206.html">Ryan Ebejer</a> / <a class="player-link" href="485.html">Sophia Re</a></td><td class="score">3-6, 2-6</td><td class="num"><span class="loss">L</span> 5-12</td><td class="num" data-sort="0.6514" title="Decay-365 said 65% chance of winning. Vanilla PL said 62%."><span class="loss">65%</span></td><td class="num">20.79<span class="rank-tag">#21</span></td><td class="num"><span class="loss">-2.35</span></td><td class="num">7.96</td><td class="num"><span class="muted">-0.17</span></td></tr><tr class="impact-row" data-mid="14352" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="206.html">Ryan Ebejer</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#215 <span class="delta-up">+10</span> = #205</span></div><div class="metric"><span class="k">Score</span><span>-7.6 <span class="delta-up">+1.94</span> = -5.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="923.html">John Bartolo</a>, <a class="player-link" href="1093.html">Malcolm Pace</a>, <a class="player-link" href="369.html">Isaac Zammit</a>, <a class="player-link" href="1004.html">Henry Micallef</a>, <a class="player-link" href="1130.html">Sean Micallef</a> + 5 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="485.html">Sophia Re</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#6 <span class="delta-up">+2</span> = #4</span></div><div class="metric"><span class="k">Score</span><span>3.6 <span class="delta-up">+2.97</span> = 6.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="441.html">Zammit Marquette Celeste</a>, <a class="player-link" href="469.html">Alexia Meilak Gouder</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="544.html">Karl Azzopardi</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#20 <span class="delta-dn">-1</span> = #21</span></div><div class="metric"><span class="k">Score</span><span>-1.3 <span class="delta-dn">-1.85</span> = -3.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1101.html">Mattias Nasbaum</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="512.html">Dawn Azzopardi</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#137 <span class="delta-dn">-11</span> = #148</span></div><div class="metric"><span class="k">Score</span><span>-1.3 <span class="delta-dn">-1.85</span> = -3.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="216.html">Christine Scerri</a>, <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="1083.html">Yanica Gusman</a>, <a class="player-link" href="1166.html">Rose Ann Portellin(Pro Mary Ciantar)</a>, <a class="player-link" href="1121.html">Mary Cianter</a> + 6 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14347"><td class="expand-trigger" data-mid="14347">▶</td><td>2023-01-01</td><td><span class="tag">vltc</span> Elektra Mixed Doubles 2023 2023</td><td class="muted">Division 5 - Group B </td><td><a class="player-link" href="512.html">Dawn Azzopardi</a></td><td><a class="player-link" href="234.html">Victor Rutter</a> / <a class="player-link" href="247.html">Jennifer Mifsud</a></td><td class="score">1-6, 1-6</td><td class="num"><span class="loss">L</span> 2-12</td><td class="num" data-sort="0.4756" title="Decay-365 said 48% chance of winning. Vanilla PL said 38%."><span class="muted">48%</span></td><td class="num">23.15<span class="rank-tag">#20</span></td><td class="num"></td><td class="num">8.13</td><td class="num"></td></tr><tr class="impact-row" data-mid="14347" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="234.html">Victor Rutter</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#42 <span class="delta-up">+8</span> = #34</span></div><div class="metric"><span class="k">Score</span><span>10.8 <span class="delta-up">+1.12</span> = 11.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="404.html">Twanny Pule&#x27;</a>, <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="978.html">Clive Borg</a>, <a class="player-link" href="275.html">Marco Mercieca</a>, <a class="player-link" href="941.html">Paul Gatt</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="247.html">Jennifer Mifsud</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#72 <span class="delta-up">+8</span> = #64</span></div><div class="metric"><span class="k">Score</span><span>5.7 <span class="delta-up">+0.99</span> = 6.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="949.html">Natasha Hedley</a>, <a class="player-link" href="390.html">Christina Bonett</a>, <a class="player-link" href="961.html">Maria Elena Grech</a>, <a class="player-link" href="224.html">Ceridwen Scerri</a> + 3 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="544.html">Karl Azzopardi</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #20</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -1.3</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="512.html">Dawn Azzopardi</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #136</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -1.3</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":544,"focal_name":"Karl Azzopardi","window_start":"2022-12-31","window_end":"2023-01-01","chart_pids":[544,512,234,247,206,485,482,279],"players":{"544":{"name":"Karl Azzopardi","short":"Karl"},"512":{"name":"Dawn Azzopardi","short":"Dawn"},"482":{"name":"Dunstan Vella","short":"Dunstan"},"545":{"name":"Jake Gatt","short":"Jake"},"546":{"name":"Nicole Lia","short":"Nicole"},"485":{"name":"Sophia Re","short":"Sophia"},"489":{"name":"Matthew Micallef","short":"Matthew"},"234":{"name":"Victor Rutter","short":"Victor"},"490":{"name":"Josette D'Alessandro","short":"Josette"},"206":{"name":"Ryan Ebejer","short":"Ryan"},"247":{"name":"Jennifer Mifsud","short":"Jennifer"},"279":{"name":"Heidi Tabone","short":"Heidi"}},"events":[{"match_id":14347,"date":"2023-01-01","tournament":"Elektra Mixed Doubles 2023","division":"Division 5 - Group B","team1":[234,247],"team2":[544,512],"winner":1,"is_tied":false,"score":"6-1 6-1","a_games":12,"b_games":2,"expected1":0.5382,"deltas":{"234":1.1197,"247":0.9872,"544":-1.2548,"512":-1.2548},"mu_pre":{"234":27.899,"247":23.594,"544":25.0,"512":25.0},"sigma_pre":{"234":5.708,"247":5.975,"544":8.333,"512":8.333},"new_player":{"234":false,"247":false,"544":true,"512":true},"upset":false},{"match_id":14352,"date":"2023-01-01","tournament":"Elektra Mixed Doubles 2023","division":"Division 5 - Group B","team1":[206,485],"team2":[544,512],"winner":1,"is_tied":false,"score":"6-3 6-2","a_games":12,"b_games":5,"expected1":0.3924,"deltas":{"206":1.9392,"485":2.967,"544":-1.8465,"512":-1.8465},"mu_pre":{"206":15.52,"485":26.179,"544":23.147,"512":23.147},"sigma_pre":{"206":7.702,"485":7.526,"544":8.134,"512":8.134},"new_player":{"206":true,"485":true,"544":true,"512":true},"upset":true},{"match_id":14355,"date":"2023-01-01","tournament":"Elektra Mixed Doubles 2023","division":"Division 5 - Group B","team1":[544,512],"team2":[482,279],"winner":2,"is_tied":false,"score":"3-6 2-6","a_games":5,"b_games":12,"expected1":0.2199,"deltas":{"544":-0.6913,"512":-0.6913,"482":1.0473,"279":1.3145},"mu_pre":{"544":20.792,"512":20.792,"482":24.847,"279":29.472},"sigma_pre":{"544":7.964,"512":7.964,"482":6.891,"279":7.917},"new_player":{"544":true,"512":true,"482":false,"279":true},"upset":false},{"match_id":14356,"date":"2023-01-01","tournament":"Elektra Mixed Doubles 2023","division":"Division 5 - Group B","team1":[489,490],"team2":[544,512],"winner":2,"is_tied":false,"score":"0-6 0-6","a_games":0,"b_games":12,"expected1":0.5917,"deltas":{"489":-1.0934,"490":-1.273,"544":2.1386,"512":2.1386},"mu_pre":{"489":21.809,"490":21.421,"544":19.743,"512":19.743},"sigma_pre":{"489":8.021,"490":6.208,"544":7.845,"512":7.845},"new_player":{"489":true,"490":false,"544":true,"512":true},"upset":false},{"match_id":14359,"date":"2023-01-01","tournament":"Elektra Mixed Doubles 2023","division":"Division 5 - Group B","team1":[544,512],"team2":[545,546],"winner":2,"is_tied":false,"score":"6-2 4-6 5-10","a_games":10,"b_games":8,"expected1":0.6756,"deltas":{"544":1.6326,"512":1.6326,"545":-0.769,"546":-0.826},"mu_pre":{"544":21.492,"512":21.492,"545":16.939,"546":18.753},"sigma_pre":{"544":7.715,"512":7.715,"545":6.936,"546":7.379},"new_player":{"544":true,"512":true,"545":false,"546":true},"upset":true}],"series":{"544":[{"date":"2022-12-31","score":0.0},{"date":"2023-01-01","score":-1.2548},{"date":"2023-01-01","score":-3.1013},{"date":"2023-01-01","score":-3.7926},{"date":"2023-01-01","score":-1.654},{"date":"2023-01-01","score":-0.0214}],"512":[{"date":"2022-12-31","score":0.0},{"date":"2023-01-01","score":-1.2548},{"date":"2023-01-01","score":-3.1013},{"date":"2023-01-01","score":-3.7926},{"date":"2023-01-01","score":-1.654},{"date":"2023-01-01","score":-0.0214}],"234":[{"date":"2022-12-31","score":8.8593},{"date":"2023-01-01","score":11.8942}],"247":[{"date":"2022-12-31","score":3.97},{"date":"2023-01-01","score":6.657}],"206":[{"date":"2022-12-31","score":-9.021},{"date":"2023-01-01","score":-5.6456}],"485":[{"date":"2022-12-31","score":1.7916},{"date":"2023-01-01","score":6.5688}],"482":[{"date":"2022-12-31","score":-0.3911},{"date":"2023-01-01","score":5.2201}],"279":[{"date":"2022-12-31","score":0.0},{"date":"2023-01-01","score":7.0364}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

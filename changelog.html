@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What's new — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v=0349a8454e">
+</head>
+<body>
+<nav class="topnav"><a href="index.html">Leaderboard</a><span class="sep">·</span><a href="matches.html">All matches</a><span class="sep">·</span><a href="disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="aliases.html">Mapping</a><span class="sep">·</span><a href="changelog.html" class="active">What’s new</a><span class="sep">·</span><a href="how-it-works.html">How it works</a></nav>
+<header>
+  <h1>What’s new on RallyRank</h1>
+  <p>Recent additions, improvements, and fixes — in plain English. Use the filters below to narrow the list.</p>
+</header>
+
+<main class="changelog">
+  <p class="lead">Most recent at the top. All times shown in Malta local time. Click <em>More detail</em> on any entry for the longer story.</p>
+
+  <div class="filters" id="changelog-filters">
+    <span class="filter active" data-filter-kind="all">All</span>
+    <span class="filter" data-filter-kind="new">New features</span>
+    <span class="filter" data-filter-kind="improved">Improvements</span>
+    <span class="filter" data-filter-kind="fixed">Fixes</span>
+  </div>
+
+  <div id="changelog-list">
+<h2 class="month-heading">April 2026</h2>
+<article class="entry" data-kind="new" data-audience="captains"><div class="entry-head"><span class="pill kind-new">New</span><span class="pill aud-captains">For captains</span><span class="entry-date">26 Apr 2026 · 12:29</span></div><h3 class="entry-title">Pre-tournament roster ranking page</h3><p class="entry-summary">Before a tournament starts, captains can see every player on the roster ranked by skill — so picking teams isn&#x27;t just guesswork.</p><details><summary>More detail</summary><p>Currently active for the Antes TT 2026 (VLTC). Each player is shown with their rating and a proposed slot (A1, A2, ... B1, ...). Captains can also overlay their own rankings as extra columns to compare against the math.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/ce69fe7" target="_blank" rel="noopener">ce69fe7</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/53ae2dd" target="_blank" rel="noopener">53ae2dd</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/a9092ed" target="_blank" rel="noopener">a9092ed</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/5928fe3" target="_blank" rel="noopener">5928fe3</a> · T-P0.5-005 · T-P0.5-008</div></article>
+<article class="entry" data-kind="new" data-audience="all"><div class="entry-head"><span class="pill kind-new">New</span><span class="entry-date">26 Apr 2026 · 12:27</span></div><h3 class="entry-title">Match feed page</h3><p class="entry-summary">Browse every match ever played, in order, with filters by player, club, year, and tournament.</p><details><summary>More detail</summary><p>Useful for hunting down a specific result, seeing how a player did across recent tournaments, or just scrolling through history.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/cdeb9e0" target="_blank" rel="noopener">cdeb9e0</a> · T-P0.5-005</div></article>
+<article class="entry" data-kind="new" data-audience="all"><div class="entry-head"><span class="pill kind-new">New</span><span class="entry-date">26 Apr 2026 · 12:26</span></div><h3 class="entry-title">Public site launched</h3><p class="entry-summary">The leaderboard, player pages, match feed, and tournament rosters all live on a public website you can share with a link.</p><details><summary>More detail</summary><p>Sortable, filterable leaderboard for men and ladies. Each player has their own page with a rating-history chart and full match log. Site is rebuilt and redeployed every time we add new tournament data.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/92cdf65" target="_blank" rel="noopener">92cdf65</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/d0cbc1f" target="_blank" rel="noopener">d0cbc1f</a> · T-P0.5-005 · T-P0.5-006</div></article>
+<article class="entry" data-kind="new" data-audience="all"><div class="entry-head"><span class="pill kind-new">New</span><span class="entry-date">26 Apr 2026 · 09:56</span></div><h3 class="entry-title">Tennis Club Kordin (TCK) added</h3><p class="entry-summary">RallyRank now tracks two clubs — VLTC and TCK — so players who compete at both can see their full picture in one place.</p><details><summary>More detail</summary><p>Roughly 5,000 matches across both clubs are now in the system. Every player page shows which club(s) they&#x27;ve played at.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/595dd26" target="_blank" rel="noopener">595dd26</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/c0e9fda" target="_blank" rel="noopener">c0e9fda</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/bb3cd4d" target="_blank" rel="noopener">bb3cd4d</a> · T-P0.5-001 · T-P0.5-002</div></article>
+<article class="entry" data-kind="improved" data-audience="all"><div class="entry-head"><span class="pill kind-improved">Improved</span><span class="entry-date">26 Apr 2026 · 08:29</span></div><h3 class="entry-title">Leaderboard now respects captain decisions</h3><p class="entry-summary">When captains assigned you to A-team or B-team, the leaderboard groups you by that captain choice first, then ranks you by your skill within that group.</p><details><summary>More detail</summary><p>Math alone can&#x27;t see everything captains know. So we show both: your captain-assigned class (A1, A2, B1, etc.) + your math rating side by side. There&#x27;s also a &#x27;raw&#x27; sort option to see the math-only view if you want it.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/b1a05ff" target="_blank" rel="noopener">b1a05ff</a> · T-P0.5-004</div></article>
+<article class="entry" data-kind="improved" data-audience="all"><div class="entry-head"><span class="pill kind-improved">Improved</span><span class="entry-date">26 Apr 2026 · 08:29</span></div><h3 class="entry-title">No more artificial ceilings on player ratings</h3><p class="entry-summary">Strong players in lower divisions are no longer held back by a hard cap — your rating now reflects what you actually did on court.</p><details><summary>More detail</summary><p>Earlier the system clamped a Div 2 player&#x27;s rating below the Div 1 starting line. That made a few outstanding players look weaker than they were. Now ratings flow freely; tier ordering is preserved by the captain-class display sort instead of by clamping the math.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/b1a05ff" target="_blank" rel="noopener">b1a05ff</a> · T-P0.5-004</div></article>
+<article class="entry" data-kind="improved" data-audience="all"><div class="entry-head"><span class="pill kind-improved">Improved</span><span class="entry-date">26 Apr 2026 · 08:29</span></div><h3 class="entry-title">Stronger partner moves more after a win</h3><p class="entry-summary">When you win a doubles match, the rating boost is now split between you and your partner based on who carried more weight — not 50/50.</p><details><summary>More detail</summary><p>If a top-ranked player teams up with a beginner and they win, the top player&#x27;s rating moves a bit more, the beginner&#x27;s a bit less. Reflects that the stronger player&#x27;s contribution probably mattered more. Loss is split the same way.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/b1a05ff" target="_blank" rel="noopener">b1a05ff</a> · T-P0.5-004</div></article>
+<article class="entry" data-kind="improved" data-audience="all"><div class="entry-head"><span class="pill kind-improved">Improved</span><span class="entry-date">26 Apr 2026 · 03:52</span></div><h3 class="entry-title">32 tournaments loaded — much more accurate ratings</h3><p class="entry-summary">Earlier the rating was based on one tournament. Now it&#x27;s based on every doubles tournament we have data for, going back several years.</p><details><summary>More detail</summary><p>Concretely: 3,651+ matches across 32 tournaments. The more matches you&#x27;ve played, the more confident the system is in your rating (and the smaller your &#x27;sigma&#x27; on your player page).</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/1ae9a0b" target="_blank" rel="noopener">1ae9a0b</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/a91dbaf" target="_blank" rel="noopener">a91dbaf</a> · T-P0-014</div></article>
+<article class="entry" data-kind="new" data-audience="all"><div class="entry-head"><span class="pill kind-new">New</span><span class="entry-date">26 Apr 2026 · 03:35</span></div><h3 class="entry-title">Rating-history chart on every player page</h3><p class="entry-summary">Every player page now shows a chart of how that player&#x27;s rating moved over time, match by match.</p><details><summary>More detail</summary><p>Click any player on the leaderboard to see their full match log + the rating trajectory chart. Useful for spotting hot streaks, long absences, or whether someone&#x27;s trending up or down.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/b3a72d8" target="_blank" rel="noopener">b3a72d8</a> · T-P0-007</div></article>
+<article class="entry" data-kind="fixed" data-audience="all"><div class="entry-head"><span class="pill kind-fixed">Fixed</span><span class="entry-date">26 Apr 2026 · 02:56</span></div><h3 class="entry-title">Duplicate name variants merged</h3><p class="entry-summary">If your name appeared as both &#x27;John Smith&#x27; and &#x27;JOHN SMITH&#x27; (or with different apostrophes), those are now the same person on the leaderboard.</p><details><summary>More detail</summary><p>Before this fix, the same player could show up multiple times because tournament organizers spell names differently. We now collapse case-only and apostrophe-only differences automatically. ~100 duplicate records were merged into the correct canonical players.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/9daa552" target="_blank" rel="noopener">9daa552</a> · T-P0-014</div></article>
+<article class="entry" data-kind="improved" data-audience="all"><div class="entry-head"><span class="pill kind-improved">Improved</span><span class="entry-date">26 Apr 2026 · 01:44</span></div><h3 class="entry-title">Long matches count for more than blowouts</h3><p class="entry-summary">A 26-game battle (e.g. 7-6 7-6) tells the system more about both players than a 12-game blowout (6-0 6-0), so it now updates ratings accordingly.</p><details><summary>More detail</summary><p>Average doubles match is around 18 games. Matches noticeably longer or shorter than that scale the rating change up or down (within sensible bounds). Walkovers count for less.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/dfced91" target="_blank" rel="noopener">dfced91</a> · T-P0-012</div></article>
+<article class="entry" data-kind="new" data-audience="all"><div class="entry-head"><span class="pill kind-new">New</span><span class="entry-date">26 Apr 2026 · 00:57</span></div><h3 class="entry-title">First version of the doubles ranking system</h3><p class="entry-summary">Every player who&#x27;s played a VLTC doubles tournament now has a skill rating that updates automatically after every match they play.</p><details><summary>More detail</summary><p>The rating uses an algorithm called OpenSkill (a modern descendant of TrueSkill). It tracks both how strong it thinks you are (μ) and how confident it is in that estimate (σ). The &#x27;μ - 3σ&#x27; number on the leaderboard is a conservative ranking — it under-estimates new players until they&#x27;ve played enough matches.</p></details><div class="entry-trace">tech ref: <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/21af34b" target="_blank" rel="noopener">21af34b</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/2ef53e4" target="_blank" rel="noopener">2ef53e4</a> · <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/commit/2f50c66" target="_blank" rel="noopener">2f50c66</a> · T-P0-006 · T-P0-009 · T-P0-011</div></article>
+  </div>
+  <div id="changelog-empty" class="empty" style="display:none;">
+    Nothing to show with the current filter.
+  </div>
+</main>
+
+<script>
+(function() {
+  const list = document.getElementById('changelog-list');
+  const emptyMsg = document.getElementById('changelog-empty');
+  const filterEls = document.querySelectorAll('#changelog-filters .filter');
+  let activeKind = 'all';
+
+  function apply() {
+    const cards = list.querySelectorAll('.entry');
+    let visible = 0;
+    let lastVisibleHeading = null;
+    list.querySelectorAll('.month-heading').forEach((h) => {
+      h.dataset.hasVisible = '0';
+    });
+    cards.forEach((c) => {
+      const k = c.dataset.kind;
+      const ok = activeKind === 'all' || k === activeKind;
+      c.classList.toggle('hidden', !ok);
+      if (ok) {
+        visible++;
+        // mark previous-sibling month heading as having visible content
+        let p = c.previousElementSibling;
+        while (p) {
+          if (p.classList && p.classList.contains('month-heading')) {
+            p.dataset.hasVisible = '1';
+            break;
+          }
+          p = p.previousElementSibling;
+        }
+      }
+    });
+    list.querySelectorAll('.month-heading').forEach((h) => {
+      h.style.display = h.dataset.hasVisible === '1' ? '' : 'none';
+    });
+    emptyMsg.style.display = visible === 0 ? '' : 'none';
+  }
+
+  filterEls.forEach((el) => {
+    el.addEventListener('click', () => {
+      filterEls.forEach((x) => x.classList.remove('active'));
+      el.classList.add('active');
+      activeKind = el.dataset.filterKind;
+      apply();
+    });
+  });
+
+  apply();
+})();
+</script>
+</body>
+</html>

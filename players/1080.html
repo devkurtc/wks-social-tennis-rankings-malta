@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Marcon Gusman — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-F">Marcon Gusman</div>
+      <div class="meta">
+        Ladies &middot;
+        Player ID #1080
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">20.54</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.94</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">-3.27</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">3</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">0</span>-<span class="loss">3</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">0%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">12-37</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="loss">3L</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">0</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">3</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">241</td><td class="cls"></td><td><a class="player-link" href="850.html">Karolina Papiernik(Dem.)Alida Borg</a></td><td class="num">21.70</td><td class="num">8.21</td><td class="num"><strong>-2.92</strong></td><td class="num"><span class="loss">+0.35</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">242</td><td class="cls"></td><td><a class="player-link" href="1013.html">Carmen Cuschieri</a></td><td class="num">19.60</td><td class="num">7.51</td><td class="num"><strong>-2.94</strong></td><td class="num"><span class="loss">+0.33</span></td><td class="num">5</td><td class="num"><span class="win">0</span>-<span class="loss">5</span></td><td class="num">0%</td></tr><tr><td class="num">243</td><td class="cls">C3</td><td><a class="player-link" href="829.html">Kim Bonello</a></td><td class="num">19.30</td><td class="num">7.41</td><td class="num"><strong>-2.94</strong></td><td class="num"><span class="loss">+0.32</span></td><td class="num">6</td><td class="num"><span class="win">2</span>-<span class="loss">4</span></td><td class="num">33%</td></tr><tr style="background:#22304a"><td class="num">244</td><td class="cls"></td><td><strong>Marcon Gusman</strong></td><td class="num">20.54</td><td class="num">7.94</td><td class="num"><strong>-3.27</strong></td><td class="num"><span class="muted">—</span></td><td class="num">3</td><td class="num"><span class="win">0</span>-<span class="loss">3</span></td><td class="num">0%</td></tr><tr><td class="num">245</td><td class="cls"></td><td><a class="player-link" href="914.html">Francesca Mamo (Dem.)Jean Frendo</a></td><td class="num">21.35</td><td class="num">8.22</td><td class="num"><strong>-3.31</strong></td><td class="num"><span class="win">-0.04</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">246</td><td class="cls"></td><td><a class="player-link" href="1072.html">Leah Meekers</a></td><td class="num">19.86</td><td class="num">7.78</td><td class="num"><strong>-3.48</strong></td><td class="num"><span class="win">-0.21</span></td><td class="num">4</td><td class="num"><span class="win">0</span>-<span class="loss">4</span></td><td class="num">0%</td></tr><tr><td class="num">247</td><td class="cls">C3</td><td><a class="player-link" href="1172.html">Ben Fenech</a></td><td class="num">20.91</td><td class="num">8.19</td><td class="num"><strong>-3.65</strong></td><td class="num"><span class="win">-0.38</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="216.0" x2="904" y2="216.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="219.0" text-anchor="end" fill="#8b96a8" font-size="10">0</text><line x1="50" y1="176.2" x2="904" y2="176.2" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="179.2" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="136.3" x2="904" y2="136.3" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="139.3" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="96.5" x2="904" y2="96.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="99.5" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="56.6" x2="904" y2="56.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="59.6" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="16.8" x2="904" y2="16.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="19.8" text-anchor="end" fill="#8b96a8" font-size="10">25</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2017</text>
+  <polyline points="50.0,225.7 477.0,234.4 904.0,242.0" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,107.9 477.0,134.0 904.0,156.1" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,29.9 477.0,41.9 904.0,52.3" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">7.4</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">8.1</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.7</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2017</strong></td><td class="num">3</td><td class="num"><span class="win">0</span>-<span class="loss">3</span></td><td class="num">0%</td><td class="num">12-37</td><td class="num">23.35 → 20.54</td><td class="num"><span class="loss">-2.81</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td colspan="7" class="muted">No positive swings recorded.</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2017-09-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2017</td><td><a class="player-link" href="203.html">Angele Pule&#x27;</a></td><td><a class="player-link" href="676.html">Roberta Fenech</a> / <a class="player-link" href="1104.html">Mary Ciantar (pro) Helga Azzopardi</a></td><td class="score">4-6, 0-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.50</span></td></tr><tr><td>2017-09-29</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2017</td><td><a class="player-link" href="1068.html">Anna Fenech</a></td><td><a class="player-link" href="1105.html">Yanika Gusman</a> / <a class="player-link" href="952.html">Rose Anne Portelli</a></td><td class="score">0-6, 0-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.31</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Marcon Gusman</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">100%</div><div class="muted" style="font-size:10px;">log-loss 0.571</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">100%</div><div class="muted" style="font-size:10px;">log-loss 0.649</div></div></div>
+
+  <h2 id="match-log" class="section-title">Match log (3)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="12509"><td class="expand-trigger" data-mid="12509">▶</td><td>2017-09-29</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2017 2017</td><td class="muted">Lad B </td><td><a class="player-link" href="1068.html">Anna Fenech</a></td><td><a class="player-link" href="1105.html">Yanika Gusman</a> / <a class="player-link" href="952.html">Rose Anne Portelli</a></td><td class="score">0-6, 0-6</td><td class="num"><span class="loss">L</span> 0-12</td><td class="num" data-sort="0.4774" title="Decay-365 said 48% chance of winning. Vanilla PL said 40%."><span class="muted">48%</span></td><td class="num">20.54<span class="rank-tag">#49</span></td><td class="num"><span class="loss">-1.31</span></td><td class="num">7.94</td><td class="num"><span class="muted">-0.12</span></td></tr><tr class="impact-row" data-mid="12509" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1080.html">Marcon Gusman</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#46 <span class="delta-dn">-3</span> = #49</span></div><div class="metric"><span class="k">Score</span><span>-2.3 <span class="delta-dn">-0.96</span> = -3.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1059.html">Lyndsey Napier</a>, <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="399.html">Deborah Farrugia</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1068.html">Anna Fenech</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#41 <span class="delta-dn">-2</span> = #43</span></div><div class="metric"><span class="k">Score</span><span>-0.8 <span class="delta-dn">-1.04</span> = -1.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="952.html">Rose Anne Portelli</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="1105.html">Yanika Gusman</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#34 <span class="delta-up">+6</span> = #28</span></div><div class="metric"><span class="k">Score</span><span>2.1 <span class="delta-up">+1.90</span> = 4.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="933.html">Sharon Mizzi</a>, <a class="player-link" href="213.html">Josette Cassar</a>, <a class="player-link" href="935.html">Kristina Cauchi</a>, <a class="player-link" href="202.html">Mariska Steenkamer</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="952.html">Rose Anne Portelli</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#44 <span class="delta-up">+3</span> = #41</span></div><div class="metric"><span class="k">Score</span><span>-2.3 <span class="delta-up">+1.57</span> = -0.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="244.html">Brenda Baldacchino</a></div></div></div></div></td></tr><tr class="match-row" data-mid="12461"><td class="expand-trigger" data-mid="12461">▶</td><td>2017-09-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2017 2017</td><td class="muted">Lad B </td><td><a class="player-link" href="203.html">Angele Pule&#x27;</a></td><td><a class="player-link" href="676.html">Roberta Fenech</a> / <a class="player-link" href="1104.html">Mary Ciantar (pro) Helga Azzopardi</a></td><td class="score">4-6, 0-6</td><td class="num"><span class="loss">L</span> 4-12</td><td class="num" data-sort="0.4774" title="Decay-365 said 48% chance of winning. Vanilla PL said 47%."><span class="muted">48%</span></td><td class="num">21.85<span class="rank-tag">#46</span></td><td class="num"><span class="loss">-1.50</span></td><td class="num">8.05</td><td class="num"><span class="muted">-0.14</span></td></tr><tr class="impact-row" data-mid="12461" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="676.html">Roberta Fenech</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#24 <span class="delta-up">+10</span> = #14</span></div><div class="metric"><span class="k">Score</span><span>3.2 <span class="delta-up">+2.22</span> = 5.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="271.html">Mary Borg</a>, <a class="player-link" href="201.html">Romina Gauci</a>, <a class="player-link" href="264.html">Alexia Spiteri Willets</a>, <a class="player-link" href="948.html">Carmen Difesa</a>, <a class="player-link" href="203.html">Angele Pule&#x27;</a> + 5 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1104.html">Mary Ciantar (pro) Helga Azzopardi</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #25</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 3.1</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="203.html">Angele Pule&#x27;</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#15 <span class="delta-dn">-9</span> = #24</span></div><div class="metric"><span class="k">Score</span><span>5.0 <span class="delta-dn">-1.48</span> = 3.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="271.html">Mary Borg</a>, <a class="player-link" href="201.html">Romina Gauci</a>, <a class="player-link" href="264.html">Alexia Spiteri Willets</a>, <a class="player-link" href="948.html">Carmen Difesa</a>, <a class="player-link" href="617.html">Tanya Cassar</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1080.html">Marcon Gusman</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#40 <span class="delta-dn">-6</span> = #46</span></div><div class="metric"><span class="k">Score</span><span>-1.2 <span class="delta-dn">-1.08</span> = -2.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="952.html">Rose Anne Portelli</a>, <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="399.html">Deborah Farrugia</a>, <a class="player-link" href="1083.html">Yanica Gusman</a></div></div></div></div></td></tr><tr class="match-row" data-mid="12417"><td class="expand-trigger" data-mid="12417">▶</td><td>2017-09-08</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2017 2017</td><td class="muted">Mxd CB </td><td><a class="player-link" href="1079.html">Ian Gusman</a></td><td><a class="player-link" href="1078.html">Lorenzo Donato</a> / <a class="player-link" href="1071.html">Angela Delia</a></td><td class="score">5-7 <span class='muted'>(TB)</span>, 3-6</td><td class="num"><span class="loss">L</span> 8-13</td><td class="num" data-sort="0.4774" title="Decay-365 said 48% chance of winning. Vanilla PL said 43%."><span class="muted">48%</span></td><td class="num">23.35<span class="rank-tag">#36</span></td><td class="num"></td><td class="num">8.19</td><td class="num"></td></tr><tr class="impact-row" data-mid="12417" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1078.html">Lorenzo Donato</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #23</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 2.0</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1071.html">Angela Delia</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#17 <span class="delta-up">+6</span> = #11</span></div><div class="metric"><span class="k">Score</span><span>3.2 <span class="delta-up">+2.11</span> = 5.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="264.html">Alexia Spiteri Willets</a>, <a class="player-link" href="713.html">Elaine Grech</a>, <a class="player-link" href="203.html">Angele Pule&#x27;</a>, <a class="player-link" href="247.html">Jennifer Mifsud</a>, <a class="player-link" href="988.html">Grace Barbara</a> + 1 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="1079.html">Ian Gusman</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #40</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -1.2</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1080.html">Marcon Gusman</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #36</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -1.2</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":1080,"focal_name":"Marcon Gusman","window_start":"2017-09-07","window_end":"2017-09-29","chart_pids":[1080,1078,1071,1079,676,1104,203,1068],"players":{"676":{"name":"Roberta Fenech","short":"Roberta"},"203":{"name":"Angele Pule'","short":"Angele"},"1068":{"name":"Anna Fenech","short":"Anna"},"1071":{"name":"Angela Delia","short":"Angela"},"1104":{"name":"Mary Ciantar (pro) Helga Azzopardi","short":"Mary"},"1105":{"name":"Yanika Gusman","short":"Yanika"},"1078":{"name":"Lorenzo Donato","short":"Lorenzo"},"1079":{"name":"Ian Gusman","short":"Ian"},"1080":{"name":"Marcon Gusman","short":"Marcon"},"952":{"name":"Rose Anne Portelli","short":"Rose"}},"events":[{"match_id":12417,"date":"2017-09-08","tournament":"Wilson Autumn Team Tournament 2017","division":"Mxd CB","team1":[1078,1071],"team2":[1079,1080],"winner":1,"is_tied":false,"score":"7-5 6-3","a_games":13,"b_games":8,"expected1":0.5634,"deltas":{"1078":1.9561,"1071":2.1069,"1079":-1.2229,"1080":-1.2229},"mu_pre":{"1078":25.0,"1071":27.809,"1079":25.0,"1080":25.0},"sigma_pre":{"1078":8.333,"1071":8.19,"1079":8.333,"1080":8.333},"new_player":{"1078":true,"1071":true,"1079":true,"1080":true},"upset":false},{"match_id":12461,"date":"2017-09-15","tournament":"Wilson Autumn Team Tournament 2017","division":"Lad B","team1":[676,1104],"team2":[203,1080],"winner":1,"is_tied":false,"score":"6-4 6-0","a_games":12,"b_games":4,"expected1":0.506,"deltas":{"676":2.2247,"1104":3.1301,"203":-1.4775,"1080":-1.0833},"mu_pre":{"676":27.804,"1104":25.0,"203":29.192,"1080":23.352},"sigma_pre":{"676":8.193,"1104":8.333,"203":8.064,"1080":8.191},"new_player":{"676":true,"1104":true,"203":true,"1080":true},"upset":false},{"match_id":12509,"date":"2017-09-29","tournament":"Wilson Autumn Team Tournament 2017","division":"Lad B","team1":[1080,1068],"team2":[1105,952],"winner":2,"is_tied":false,"score":"0-6 0-6","a_games":0,"b_games":12,"expected1":0.4189,"deltas":{"1080":-0.9608,"1068":-1.0437,"1105":1.9031,"952":1.5748},"mu_pre":{"1080":21.852,"1068":22.982,"1105":26.739,"952":21.602},"sigma_pre":{"1080":8.053,"1068":7.939,"1105":8.214,"952":7.952},"new_player":{"1080":true,"1068":true,"1105":true,"952":true},"upset":false}],"series":{"1080":[{"date":"2017-09-07","score":0.0},{"date":"2017-09-08","score":-1.2229},{"date":"2017-09-15","score":-2.3063},{"date":"2017-09-29","score":-3.2671}],"1078":[{"date":"2017-09-07","score":0.0},{"date":"2017-09-08","score":1.9561},{"date":"2017-09-29","score":1.9561}],"1071":[{"date":"2017-09-07","score":3.238},{"date":"2017-09-08","score":5.3449},{"date":"2017-09-29","score":5.3449}],"1079":[{"date":"2017-09-07","score":0.0},{"date":"2017-09-08","score":-1.2229},{"date":"2017-09-29","score":-1.2229}],"676":[{"date":"2017-09-07","score":0.0},{"date":"2017-09-15","score":5.4488},{"date":"2017-09-29","score":5.4488}],"1104":[{"date":"2017-09-07","score":0.0},{"date":"2017-09-15","score":3.1301},{"date":"2017-09-29","score":3.1301}],"203":[{"date":"2017-09-07","score":3.3528},{"date":"2017-09-15","score":3.5215},{"date":"2017-09-29","score":3.5215}],"1068":[{"date":"2017-09-07","score":-1.2511},{"date":"2017-09-29","score":-1.8778}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

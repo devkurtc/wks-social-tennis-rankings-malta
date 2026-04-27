@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Alberto Bafumi — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Alberto Bafumi</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #840
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">16.00</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.39</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">-6.18</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">6</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">5</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">17%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">57-69</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="loss">5L</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">5</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b l">L*</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L*</span><span class="b l">L</span><span class="b w">W*</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">346</td><td class="cls">D2</td><td><a class="player-link" href="923.html">John Bartolo</a></td><td class="num">14.89</td><td class="num">6.86</td><td class="num"><strong>-5.69</strong></td><td class="num"><span class="loss">+0.49</span></td><td class="num">19</td><td class="num"><span class="win">4</span>-<span class="loss">15</span></td><td class="num">21%</td></tr><tr><td class="num">347</td><td class="cls"></td><td><a class="player-link" href="415.html">Isaac J. Zammit</a></td><td class="num">18.90</td><td class="num">8.22</td><td class="num"><strong>-5.75</strong></td><td class="num"><span class="loss">+0.43</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">348</td><td class="cls"></td><td><a class="player-link" href="1130.html">Sean Micallef</a></td><td class="num">18.42</td><td class="num">8.11</td><td class="num"><strong>-5.92</strong></td><td class="num"><span class="loss">+0.26</span></td><td class="num">2</td><td class="num"><span class="win">1</span>-<span class="loss">1</span></td><td class="num">50%</td></tr><tr style="background:#22304a"><td class="num">349</td><td class="cls">D3</td><td><strong>Alberto Bafumi</strong></td><td class="num">16.00</td><td class="num">7.39</td><td class="num"><strong>-6.18</strong></td><td class="num"><span class="muted">—</span></td><td class="num">6</td><td class="num"><span class="win">0</span>-<span class="loss">6</span></td><td class="num">0%</td></tr><tr><td class="num">350</td><td class="cls"></td><td><a class="player-link" href="874.html">Joseph Zammit</a></td><td class="num">17.07</td><td class="num">7.77</td><td class="num"><strong>-6.24</strong></td><td class="num"><span class="win">-0.06</span></td><td class="num">5</td><td class="num"><span class="win">1</span>-<span class="loss">4</span></td><td class="num">20%</td></tr><tr><td class="num">351</td><td class="cls"></td><td><a class="player-link" href="1178.html">Andre&#x27; Casha</a></td><td class="num">17.35</td><td class="num">7.92</td><td class="num"><strong>-6.40</strong></td><td class="num"><span class="win">-0.22</span></td><td class="num">4</td><td class="num"><span class="win">1</span>-<span class="loss">3</span></td><td class="num">25%</td></tr><tr><td class="num">352</td><td class="cls"></td><td><a class="player-link" href="787.html">Kenneth Farrugia (Dem Simone Re)</a></td><td class="num">18.36</td><td class="num">8.27</td><td class="num"><strong>-6.45</strong></td><td class="num"><span class="win">-0.27</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="226.1" x2="904" y2="226.1" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="229.1" text-anchor="end" fill="#8b96a8" font-size="10">-5</text><line x1="50" y1="185.6" x2="904" y2="185.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="188.6" text-anchor="end" fill="#8b96a8" font-size="10">0</text><line x1="50" y1="145.0" x2="904" y2="145.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="148.0" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="104.4" x2="904" y2="104.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="107.4" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="63.8" x2="904" y2="63.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="66.8" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="23.3" x2="904" y2="23.3" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="26.3" text-anchor="end" fill="#8b96a8" font-size="10">20</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2026</text>
+  <polyline points="50.0,229.1 220.8,235.0 391.6,232.5 562.4,236.3 733.2,241.9 904.0,235.7" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,80.4 220.8,100.0 391.6,122.7 562.4,141.5 733.2,162.1 904.0,183.6" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,30.2 220.8,39.7 391.6,41.3 562.4,48.6 733.2,58.0 904.0,55.8" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">6.9</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.8</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.7</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2026</strong></td><td class="num">6</td><td class="num"><span class="win">1</span>-<span class="loss">5</span></td><td class="num">17%</td><td class="num">57-69</td><td class="num">19.14 → 16.00</td><td class="num"><span class="loss">-3.15</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2026-03-21</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="253.html">Matthias Cremona</a> / <a class="player-link" href="233.html">Braydon Galea</a></td><td class="score">5-7 <span class='muted'>(TB)</span>, 7-5 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="win">+0.28</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2026-02-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="253.html">Matthias Cremona</a> / <a class="player-link" href="824.html">Oliver Brincat</a></td><td class="score">3-6, 4-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.17</span></td></tr><tr><td>2026-03-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="206.html">Ryan Ebejer</a> / <a class="player-link" href="833.html">Clinton Cutajar</a></td><td class="score">3-6, 6-7 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.16</span></td></tr><tr><td>2026-03-06</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="198.html">Daniele Privitera</a> / <a class="player-link" href="596.html">Antoine Bugeja</a></td><td class="score">2-6, 6-7 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-0.89</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Alberto Bafumi</td><td class="muted">—</td><td class="muted">(canonical)</td></tr><tr><td>Alberto Bufumi</td><td class="muted">2026-04-26</td><td class="muted">San Michel Results 2026.xlsx</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td><span class="tag">id #843</span> Alberto Bufumi</td><td class="muted">2026-04-26</td><td>typo auto-merge: &#x27;Alberto Bufumi&#x27; (1m) ≈ &#x27;Alberto Bafumi&#x27; (5m), shared club</td><td><a href="../aliases.html#m-579" title="Permalink in mapping log">#579 ↗</a></td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2026</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td>Team C</td><td class="muted">Jean Paul Sciberras</td><td class="cls">D3</td></tr><tr><td>2026</td><td><span class="tag">vltc</span> San Michel Results 2026 (live gsheet 2026-04-26)</td><td>Team C</td><td class="muted">Jean Paul Sciberras</td><td class="cls">D3</td></tr><tr><td>2026</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td>Team C</td><td class="muted">Jean Paul Sciberras</td><td class="cls">D3</td></tr></tbody>
+  </table>
+  </div>
+
+  
+
+  <h2 id="match-log" class="section-title">Match log (6)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="15412"><td class="expand-trigger" data-mid="15412">▶</td><td>2026-03-21</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men D day 9</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="253.html">Matthias Cremona</a> / <a class="player-link" href="233.html">Braydon Galea</a></td><td class="score">5-7 <span class='muted'>(TB)</span>, 7-5 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L (g)</span> 12-12</td><td class="num muted" data-sort="-1">—</td><td class="num">16.00<span class="rank-tag">#349</span></td><td class="num"><span class="win">+0.28</span></td><td class="num">7.39</td><td class="num"><span class="muted">-0.16</span></td></tr><tr class="impact-row" data-mid="15412" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="200.html">Kevin Sciberras</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#192 <span class="delta-up">+11</span> = #181</span></div><div class="metric"><span class="k">Score</span><span>4.5 <span class="delta-up">+0.45</span> = 4.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="199.html">Ray Ciantar</a>, <a class="player-link" href="1077.html">Etienne Micallef</a>, <a class="player-link" href="1079.html">Ian Gusman</a>, <a class="player-link" href="1106.html">James Farrugia (pro) George Grech</a>, <a class="player-link" href="1179.html">Jack Rory Steenkamer</a> + 6 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="840.html">Alberto Bafumi</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#358 <span class="delta-up">+9</span> = #349</span></div><div class="metric"><span class="k">Score</span><span>-6.9 <span class="delta-up">+0.76</span> = -6.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1093.html">Malcolm Pace</a>, <a class="player-link" href="1004.html">Henry Micallef</a>, <a class="player-link" href="1178.html">Andre&#x27; Casha</a>, <a class="player-link" href="874.html">Joseph Zammit</a>, <a class="player-link" href="494.html">Owen Farrugia</a> + 4 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="253.html">Matthias Cremona</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#171 <span class="delta-z">±0</span> = #171</span></div><div class="metric"><span class="k">Score</span><span>5.6 <span class="delta-dn">-0.09</span> = 5.6</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="233.html">Braydon Galea</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#264 <span class="delta-z">±0</span> = #264</span></div><div class="metric"><span class="k">Score</span><span>0.3 <span class="delta-dn">-0.01</span> = 0.3</span></div></div></div></div></td></tr><tr class="match-row" data-mid="15385"><td class="expand-trigger" data-mid="15385">▶</td><td>2026-03-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men D day 8</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="206.html">Ryan Ebejer</a> / <a class="player-link" href="833.html">Clinton Cutajar</a></td><td class="score">3-6, 6-7 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span> 9-13</td><td class="num muted" data-sort="-1">—</td><td class="num">15.72<span class="rank-tag">#358</span></td><td class="num"><span class="loss">-1.16</span></td><td class="num">7.55</td><td class="num"><span class="muted">-0.16</span></td></tr><tr class="impact-row" data-mid="15385" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="200.html">Kevin Sciberras</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#169 <span class="delta-dn">-23</span> = #192</span></div><div class="metric"><span class="k">Score</span><span>5.7 <span class="delta-dn">-1.27</span> = 4.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="373.html">Matthew Schembri</a>, <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="1074.html">Antoine Muscat</a>, <a class="player-link" href="199.html">Ray Ciantar</a>, <a class="player-link" href="1077.html">Etienne Micallef</a> + 18 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="840.html">Alberto Bafumi</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#351 <span class="delta-dn">-7</span> = #358</span></div><div class="metric"><span class="k">Score</span><span>-6.2 <span class="delta-dn">-0.69</span> = -6.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1093.html">Malcolm Pace</a>, <a class="player-link" href="1004.html">Henry Micallef</a>, <a class="player-link" href="1178.html">Andre&#x27; Casha</a>, <a class="player-link" href="1257.html">AIUPPA MASSIMILIANO</a>, <a class="player-link" href="787.html">Kenneth Farrugia (Dem Simone Re)</a> + 2 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="206.html">Ryan Ebejer</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#261 <span class="delta-up">+18</span> = #243</span></div><div class="metric"><span class="k">Score</span><span>0.5 <span class="delta-up">+1.23</span> = 1.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="946.html">John Sciberras</a>, <a class="player-link" href="1082.html">Alex Falzon</a>, <a class="player-link" href="1098.html">Rinaldo D&#x27;Alessandro</a>, <a class="player-link" href="1103.html">Frans Ellul (pro) Marco Borg</a>, <a class="player-link" href="1122.html">Matthias Nussbaum</a> + 13 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="833.html">Clinton Cutajar</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#296 <span class="delta-up">+21</span> = #275</span></div><div class="metric"><span class="k">Score</span><span>-2.1 <span class="delta-up">+1.44</span> = -0.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1061.html">Victor Zammit</a>, <a class="player-link" href="263.html">Darrell Pace</a>, <a class="player-link" href="964.html">Antoine Chircop</a>, <a class="player-link" href="594.html">Joseph Randich</a>, <a class="player-link" href="262.html">Mavric Sawyer</a> + 16 more</div></div></div></div></td></tr><tr class="match-row" data-mid="15348"><td class="expand-trigger" data-mid="15348">▶</td><td>2026-03-06</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men D day 6</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="198.html">Daniele Privitera</a> / <a class="player-link" href="596.html">Antoine Bugeja</a></td><td class="score">2-6, 6-7 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span> 8-13</td><td class="num muted" data-sort="-1">—</td><td class="num">16.88<span class="rank-tag">#351</span></td><td class="num"><span class="loss">-0.89</span></td><td class="num">7.71</td><td class="num"><span class="muted">-0.14</span></td></tr><tr class="impact-row" data-mid="15348" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="198.html">Daniele Privitera</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#233 <span class="delta-up">+21</span> = #212</span></div><div class="metric"><span class="k">Score</span><span>2.3 <span class="delta-up">+1.06</span> = 3.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="404.html">Twanny Pule&#x27;</a>, <a class="player-link" href="604.html">Charles Borg Grech</a>, <a class="player-link" href="251.html">David Camilleri</a>, <a class="player-link" href="866.html">Charles Grech</a>, <a class="player-link" href="1090.html">Osbert Xuereb</a> + 16 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="596.html">Antoine Bugeja</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#245 <span class="delta-up">+14</span> = #231</span></div><div class="metric"><span class="k">Score</span><span>1.5 <span class="delta-up">+1.00</span> = 2.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="368.html">Mario Abdilla</a>, <a class="player-link" href="1082.html">Alex Falzon</a>, <a class="player-link" href="1090.html">Osbert Xuereb</a>, <a class="player-link" href="1103.html">Frans Ellul (pro) Marco Borg</a>, <a class="player-link" href="1122.html">Matthias Nussbaum</a> + 9 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="200.html">Kevin Sciberras</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#157 <span class="delta-dn">-16</span> = #173</span></div><div class="metric"><span class="k">Score</span><span>6.1 <span class="delta-dn">-0.94</span> = 5.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="373.html">Matthew Schembri</a>, <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="719.html">Richard Curmi</a>, <a class="player-link" href="934.html">Eric Micallef</a> + 11 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="840.html">Alberto Bafumi</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#349 <span class="delta-dn">-2</span> = #351</span></div><div class="metric"><span class="k">Score</span><span>-5.8 <span class="delta-dn">-0.47</span> = -6.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1130.html">Sean Micallef</a>, <a class="player-link" href="874.html">Joseph Zammit</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15332"><td class="expand-trigger" data-mid="15332">▶</td><td>2026-02-27</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men D day 5</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="251.html">David Camilleri</a> / <a class="player-link" href="368.html">Mario Abdilla</a></td><td class="score">6-3, 3-6</td><td class="num"><span class="loss">L (g)</span> 9-9</td><td class="num muted" data-sort="-1">—</td><td class="num">17.77<span class="rank-tag">#349</span></td><td class="num"><span class="loss">-0.20</span></td><td class="num">7.85</td><td class="num"><span class="muted">-0.17</span></td></tr><tr class="impact-row" data-mid="15332" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="251.html">David Camilleri</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#221 <span class="delta-up">+3</span> = #218</span></div><div class="metric"><span class="k">Score</span><span>2.8 <span class="delta-up">+0.18</span> = 2.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="404.html">Twanny Pule&#x27;</a>, <a class="player-link" href="1209.html">Lawrence Azzopardi</a>, <a class="player-link" href="755.html">Aaron Piccione</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="368.html">Mario Abdilla</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#238 <span class="delta-up">+3</span> = #235</span></div><div class="metric"><span class="k">Score</span><span>1.9 <span class="delta-up">+0.21</span> = 2.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1051.html">Albert Pace Axiaq</a>, <a class="player-link" href="681.html">Kurt Portelli</a>, <a class="player-link" href="688.html">Christian Serpina</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="200.html">Kevin Sciberras</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#156 <span class="delta-dn">-1</span> = #157</span></div><div class="metric"><span class="k">Score</span><span>6.2 <span class="delta-dn">-0.12</span> = 6.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1161.html">Osbert Xuereb (Pro Paul Fenech)</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="840.html">Alberto Bafumi</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#350 <span class="delta-up">+1</span> = #349</span></div><div class="metric"><span class="k">Score</span><span>-6.1 <span class="delta-up">+0.31</span> = -5.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1130.html">Sean Micallef</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15311"><td class="expand-trigger" data-mid="15311">▶</td><td>2026-02-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men D day 4</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="253.html">Matthias Cremona</a> / <a class="player-link" href="824.html">Oliver Brincat</a></td><td class="score">3-6, 4-6</td><td class="num"><span class="loss">L</span> 7-12</td><td class="num muted" data-sort="-1">—</td><td class="num">17.98<span class="rank-tag">#350</span></td><td class="num"><span class="loss">-1.17</span></td><td class="num">8.02</td><td class="num"><span class="muted">-0.15</span></td></tr><tr class="impact-row" data-mid="15311" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="200.html">Kevin Sciberras</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#132 <span class="delta-dn">-22</span> = #154</span></div><div class="metric"><span class="k">Score</span><span>7.5 <span class="delta-dn">-1.26</span> = 6.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="947.html">Chris Calleja</a>, <a class="player-link" href="1057.html">Clifton Caruana</a>, <a class="player-link" href="1088.html">Paul Fenech</a>, <a class="player-link" href="1092.html">Owen Scicluna</a>, <a class="player-link" href="992.html">Stefan Licari</a> + 17 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="840.html">Alberto Bafumi</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#342 <span class="delta-dn">-8</span> = #350</span></div><div class="metric"><span class="k">Score</span><span>-5.4 <span class="delta-dn">-0.72</span> = -6.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="923.html">John Bartolo</a>, <a class="player-link" href="1154.html">SawyerMavric</a>, <a class="player-link" href="1130.html">Sean Micallef</a>, <a class="player-link" href="1050.html">Kristen Cachia (Pro Ahmed Elnakroud)</a>, <a class="player-link" href="12.html">Hili Michele</a> + 3 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="253.html">Matthias Cremona</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#214 <span class="delta-up">+27</span> = #187</span></div><div class="metric"><span class="k">Score</span><span>3.1 <span class="delta-up">+1.53</span> = 4.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="974.html">Marco Borg</a>, <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="718.html">Lawrence Alamango</a>, <a class="player-link" href="261.html">Charles Micallef</a>, <a class="player-link" href="1106.html">James Farrugia (pro) George Grech</a> + 22 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="824.html">Oliver Brincat</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#341 <span class="delta-up">+18</span> = #323</span></div><div class="metric"><span class="k">Score</span><span>-5.3 <span class="delta-up">+1.41</span> = -3.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1062.html">Daniel Magrin</a>, <a class="player-link" href="1063.html">Ralph Bahmuller</a>, <a class="player-link" href="972.html">Mario Morales</a>, <a class="player-link" href="1086.html">Silvio Gusman</a>, <a class="player-link" href="943.html">Marcus Mamo</a> + 13 more</div></div></div></div></td></tr><tr class="match-row" data-mid="15283"><td class="expand-trigger" data-mid="15283">▶</td><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men D day 3</td><td><a class="player-link" href="200.html">Kevin Sciberras</a></td><td><a class="player-link" href="206.html">Ryan Ebejer</a> / <a class="player-link" href="833.html">Clinton Cutajar</a></td><td class="score">6-3, 6-7 <span class='muted'>(TB)</span></td><td class="num"><span class="win">W (g)</span> 12-10</td><td class="num muted" data-sort="-1">—</td><td class="num">19.14<span class="rank-tag">#336</span></td><td class="num"></td><td class="num">8.17</td><td class="num"></td></tr><tr class="impact-row" data-mid="15283" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="200.html">Kevin Sciberras</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#201 <span class="delta-up">+22</span> = #179</span></div><div class="metric"><span class="k">Score</span><span>3.5 <span class="delta-up">+1.29</span> = 4.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="974.html">Marco Borg</a>, <a class="player-link" href="718.html">Lawrence Alamango</a>, <a class="player-link" href="199.html">Ray Ciantar</a>, <a class="player-link" href="1079.html">Ian Gusman</a>, <a class="player-link" href="261.html">Charles Micallef</a> + 17 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="840.html">Alberto Bafumi</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #336</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -5.4</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="206.html">Ryan Ebejer</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#250 <span class="delta-dn">-12</span> = #262</span></div><div class="metric"><span class="k">Score</span><span>1.0 <span class="delta-dn">-0.85</span> = 0.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="594.html">Joseph Randich</a>, <a class="player-link" href="1081.html">Ricky Galea</a>, <a class="player-link" href="982.html">Franco Montesin (pro) Julian Esposito</a>, <a class="player-link" href="503.html">Sammy Ben Tamer</a>, <a class="player-link" href="493.html">Dayle Scicluna</a> + 7 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="833.html">Clinton Cutajar</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#297 <span class="delta-dn">-11</span> = #308</span></div><div class="metric"><span class="k">Score</span><span>-2.5 <span class="delta-dn">-0.75</span> = -3.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1089.html">Omar Debono</a>, <a class="player-link" href="1097.html">Frank Camilleri</a>, <a class="player-link" href="1035.html">Shawn Roderick Sciberras</a>, <a class="player-link" href="1162.html">Twanny Pule&#x27; (Pro Neville Cassar)</a>, <a class="player-link" href="1174.html">Julian Esposito (Pro Frank Camilleri)</a> + 6 more</div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":840,"focal_name":"Alberto Bafumi","window_start":"2026-01-29","window_end":"2026-03-21","chart_pids":[840,200,206,833,253,824,251,368],"players":{"833":{"name":"Clinton Cutajar","short":"Clinton"},"198":{"name":"Daniele Privitera","short":"Daniele"},"200":{"name":"Kevin Sciberras","short":"Kevin"},"840":{"name":"Alberto Bafumi","short":"Alberto"},"233":{"name":"Braydon Galea","short":"Braydon"},"206":{"name":"Ryan Ebejer","short":"Ryan"},"368":{"name":"Mario Abdilla","short":"Mario"},"596":{"name":"Antoine Bugeja","short":"Antoine"},"824":{"name":"Oliver Brincat","short":"Oliver"},"251":{"name":"David Camilleri","short":"David"},"253":{"name":"Matthias Cremona","short":"Matthias"}},"events":[{"match_id":15283,"date":"2026-01-30","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men D","team1":[200,840],"team2":[206,833],"winner":1,"is_tied":true,"score":"6-3 6-7","a_games":12,"b_games":10,"expected1":0.6781,"deltas":{"200":1.2855,"840":-5.3661,"206":-0.8537,"833":-0.7516},"mu_pre":{"200":18.575,"840":25.0,"206":18.102,"833":18.742},"sigma_pre":{"200":5.026,"840":8.333,"206":5.698,"833":7.071},"new_player":{"200":false,"840":true,"206":false,"833":true},"upset":false},{"match_id":15311,"date":"2026-02-20","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men D","team1":[200,840],"team2":[253,824],"winner":2,"is_tied":false,"score":"3-6 4-6","a_games":7,"b_games":12,"expected1":0.6043,"deltas":{"200":-1.258,"840":-0.7234,"253":1.5311,"824":1.407},"mu_pre":{"200":22.182,"840":19.144,"253":20.818,"824":16.637},"sigma_pre":{"200":4.901,"840":8.17,"253":5.914,"824":7.326},"new_player":{"200":false,"840":true,"253":false,"824":true},"upset":true},{"match_id":15332,"date":"2026-02-27","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men D","team1":[251,368],"team2":[200,840],"winner":0,"is_tied":true,"score":"3-6 6-3","a_games":9,"b_games":9,"expected1":0.3403,"deltas":{"251":0.1803,"368":0.2064,"200":-0.1228,"840":0.3102},"mu_pre":{"251":16.489,"368":16.967,"200":20.83,"840":17.977},"sigma_pre":{"251":4.574,"368":5.034,"200":4.87,"840":8.022},"new_player":{"251":false,"368":false,"200":false,"840":true},"upset":false},{"match_id":15348,"date":"2026-03-06","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men D","team1":[198,596],"team2":[200,840],"winner":1,"is_tied":false,"score":"6-2 7-6","a_games":13,"b_games":8,"expected1":0.5569,"deltas":{"198":1.0599,"596":1.0016,"200":-0.9391,"840":-0.4702},"mu_pre":{"198":20.755,"596":19.609,"200":20.595,"840":17.774},"sigma_pre":{"198":6.16,"596":6.048,"200":4.833,"840":7.851},"new_player":{"198":false,"596":false,"200":false,"840":true},"upset":false},{"match_id":15385,"date":"2026-03-20","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men D","team1":[200,840],"team2":[206,833],"winner":2,"is_tied":false,"score":"3-6 6-7","a_games":9,"b_games":13,"expected1":0.5701,"deltas":{"200":-1.2687,"840":-0.6919,"206":1.234,"833":1.4406},"mu_pre":{"200":20.084,"840":16.88,"206":16.681,"833":17.847},"sigma_pre":{"200":4.781,"840":7.71,"206":5.385,"833":6.634},"new_player":{"200":false,"840":true,"206":false,"833":false},"upset":false},{"match_id":15412,"date":"2026-03-21","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men D","team1":[200,840],"team2":[253,233],"winner":0,"is_tied":true,"score":"5-7 7-5","a_games":12,"b_games":12,"expected1":0.3158,"deltas":{"200":0.4453,"840":0.7615,"253":-0.0925,"233":-0.014},"mu_pre":{"200":18.706,"840":15.722,"253":22.855,"233":18.043},"sigma_pre":{"200":4.744,"840":7.555,"253":5.736,"233":5.906},"new_player":{"200":false,"840":true,"253":false,"233":false},"upset":false}],"series":{"840":[{"date":"2026-01-29","score":0.0},{"date":"2026-01-30","score":-5.3661},{"date":"2026-02-20","score":-6.0894},{"date":"2026-02-27","score":-5.7792},{"date":"2026-03-06","score":-6.2495},{"date":"2026-03-20","score":-6.9413},{"date":"2026-03-21","score":-6.1798}],"200":[{"date":"2026-01-29","score":2.0978},{"date":"2026-01-30","score":4.7819},{"date":"2026-02-20","score":6.2195},{"date":"2026-02-27","score":6.0966},{"date":"2026-03-06","score":5.1575},{"date":"2026-03-20","score":4.4729},{"date":"2026-03-21","score":4.9182}],"206":[{"date":"2026-01-29","score":1.0075},{"date":"2026-01-30","score":0.1538},{"date":"2026-03-20","score":1.7592},{"date":"2026-03-21","score":1.7592}],"833":[{"date":"2026-01-29","score":-1.9225},{"date":"2026-01-30","score":-3.2238},{"date":"2026-03-20","score":-0.6158},{"date":"2026-03-21","score":-0.6158}],"253":[{"date":"2026-01-29","score":-0.4885},{"date":"2026-02-20","score":4.606},{"date":"2026-03-21","score":5.5552}],"824":[{"date":"2026-01-29","score":-7.8843},{"date":"2026-02-20","score":-3.9355},{"date":"2026-03-21","score":-3.9355}],"251":[{"date":"2026-01-29","score":1.1553},{"date":"2026-02-27","score":2.946},{"date":"2026-03-21","score":2.946}],"368":[{"date":"2026-01-29","score":1.6412},{"date":"2026-02-27","score":2.0725},{"date":"2026-03-21","score":2.0725}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

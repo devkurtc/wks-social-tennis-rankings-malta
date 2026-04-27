@@ -1,0 +1,161 @@
+/* Rating-journey visualization styles — scoped to .rating-journey-section
+ * so they cannot leak onto the rest of the player page. CSS custom
+ * properties are declared on the section itself; selectors that target
+ * generic elements (header, aside) are prefixed.
+ */
+
+.rating-journey-section {
+  --rj-bg: #0e1218;
+  --rj-panel: #161b24;
+  --rj-panel-2: #1c2230;
+  --rj-panel-3: #232b3c;
+  --rj-fg: #e6ebf3;
+  --rj-muted: #8b96a8;
+  --rj-muted-2: #5e6779;
+  --rj-border: #2a3242;
+  --rj-border-strong: #3a4458;
+  --rj-accent: #46c281;
+  --rj-accent-dim: #46c28133;
+  --rj-warn: #ffc857;
+  --rj-loss: #e57373;
+  --rj-info: #4ea1ff;
+
+  background: var(--rj-bg);
+  color: var(--rj-fg);
+  font-family: system-ui, -apple-system, sans-serif;
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 16px 0 24px;
+  border: 1px solid var(--rj-border);
+}
+.rating-journey-section *, .rating-journey-section *::before, .rating-journey-section *::after { box-sizing: border-box; }
+
+.rating-journey-section .journey-header { margin-bottom: 14px; }
+.rating-journey-section .journey-header h2 { font-size: 18px; margin: 0 0 4px; color: var(--rj-fg); font-weight: 600; }
+.rating-journey-section .journey-sub { color: var(--rj-muted); font-size: 12px; }
+
+.rating-journey-section .journey-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .rating-journey-section .journey-layout { grid-template-columns: 1fr; }
+}
+
+.rating-journey-section .chart-panel { background: var(--rj-panel); border: 1px solid var(--rj-border); border-radius: 8px; padding: 12px 16px; }
+.rating-journey-section svg.journey-chart { width: 100%; height: auto; display: block; max-height: 420px; }
+
+.rating-journey-section .journey-aside { background: var(--rj-panel); border: 1px solid var(--rj-border); border-radius: 8px; padding: 14px 16px; font-size: 13px; min-width: 0; }
+.rating-journey-section .journey-aside h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--rj-muted); margin: 0 0 10px; font-weight: 600; }
+.rating-journey-section .journey-aside h3:not(:first-child) { margin-top: 18px; }
+
+.rating-journey-section .current-date { font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+.rating-journey-section .current-date-sub { color: var(--rj-muted); font-size: 11px; margin-bottom: 12px; min-height: 14px; }
+
+.rating-journey-section .match-panel { background: var(--rj-panel-2); border: 1px solid var(--rj-border); border-radius: 8px; padding: 14px; }
+.rating-journey-section .match-panel.empty { color: var(--rj-muted); font-style: italic; text-align: center; padding: 24px 14px; }
+
+.rating-journey-section .match-meta { color: var(--rj-muted-2); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; line-height: 1.4; }
+.rating-journey-section .match-meta .division { color: var(--rj-muted); }
+
+.rating-journey-section .match-result { display: flex; align-items: stretch; gap: 8px; }
+.rating-journey-section .match-team {
+  flex: 1; background: var(--rj-panel-3); border-radius: 6px; padding: 8px 9px;
+  border: 1px solid transparent; min-width: 0;
+}
+.rating-journey-section .match-team.winner { border-color: var(--rj-accent); background: linear-gradient(180deg, rgba(70,194,129,0.10), var(--rj-panel-3)); }
+.rating-journey-section .match-team.loser { opacity: 0.85; }
+.rating-journey-section .match-team.tied { border-color: var(--rj-info); background: linear-gradient(180deg, rgba(78,161,255,0.06), var(--rj-panel-3)); }
+
+.rating-journey-section .team-result { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--rj-muted); margin-bottom: 6px; }
+.rating-journey-section .team-result.winner { color: var(--rj-accent); }
+.rating-journey-section .team-result.loser { color: var(--rj-muted); }
+.rating-journey-section .team-result.tied { color: var(--rj-info); }
+
+.rating-journey-section .team-player { display: flex; align-items: baseline; gap: 6px; padding: 4px 0; min-width: 0; }
+.rating-journey-section .team-player .swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; align-self: center; }
+.rating-journey-section .team-player .name { flex: 1; font-size: 12px; line-height: 1.3; word-break: break-word; }
+.rating-journey-section .team-player .name.focal { font-weight: 600; }
+.rating-journey-section .team-player .delta { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 11px; padding-left: 4px; flex-shrink: 0; white-space: nowrap; }
+.rating-journey-section .team-player .delta.up { color: var(--rj-accent); }
+.rating-journey-section .team-player .delta.down { color: var(--rj-loss); }
+.rating-journey-section .team-player .delta.zero { color: var(--rj-muted-2); }
+
+.rating-journey-section .match-center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 56px; padding: 0 2px; flex-shrink: 0; }
+.rating-journey-section .match-center .vs { font-size: 9px; color: var(--rj-muted-2); letter-spacing: 1px; text-transform: uppercase; }
+.rating-journey-section .match-center .score { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 4px; line-height: 1.2; text-align: center; }
+.rating-journey-section .match-center .games-tiebreak { font-size: 9px; color: var(--rj-info); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+.rating-journey-section .expectation { margin-top: 12px; }
+.rating-journey-section .expectation-bar { height: 6px; border-radius: 3px; overflow: hidden; display: flex; background: var(--rj-border); }
+.rating-journey-section .expectation-bar .seg { height: 100%; }
+.rating-journey-section .expectation-bar .seg.won  { background: var(--rj-accent); opacity: 0.9; }
+.rating-journey-section .expectation-bar .seg.lost { background: var(--rj-loss);   opacity: 0.85; }
+.rating-journey-section .expectation-bar .seg.tied { background: var(--rj-info);   opacity: 0.85; }
+.rating-journey-section .expectation-label { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 10px; color: var(--rj-muted); margin-top: 5px; }
+.rating-journey-section .expectation-label .ex-team-label { font-weight: 600; }
+.rating-journey-section .expectation-label .ex-team-label.won  { color: var(--rj-accent); }
+.rating-journey-section .expectation-label .ex-team-label.lost { color: var(--rj-loss); }
+.rating-journey-section .expectation-label .ex-team-label.tied { color: var(--rj-info); }
+.rating-journey-section .expectation-label .upset-flag { color: var(--rj-warn); font-weight: 700; letter-spacing: 0.5px; }
+.rating-journey-section .expectation-label .as-predicted { color: var(--rj-muted-2); }
+.rating-journey-section .expectation-label .set-all { color: var(--rj-info); font-weight: 600; letter-spacing: 0.3px; }
+
+.rating-journey-section .narrative { margin-top: 12px; font-size: 12px; line-height: 1.55; color: var(--rj-fg); padding: 8px 10px; background: var(--rj-bg); border-radius: 5px; border-left: 3px solid var(--rj-accent); }
+.rating-journey-section .narrative.boring { border-left-color: var(--rj-muted-2); color: var(--rj-muted); }
+.rating-journey-section .narrative.tied { border-left-color: var(--rj-info); }
+.rating-journey-section .narrative .highlight { color: var(--rj-warn); font-weight: 600; }
+
+.rating-journey-section .quirk-note { margin-top: 8px; padding: 8px 10px; background: rgba(255,200,87,0.08); border: 1px solid rgba(255,200,87,0.2); border-radius: 5px; font-size: 11px; color: var(--rj-warn); line-height: 1.5; }
+.rating-journey-section .quirk-note strong { color: var(--rj-warn); }
+
+.rating-journey-section .ratings-list { list-style: none; padding: 0; margin: 0; }
+.rating-journey-section .ratings-list li {
+  display: grid;
+  grid-template-columns: 26px 10px minmax(0, 1fr) 48px 16px 48px 44px;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  font-size: 12px;
+}
+.rating-journey-section .ratings-list li.focal { background: var(--rj-accent-dim); font-weight: 600; }
+.rating-journey-section .ratings-list .rank { color: var(--rj-muted); font-variant-numeric: tabular-nums; font-size: 11px; }
+.rating-journey-section .ratings-list .swatch { width: 8px; height: 8px; border-radius: 50%; }
+.rating-journey-section .ratings-list .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rating-journey-section .ratings-list .rating-prev { font-variant-numeric: tabular-nums; text-align: right; color: var(--rj-muted); font-size: 11px; }
+.rating-journey-section .ratings-list .rating-arrow { text-align: center; font-size: 12px; line-height: 1; color: var(--rj-muted-2); }
+.rating-journey-section .ratings-list .rating-arrow.up { color: var(--rj-accent); }
+.rating-journey-section .ratings-list .rating-arrow.down { color: var(--rj-loss); }
+.rating-journey-section .ratings-list .rating-arrow.zero { color: var(--rj-muted-2); }
+.rating-journey-section .ratings-list .rating-new { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+.rating-journey-section .ratings-list li.focal .rating-new { color: var(--rj-accent); }
+.rating-journey-section .ratings-list .rating-delta { font-variant-numeric: tabular-nums; text-align: right; font-size: 10px; color: var(--rj-muted-2); }
+.rating-journey-section .ratings-list .rating-delta.up { color: var(--rj-accent); opacity: 0.85; }
+.rating-journey-section .ratings-list .rating-delta.down { color: var(--rj-loss); opacity: 0.85; }
+
+.rating-journey-section .journey-controls { margin-top: 14px; background: var(--rj-panel); border: 1px solid var(--rj-border); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rating-journey-section .journey-controls button { background: var(--rj-accent); color: #0a1410; border: 0; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; min-width: 100px; }
+.rating-journey-section .journey-controls button:hover { filter: brightness(1.1); }
+.rating-journey-section .journey-controls .step-btn { background: var(--rj-panel-2); color: var(--rj-fg); border: 1px solid var(--rj-border); min-width: 40px; }
+.rating-journey-section .journey-controls input[type=range] { flex: 1; min-width: 200px; accent-color: var(--rj-accent); }
+.rating-journey-section .journey-controls select { background: var(--rj-panel-2); color: var(--rj-fg); border: 1px solid var(--rj-border); border-radius: 4px; padding: 6px 8px; font-size: 12px; }
+.rating-journey-section .journey-controls .time { color: var(--rj-muted); font-size: 12px; min-width: 110px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.rating-journey-section .grid line { stroke: var(--rj-border); stroke-width: 0.5; }
+.rating-journey-section .axis text { fill: var(--rj-muted); font-size: 10px; font-family: system-ui; }
+.rating-journey-section .axis-title { fill: var(--rj-muted); font-size: 11px; font-family: system-ui; }
+.rating-journey-section .player-line { fill: none; stroke-width: 2; }
+.rating-journey-section .player-line.ghost { opacity: 0.18; }
+.rating-journey-section .player-line.focal { stroke-width: 3.5; }
+.rating-journey-section .playhead { stroke: var(--rj-fg); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.6; }
+.rating-journey-section .player-dot { stroke: var(--rj-bg); stroke-width: 1.5; }
+.rating-journey-section .player-dot.focal { stroke-width: 2; r: 6; }
+.rating-journey-section .player-label { font-size: 10px; font-weight: 600; pointer-events: none; }
+.rating-journey-section .delta-popup { font-size: 11px; font-weight: 700; pointer-events: none; }
+
+.rating-journey-section .footnote { color: var(--rj-muted); font-size: 11px; margin-top: 14px; line-height: 1.5; }
+.rating-journey-section .footnote code { background: var(--rj-panel-2); padding: 1px 5px; border-radius: 3px; font-size: 11px; }

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>HEFNI YASMINE — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-F">HEFNI YASMINE</div>
+      <div class="meta">
+        Ladies &middot;
+        Player ID #900
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">26.97</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">6.85</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">6.41</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">6</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">2</span>-<span class="loss">4</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">33%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">46-57</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">1W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">3</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W*</span><span class="b l">L*</span><span class="b l">L*</span><span class="b l">L</span><span class="b w">W*</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">132</td><td class="cls">C1</td><td><a class="player-link" href="962.html">Anna Buhagiar</a></td><td class="num">22.40</td><td class="num">5.29</td><td class="num"><strong>6.52</strong></td><td class="num"><span class="loss">+0.10</span></td><td class="num">29</td><td class="num"><span class="win">8</span>-<span class="loss">21</span></td><td class="num">28%</td></tr><tr><td class="num">133</td><td class="cls">B2</td><td><a class="player-link" href="961.html">Maria Elena Grech</a></td><td class="num">28.11</td><td class="num">7.23</td><td class="num"><strong>6.42</strong></td><td class="num"><span class="loss">+0.01</span></td><td class="num">8</td><td class="num"><span class="win">4</span>-<span class="loss">4</span></td><td class="num">50%</td></tr><tr><td class="num">134</td><td class="cls"></td><td><a class="player-link" href="730.html">Stephanie Farrugia (Pro Yana Cachia)</a></td><td class="num">31.22</td><td class="num">8.27</td><td class="num"><strong>6.42</strong></td><td class="num"><span class="loss">+0.01</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr style="background:#22304a"><td class="num">135</td><td class="cls"></td><td><strong>HEFNI YASMINE</strong></td><td class="num">26.97</td><td class="num">6.85</td><td class="num"><strong>6.41</strong></td><td class="num"><span class="muted">—</span></td><td class="num">6</td><td class="num"><span class="win">0</span>-<span class="loss">6</span></td><td class="num">0%</td></tr><tr><td class="num">136</td><td class="cls">A3</td><td><a class="player-link" href="362.html">Pamela Cohen</a></td><td class="num">22.02</td><td class="num">5.22</td><td class="num"><strong>6.37</strong></td><td class="num"><span class="win">-0.05</span></td><td class="num">16</td><td class="num"><span class="win">3</span>-<span class="loss">13</span></td><td class="num">19%</td></tr><tr><td class="num">137</td><td class="cls">B3</td><td><a class="player-link" href="948.html">Carmen Difesa</a></td><td class="num">22.75</td><td class="num">5.51</td><td class="num"><strong>6.23</strong></td><td class="num"><span class="win">-0.18</span></td><td class="num">32</td><td class="num"><span class="win">14</span>-<span class="loss">18</span></td><td class="num">44%</td></tr><tr><td class="num">138</td><td class="cls"></td><td><a class="player-link" href="1076.html">Josanne Cassar</a></td><td class="num">24.20</td><td class="num">6.06</td><td class="num"><strong>6.00</strong></td><td class="num"><span class="win">-0.41</span></td><td class="num">17</td><td class="num"><span class="win">3</span>-<span class="loss">14</span></td><td class="num">18%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="224.7" x2="904" y2="224.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="227.7" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="184.8" x2="904" y2="184.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="187.8" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="145.0" x2="904" y2="145.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="148.0" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="105.1" x2="904" y2="105.1" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="108.1" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="65.3" x2="904" y2="65.3" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="68.3" text-anchor="end" fill="#8b96a8" font-size="10">25</text><line x1="50" y1="25.4" x2="904" y2="25.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="28.4" text-anchor="end" fill="#8b96a8" font-size="10">30</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2023</text>
+  <polyline points="50.0,242.0 220.8,215.1 391.6,229.1 562.4,230.9 733.2,233.4 904.0,213.4" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,67.4 220.8,101.6 391.6,137.1 562.4,157.8 733.2,176.6 904.0,196.6" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,49.2 220.8,29.9 391.6,52.0 562.4,58.3 733.2,65.1 904.0,49.6" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">6.4</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.5</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2023</strong></td><td class="num">6</td><td class="num"><span class="win">2</span>-<span class="loss">4</span></td><td class="num">33%</td><td class="num">46-57</td><td class="num">27.01 → 26.97</td><td class="num"><span class="loss">-0.04</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2023-10-26</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="217.html">Naomi Zammit Ciantar</a> / <a class="player-link" href="531.html">Erika Azzopardi</a></td><td class="score">4-6, 6-2</td><td class="num"><span class="win">W (g)</span></td><td class="num"><span class="win">+2.42</span></td></tr><tr><td>2023-12-07</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="676.html">Roberta Fenech</a> / <a class="player-link" href="405.html">Christine Schembri</a></td><td class="score">6-3, 2-4</td><td class="num"><span class="win">W (g)</span></td><td class="num"><span class="win">+1.95</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2023-11-02</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="676.html">Roberta Fenech</a> / <a class="player-link" href="405.html">Christine Schembri</a></td><td class="score">4-6, 4-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-2.76</span></td></tr><tr><td>2023-11-23</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="405.html">Christine Schembri</a> / <a class="player-link" href="472.html">Natalya Abela</a></td><td class="score">6-3, 0-6</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-0.85</span></td></tr><tr><td>2023-11-20</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023</td><td><a class="player-link" href="671.html">Juanita Sapiano</a></td><td><a class="player-link" href="531.html">Erika Azzopardi</a> / <a class="player-link" href="217.html">Naomi Zammit Ciantar</a></td><td class="score">6-3, 1-6</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-0.80</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>HEFNI YASMINE</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">50%</div><div class="muted" style="font-size:10px;">log-loss 1.028</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">33%</div><div class="muted" style="font-size:10px;">log-loss 0.768</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2023-11-23 vs TENNIS TRADE TEAM TOURNAMENT 2023 — Vanilla PL said 20%, Decay said 70% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (6)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="14146"><td class="expand-trigger" data-mid="14146">▶</td><td>2023-12-07</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023 2023</td><td class="muted">Lad A final</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="676.html">Roberta Fenech</a> / <a class="player-link" href="405.html">Christine Schembri</a></td><td class="score">6-3, 2-4</td><td class="num"><span class="win">W (g)</span> 8-7</td><td class="num" data-sort="0.5410" title="Decay-365 said 54% chance of winning. Vanilla PL said 6%."><span class="muted">54%</span></td><td class="num">26.97<span class="rank-tag">#80</span></td><td class="num"><span class="win">+1.95</span></td><td class="num">6.85</td><td class="num"><span class="muted">-0.19</span></td></tr><tr class="impact-row" data-mid="14146" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="676.html">Roberta Fenech</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#11 <span class="delta-dn">-2</span> = #13</span></div><div class="metric"><span class="k">Score</span><span>19.3 <span class="delta-dn">-1.14</span> = 18.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="531.html">Erika Azzopardi</a>, <a class="player-link" href="635.html">MICALLEF YLENIA</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="405.html">Christine Schembri</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#4 <span class="delta-dn">-1</span> = #5</span></div><div class="metric"><span class="k">Score</span><span>25.4 <span class="delta-dn">-1.38</span> = 24.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="238.html">Kim Fava</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="238.html">Kim Fava</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#6 <span class="delta-up">+2</span> = #4</span></div><div class="metric"><span class="k">Score</span><span>21.6 <span class="delta-up">+3.04</span> = 24.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="265.html">Kirsty Mercieca</a>, <a class="player-link" href="405.html">Christine Schembri</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="900.html">HEFNI YASMINE</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#104 <span class="delta-up">+24</span> = #80</span></div><div class="metric"><span class="k">Score</span><span>3.9 <span class="delta-up">+2.51</span> = 6.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="956.html">Elaine Azzopardi</a>, <a class="player-link" href="948.html">Carmen Difesa</a>, <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="203.html">Angele Pule&#x27;</a> + 19 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14128"><td class="expand-trigger" data-mid="14128">▶</td><td>2023-11-23</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023 2023</td><td class="muted">Lad A day 6</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="405.html">Christine Schembri</a> / <a class="player-link" href="472.html">Natalya Abela</a></td><td class="score">6-3, 0-6</td><td class="num"><span class="loss">L (g)</span> 6-9</td><td class="num" data-sort="0.6967" title="Decay-365 said 70% chance of winning. Vanilla PL said 20%."><span class="loss">70%</span></td><td class="num">25.02<span class="rank-tag">#104</span></td><td class="num"><span class="loss">-0.85</span></td><td class="num">7.04</td><td class="num"><span class="muted">-0.18</span></td></tr><tr class="impact-row" data-mid="14128" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="900.html">HEFNI YASMINE</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#104 <span class="delta-z">±0</span> = #104</span></div><div class="metric"><span class="k">Score</span><span>4.2 <span class="delta-dn">-0.32</span> = 3.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="238.html">Kim Fava</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#5 <span class="delta-dn">-1</span> = #6</span></div><div class="metric"><span class="k">Score</span><span>22.6 <span class="delta-dn">-1.06</span> = 21.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="265.html">Kirsty Mercieca</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="405.html">Christine Schembri</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#4 <span class="delta-z">±0</span> = #4</span></div><div class="metric"><span class="k">Score</span><span>24.5 <span class="delta-up">+0.84</span> = 25.4</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="472.html">Natalya Abela</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#20 <span class="delta-z">±0</span> = #20</span></div><div class="metric"><span class="k">Score</span><span>16.5 <span class="delta-up">+0.70</span> = 17.2</span></div></div></div></div></td></tr><tr class="match-row" data-mid="14116"><td class="expand-trigger" data-mid="14116">▶</td><td>2023-11-20</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023 2023</td><td class="muted">Lad A day 5</td><td><a class="player-link" href="671.html">Juanita Sapiano</a></td><td><a class="player-link" href="531.html">Erika Azzopardi</a> / <a class="player-link" href="217.html">Naomi Zammit Ciantar</a></td><td class="score">6-3, 1-6</td><td class="num"><span class="loss">L (g)</span> 7-9</td><td class="num" data-sort="0.3717" title="Decay-365 said 37% chance of winning. Vanilla PL said 29%."><span class="muted">37%</span></td><td class="num">25.87<span class="rank-tag">#104</span></td><td class="num"><span class="loss">-0.80</span></td><td class="num">7.22</td><td class="num"><span class="muted">-0.19</span></td></tr><tr class="impact-row" data-mid="14116" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="531.html">Erika Azzopardi</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#11 <span class="delta-up">+1</span> = #10</span></div><div class="metric"><span class="k">Score</span><span>18.8 <span class="delta-up">+0.49</span> = 19.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="671.html">Juanita Sapiano</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="217.html">Naomi Zammit Ciantar</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#2 <span class="delta-z">±0</span> = #2</span></div><div class="metric"><span class="k">Score</span><span>28.5 <span class="delta-up">+0.77</span> = 29.3</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="671.html">Juanita Sapiano</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#10 <span class="delta-dn">-4</span> = #14</span></div><div class="metric"><span class="k">Score</span><span>19.4 <span class="delta-dn">-0.85</span> = 18.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="531.html">Erika Azzopardi</a>, <a class="player-link" href="676.html">Roberta Fenech</a>, <a class="player-link" href="202.html">Mariska Steenkamer</a>, <a class="player-link" href="635.html">MICALLEF YLENIA</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="900.html">HEFNI YASMINE</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#103 <span class="delta-dn">-1</span> = #104</span></div><div class="metric"><span class="k">Score</span><span>4.4 <span class="delta-dn">-0.22</span> = 4.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="552.html">CASSAR MARIKA</a></div></div></div></div></td></tr><tr class="match-row" data-mid="14086"><td class="expand-trigger" data-mid="14086">▶</td><td>2023-11-02</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023 2023</td><td class="muted">Lad A day 3</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="676.html">Roberta Fenech</a> / <a class="player-link" href="405.html">Christine Schembri</a></td><td class="score">4-6, 4-6</td><td class="num"><span class="loss">L</span> 8-12</td><td class="num" data-sort="0.5951" title="Decay-365 said 60% chance of winning. Vanilla PL said 30%."><span class="muted">60%</span></td><td class="num">26.67<span class="rank-tag">#101</span></td><td class="num"><span class="loss">-2.76</span></td><td class="num">7.41</td><td class="num"><span class="muted">-0.33</span></td></tr><tr class="impact-row" data-mid="14086" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="238.html">Kim Fava</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#2 <span class="delta-dn">-2</span> = #4</span></div><div class="metric"><span class="k">Score</span><span>29.3 <span class="delta-dn">-3.92</span> = 25.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="931.html">Nicole Fava</a>, <a class="player-link" href="217.html">Naomi Zammit Ciantar</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="900.html">HEFNI YASMINE</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#81 <span class="delta-dn">-20</span> = #101</span></div><div class="metric"><span class="k">Score</span><span>6.2 <span class="delta-dn">-1.77</span> = 4.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="956.html">Elaine Azzopardi</a>, <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="203.html">Angele Pule&#x27;</a>, <a class="player-link" href="1076.html">Josanne Cassar</a> + 15 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="676.html">Roberta Fenech</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#23 <span class="delta-up">+6</span> = #17</span></div><div class="metric"><span class="k">Score</span><span>15.7 <span class="delta-up">+1.85</span> = 17.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="930.html">Marthese Camoin</a>, <a class="player-link" href="246.html">Annabelle Abela</a>, <a class="player-link" href="202.html">Mariska Steenkamer</a>, <a class="player-link" href="514.html">Dorianne Buhagiar</a>, <a class="player-link" href="219.html">Annmarie Mangion</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="405.html">Christine Schembri</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#9 <span class="delta-up">+3</span> = #6</span></div><div class="metric"><span class="k">Score</span><span>20.0 <span class="delta-up">+2.25</span> = 22.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="264.html">Alexia Spiteri Willets</a>, <a class="player-link" href="265.html">Kirsty Mercieca</a>, <a class="player-link" href="932.html">Paula Caruana</a></div></div></div></div></td></tr><tr class="match-row" data-mid="14071"><td class="expand-trigger" data-mid="14071">▶</td><td>2023-10-26</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023 2023</td><td class="muted">Lad A day 2</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="217.html">Naomi Zammit Ciantar</a> / <a class="player-link" href="531.html">Erika Azzopardi</a></td><td class="score">4-6, 6-2</td><td class="num"><span class="win">W (g)</span> 10-8</td><td class="num" data-sort="0.4831" title="Decay-365 said 48% chance of winning. Vanilla PL said 18%."><span class="muted">48%</span></td><td class="num">29.43<span class="rank-tag">#81</span></td><td class="num"><span class="win">+2.42</span></td><td class="num">7.74</td><td class="num"><span class="muted">-0.32</span></td></tr><tr class="impact-row" data-mid="14071" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="217.html">Naomi Zammit Ciantar</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#2 <span class="delta-dn">-2</span> = #4</span></div><div class="metric"><span class="k">Score</span><span>28.3 <span class="delta-dn">-1.60</span> = 26.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="238.html">Kim Fava</a>, <a class="player-link" href="931.html">Nicole Fava</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="531.html">Erika Azzopardi</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#9 <span class="delta-dn">-3</span> = #12</span></div><div class="metric"><span class="k">Score</span><span>20.1 <span class="delta-dn">-1.22</span> = 18.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="927.html">Tiziana Borg Anastasi</a>, <a class="player-link" href="519.html">Nancy Wong</a>, <a class="player-link" href="405.html">Christine Schembri</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="238.html">Kim Fava</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#4 <span class="delta-up">+2</span> = #2</span></div><div class="metric"><span class="k">Score</span><span>25.3 <span class="delta-up">+3.99</span> = 29.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="931.html">Nicole Fava</a>, <a class="player-link" href="217.html">Naomi Zammit Ciantar</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="900.html">HEFNI YASMINE</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#116 <span class="delta-up">+35</span> = #81</span></div><div class="metric"><span class="k">Score</span><span>2.8 <span class="delta-up">+3.38</span> = 6.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="956.html">Elaine Azzopardi</a>, <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="271.html">Mary Borg</a>, <a class="player-link" href="1059.html">Lyndsey Napier</a>, <a class="player-link" href="1068.html">Anna Fenech</a> + 30 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14055"><td class="expand-trigger" data-mid="14055">▶</td><td>2023-10-19</td><td><span class="tag">vltc</span> TENNIS TRADE TEAM TOURNAMENT 2023 2023</td><td class="muted">Lad A day 1</td><td><a class="player-link" href="238.html">Kim Fava</a></td><td><a class="player-link" href="219.html">Annmarie Mangion</a> / <a class="player-link" href="265.html">Kirsty Mercieca</a></td><td class="score">3-6, 4-6</td><td class="num"><span class="loss">L</span> 7-12</td><td class="num" data-sort="0.5069" title="Decay-365 said 51% chance of winning. Vanilla PL said 50%."><span class="muted">51%</span></td><td class="num">27.01<span class="rank-tag">#116</span></td><td class="num"></td><td class="num">8.06</td><td class="num"></td></tr><tr class="impact-row" data-mid="14055" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="238.html">Kim Fava</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#2 <span class="delta-dn">-2</span> = #4</span></div><div class="metric"><span class="k">Score</span><span>31.3 <span class="delta-dn">-5.94</span> = 25.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="931.html">Nicole Fava</a>, <a class="player-link" href="217.html">Naomi Zammit Ciantar</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="900.html">HEFNI YASMINE</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #116</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 2.8</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="219.html">Annmarie Mangion</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#42 <span class="delta-up">+15</span> = #27</span></div><div class="metric"><span class="k">Score</span><span>10.8 <span class="delta-up">+2.53</span> = 13.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="467.html">Doriana Portelli</a>, <a class="player-link" href="713.html">Elaine Grech</a>, <a class="player-link" href="617.html">Tanya Cassar</a>, <a class="player-link" href="1075.html">Christine Muscat</a>, <a class="player-link" href="935.html">Kristina Cauchi</a> + 10 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="265.html">Kirsty Mercieca</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#20 <span class="delta-up">+8</span> = #12</span></div><div class="metric"><span class="k">Score</span><span>16.0 <span class="delta-up">+2.83</span> = 18.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="930.html">Marthese Camoin</a>, <a class="player-link" href="246.html">Annabelle Abela</a>, <a class="player-link" href="237.html">Olivia Belli</a>, <a class="player-link" href="676.html">Roberta Fenech</a>, <a class="player-link" href="960.html">Carmen Elden</a> + 3 more</div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":900,"focal_name":"Hefni Yasmine","window_start":"2023-10-18","window_end":"2023-12-07","chart_pids":[900,238,405,217,531,676,219,265],"players":{"900":{"name":"Hefni Yasmine","short":"Hefni"},"676":{"name":"Roberta Fenech","short":"Roberta"},"265":{"name":"Kirsty Mercieca","short":"Kirsty"},"238":{"name":"Kim Fava","short":"Kim"},"531":{"name":"Erika Azzopardi","short":"Erika"},"405":{"name":"Christine Schembri","short":"Christine"},"472":{"name":"Natalya Abela","short":"Natalya"},"217":{"name":"Naomi Zammit Ciantar","short":"Naomi"},"219":{"name":"Annmarie Mangion","short":"Annmarie"},"671":{"name":"Juanita Sapiano","short":"Juanita"}},"events":[{"match_id":14055,"date":"2023-10-19","tournament":"TENNIS TRADE TEAM TOURNAMENT 2023","division":"Lad A","team1":[238,900],"team2":[219,265],"winner":2,"is_tied":false,"score":"3-6 4-6","a_games":7,"b_games":12,"expected1":0.8767,"deltas":{"238":-5.9354,"900":2.8218,"219":2.5338,"265":2.8326},"mu_pre":{"238":47.475,"900":25.0,"219":26.526,"265":30.252},"sigma_pre":{"238":5.406,"900":8.333,"219":5.247,"265":4.752},"new_player":{"238":false,"900":true,"219":false,"265":false},"upset":true},{"match_id":14071,"date":"2023-10-26","tournament":"TENNIS TRADE TEAM TOURNAMENT 2023","division":"Lad A","team1":[217,531],"team2":[238,900],"winner":2,"is_tied":true,"score":"6-4 2-6","a_games":8,"b_games":10,"expected1":0.7526,"deltas":{"217":-1.5984,"531":-1.2248,"238":3.985,"900":3.3841},"mu_pre":{"217":44.933,"531":32.503,"238":41.364,"900":27.01},"sigma_pre":{"217":5.533,"531":4.143,"238":5.347,"900":8.063},"new_player":{"217":false,"531":false,"238":false,"900":true},"upset":true},{"match_id":14086,"date":"2023-11-02","tournament":"TENNIS TRADE TEAM TOURNAMENT 2023","division":"Lad A","team1":[238,900],"team2":[676,405],"winner":2,"is_tied":false,"score":"4-6 4-6","a_games":8,"b_games":12,"expected1":0.7746,"deltas":{"238":-3.9238,"900":-1.7666,"676":1.846,"405":2.2459},"mu_pre":{"238":45.073,"900":29.432,"676":29.391,"405":35.306},"sigma_pre":{"238":5.255,"900":7.742,"676":4.573,"405":5.094},"new_player":{"238":false,"900":true,"676":false,"405":false},"upset":true},{"match_id":14116,"date":"2023-11-20","tournament":"TENNIS TRADE TEAM TOURNAMENT 2023","division":"Lad A","team1":[531,217],"team2":[671,900],"winner":1,"is_tied":true,"score":"3-6 6-1","a_games":9,"b_games":7,"expected1":0.8667,"deltas":{"531":0.4947,"217":0.7668,"671":-0.8493,"900":-0.2168},"mu_pre":{"531":31.189,"217":44.567,"671":34.935,"900":26.669},"sigma_pre":{"531":4.114,"217":5.358,"671":5.193,"900":7.41},"new_player":{"531":false,"217":false,"671":false,"900":true},"upset":false},{"match_id":14128,"date":"2023-11-23","tournament":"TENNIS TRADE TEAM TOURNAMENT 2023","division":"Lad A","team1":[900,238],"team2":[405,472],"winner":2,"is_tied":true,"score":"6-3 0-6","a_games":6,"b_games":9,"expected1":0.2965,"deltas":{"900":-0.3171,"238":-1.0572,"405":0.8442,"472":0.7028},"mu_pre":{"900":25.87,"238":37.814,"405":39.175,"472":31.281},"sigma_pre":{"900":7.216,"238":5.059,"405":4.885,"472":4.926},"new_player":{"900":true,"238":false,"405":false,"472":false},"upset":false},{"match_id":14146,"date":"2023-12-07","tournament":"TENNIS TRADE TEAM TOURNAMENT 2023","division":"Lad A","team1":[676,405],"team2":[238,900],"winner":2,"is_tied":true,"score":"3-6 4-2","a_games":7,"b_games":8,"expected1":0.8115,"deltas":{"676":-1.1403,"405":-1.3844,"238":3.0433,"900":2.5088},"mu_pre":{"676":32.611,"405":39.893,"238":36.578,"900":25.024},"sigma_pre":{"676":4.421,"405":4.842,"238":4.999,"900":7.039},"new_player":{"676":false,"405":false,"238":false,"900":true},"upset":true}],"series":{"900":[{"date":"2023-10-18","score":0.0},{"date":"2023-10-19","score":2.8218},{"date":"2023-10-26","score":6.2059},{"date":"2023-11-02","score":4.4393},{"date":"2023-11-20","score":4.2225},{"date":"2023-11-23","score":3.9054},{"date":"2023-12-07","score":6.4143}],"238":[{"date":"2023-10-18","score":31.2578},{"date":"2023-10-19","score":25.3224},{"date":"2023-10-26","score":29.3075},{"date":"2023-11-02","score":25.3836},{"date":"2023-11-23","score":21.5808},{"date":"2023-12-07","score":24.6241}],"405":[{"date":"2023-10-18","score":22.0932},{"date":"2023-11-02","score":22.269},{"date":"2023-11-23","score":25.3654},{"date":"2023-12-07","score":23.981}],"217":[{"date":"2023-10-18","score":27.2544},{"date":"2023-10-26","score":26.7343},{"date":"2023-11-20","score":29.2592},{"date":"2023-12-07","score":29.2592}],"531":[{"date":"2023-10-18","score":19.3896},{"date":"2023-10-26","score":18.8475},{"date":"2023-11-20","score":19.3422},{"date":"2023-12-07","score":19.3422}],"676":[{"date":"2023-10-18","score":17.9855},{"date":"2023-11-02","score":17.5187},{"date":"2023-12-07","score":18.2083}],"219":[{"date":"2023-10-18","score":10.7845},{"date":"2023-10-19","score":13.3183},{"date":"2023-12-07","score":13.3183}],"265":[{"date":"2023-10-18","score":15.9967},{"date":"2023-10-19","score":18.8292},{"date":"2023-12-07","score":18.8292}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

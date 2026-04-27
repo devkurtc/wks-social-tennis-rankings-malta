@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Albert Pace Asciak — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Albert Pace Asciak</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #1038
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">26.55</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.61</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">3.73</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">4</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">3</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">25%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">32-38</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="loss">1L</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">2</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b l">L*</span><span class="b w">W</span><span class="b l">L</span><span class="b l">L*</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">202</td><td class="cls">B4</td><td><a class="player-link" href="207.html">Sebastian Attard</a></td><td class="num">19.84</td><td class="num">5.30</td><td class="num"><strong>3.95</strong></td><td class="num"><span class="loss">+0.22</span></td><td class="num">24</td><td class="num"><span class="win">4</span>-<span class="loss">20</span></td><td class="num">17%</td></tr><tr><td class="num">203</td><td class="cls"></td><td><a class="player-link" href="1175.html">Adam Briffa</a></td><td class="num">24.52</td><td class="num">6.89</td><td class="num"><strong>3.85</strong></td><td class="num"><span class="loss">+0.12</span></td><td class="num">9</td><td class="num"><span class="win">3</span>-<span class="loss">6</span></td><td class="num">33%</td></tr><tr><td class="num">204</td><td class="cls"></td><td><a class="player-link" href="73.html">Vella Lydon</a></td><td class="num">15.70</td><td class="num">3.97</td><td class="num"><strong>3.79</strong></td><td class="num"><span class="loss">+0.06</span></td><td class="num">56</td><td class="num"><span class="win">14</span>-<span class="loss">42</span></td><td class="num">25%</td></tr><tr style="background:#22304a"><td class="num">205</td><td class="cls">B1</td><td><strong>Albert Pace Asciak</strong></td><td class="num">26.55</td><td class="num">7.61</td><td class="num"><strong>3.73</strong></td><td class="num"><span class="muted">—</span></td><td class="num">4</td><td class="num"><span class="win">1</span>-<span class="loss">3</span></td><td class="num">25%</td></tr><tr><td class="num">206</td><td class="cls"></td><td><a class="player-link" href="625.html">Max Anastasi (pro Willen Steenkamer)</a></td><td class="num">28.00</td><td class="num">8.10</td><td class="num"><strong>3.72</strong></td><td class="num"><span class="win">-0.01</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">207</td><td class="cls"></td><td><a class="player-link" href="14.html">Pace Daryl</a></td><td class="num">19.43</td><td class="num">5.25</td><td class="num"><strong>3.67</strong></td><td class="num"><span class="win">-0.06</span></td><td class="num">25</td><td class="num"><span class="win">7</span>-<span class="loss">18</span></td><td class="num">28%</td></tr><tr><td class="num">208</td><td class="cls">C4</td><td><a class="player-link" href="1209.html">Lawrence Azzopardi</a></td><td class="num">26.77</td><td class="num">7.72</td><td class="num"><strong>3.60</strong></td><td class="num"><span class="win">-0.13</span></td><td class="num">4</td><td class="num"><span class="win">4</span>-<span class="loss">0</span></td><td class="num">100%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="225.3" x2="904" y2="225.3" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="228.3" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="184.0" x2="904" y2="184.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="187.0" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="142.6" x2="904" y2="142.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="145.6" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="101.2" x2="904" y2="101.2" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="104.2" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="59.8" x2="904" y2="59.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="62.8" text-anchor="end" fill="#8b96a8" font-size="10">25</text><line x1="50" y1="18.4" x2="904" y2="18.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="21.4" text-anchor="end" fill="#8b96a8" font-size="10">30</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2021</text>
+  <polyline points="50.0,231.4 334.7,241.7 619.3,230.0 904.0,235.9" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,93.6 334.7,116.2 619.3,141.2 904.0,170.4" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,30.6 334.7,44.4 619.3,36.5 904.0,46.9" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">7.1</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.8</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2021</strong></td><td class="num">4</td><td class="num"><span class="win">1</span>-<span class="loss">3</span></td><td class="num">25%</td><td class="num">32-38</td><td class="num">28.53 → 26.55</td><td class="num"><span class="loss">-1.98</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2021-11-12</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021</td><td><a class="player-link" href="384.html">Willem Steenkamer</a></td><td><a class="player-link" href="211.html">Duncan D&#x27;Alessandro</a> / <a class="player-link" href="974.html">Marco Borg</a></td><td class="score">6-3, 6-4</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+0.95</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2021-11-03</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021</td><td><a class="player-link" href="830.html">Tobias Kristensen</a></td><td><a class="player-link" href="392.html">Eric Roca</a> / <a class="player-link" href="1002.html">Earvin Grech Meli</a></td><td class="score">0-6, 2-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.67</span></td></tr><tr><td>2021-11-24</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021</td><td><a class="player-link" href="384.html">Willem Steenkamer</a></td><td><a class="player-link" href="690.html">Stephen Belli</a> / <a class="player-link" href="945.html">Richard Byrne</a></td><td class="score">3-6, 6-4</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-1.26</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Albert Pace Asciak</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2021</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021</td><td>Team D</td><td class="muted">Lonia Carabott</td><td class="cls">B1</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">67%</div><div class="muted" style="font-size:10px;">log-loss 0.670</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">67%</div><div class="muted" style="font-size:10px;">log-loss 0.610</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2021-11-03 vs Wilson Autumn Team Tournament 2021 — Vanilla PL said 63%, Decay said 35% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (4)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="14947"><td class="expand-trigger" data-mid="14947">▶</td><td>2021-11-24</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021 2021</td><td class="muted">Men B </td><td><a class="player-link" href="384.html">Willem Steenkamer</a></td><td><a class="player-link" href="690.html">Stephen Belli</a> / <a class="player-link" href="945.html">Richard Byrne</a></td><td class="score">3-6, 6-4</td><td class="num"><span class="loss">L (g)</span> 9-10</td><td class="num" data-sort="0.4331" title="Decay-365 said 43% chance of winning. Vanilla PL said 48%."><span class="muted">43%</span></td><td class="num">26.55<span class="rank-tag">#99</span></td><td class="num"><span class="loss">-1.26</span></td><td class="num">7.61</td><td class="num"><span class="muted">-0.18</span></td></tr><tr class="impact-row" data-mid="14947" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="690.html">Stephen Belli</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#69 <span class="delta-up">+18</span> = #51</span></div><div class="metric"><span class="k">Score</span><span>6.4 <span class="delta-up">+1.35</span> = 7.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="947.html">Chris Calleja</a>, <a class="player-link" href="1057.html">Clifton Caruana</a>, <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="602.html">Frans Ellul</a>, <a class="player-link" href="518.html">James Farrugia</a> + 13 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="945.html">Richard Byrne</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#8 <span class="delta-up">+2</span> = #6</span></div><div class="metric"><span class="k">Score</span><span>19.6 <span class="delta-up">+1.51</span> = 21.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="732.html">Nicholas Gollcher</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="1038.html">Albert Pace Asciak</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#91 <span class="delta-dn">-8</span> = #99</span></div><div class="metric"><span class="k">Score</span><span>4.4 <span class="delta-dn">-0.71</span> = 3.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="974.html">Marco Borg</a>, <a class="player-link" href="249.html">Julian Esposito</a>, <a class="player-link" href="998.html">Shawn Sciberras</a>, <a class="player-link" href="609.html">Kevin Formosa</a>, <a class="player-link" href="537.html">Daniel Falzon</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="384.html">Willem Steenkamer</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#9 <span class="delta-dn">-6</span> = #15</span></div><div class="metric"><span class="k">Score</span><span>18.3 <span class="delta-dn">-1.38</span> = 16.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="944.html">Dave Elden</a>, <a class="player-link" href="711.html">Gareth Magri</a> + 1 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14899"><td class="expand-trigger" data-mid="14899">▶</td><td>2021-11-12</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021 2021</td><td class="muted">Men B </td><td><a class="player-link" href="384.html">Willem Steenkamer</a></td><td><a class="player-link" href="211.html">Duncan D&#x27;Alessandro</a> / <a class="player-link" href="974.html">Marco Borg</a></td><td class="score">6-3, 6-4</td><td class="num"><span class="win">W</span> 12-7</td><td class="num" data-sort="0.4332" title="Decay-365 said 43% chance of winning. Vanilla PL said 70%."><span class="muted">43%</span></td><td class="num">27.81<span class="rank-tag">#90</span></td><td class="num"><span class="win">+0.95</span></td><td class="num">7.79</td><td class="num"><span class="muted">-0.16</span></td></tr><tr class="impact-row" data-mid="14899" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="211.html">Duncan D&#x27;Alessandro</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#124 <span class="delta-dn">-3</span> = #127</span></div><div class="metric"><span class="k">Score</span><span>0.9 <span class="delta-dn">-0.67</span> = 0.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1081.html">Ricky Galea</a>, <a class="player-link" href="1030.html">Ryan Mizzi</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="974.html">Marco Borg</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#76 <span class="delta-dn">-12</span> = #88</span></div><div class="metric"><span class="k">Score</span><span>5.5 <span class="delta-dn">-0.92</span> = 4.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="1074.html">Antoine Muscat</a>, <a class="player-link" href="1077.html">Etienne Micallef</a> + 7 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="1038.html">Albert Pace Asciak</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#101 <span class="delta-up">+11</span> = #90</span></div><div class="metric"><span class="k">Score</span><span>3.0 <span class="delta-up">+1.42</span> = 4.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="604.html">Charles Borg Grech</a>, <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="249.html">Julian Esposito</a>, <a class="player-link" href="262.html">Mavric Sawyer</a>, <a class="player-link" href="998.html">Shawn Sciberras</a> + 6 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="384.html">Willem Steenkamer</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#18 <span class="delta-up">+4</span> = #14</span></div><div class="metric"><span class="k">Score</span><span>15.8 <span class="delta-up">+1.27</span> = 17.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="944.html">Dave Elden</a>, <a class="player-link" href="240.html">Kurt Carabott</a>, <a class="player-link" href="924.html">Jack Steenkamer</a></div></div></div></div></td></tr><tr class="match-row" data-mid="14891"><td class="expand-trigger" data-mid="14891">▶</td><td>2021-11-03</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021 2021</td><td class="muted">Men B </td><td><a class="player-link" href="830.html">Tobias Kristensen</a></td><td><a class="player-link" href="392.html">Eric Roca</a> / <a class="player-link" href="1002.html">Earvin Grech Meli</a></td><td class="score">0-6, 2-6</td><td class="num"><span class="loss">L</span> 2-12</td><td class="num" data-sort="0.3461" title="Decay-365 said 35% chance of winning. Vanilla PL said 63%."><span class="win">35%</span></td><td class="num">26.86<span class="rank-tag">#101</span></td><td class="num"><span class="loss">-1.67</span></td><td class="num">7.95</td><td class="num"><span class="muted">-0.14</span></td></tr><tr class="impact-row" data-mid="14891" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1038.html">Albert Pace Asciak</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#90 <span class="delta-dn">-11</span> = #101</span></div><div class="metric"><span class="k">Score</span><span>4.3 <span class="delta-dn">-1.24</span> = 3.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="604.html">Charles Borg Grech</a>, <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="249.html">Julian Esposito</a>, <a class="player-link" href="262.html">Mavric Sawyer</a>, <a class="player-link" href="998.html">Shawn Sciberras</a> + 5 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="830.html">Tobias Kristensen</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#87 <span class="delta-dn">-10</span> = #97</span></div><div class="metric"><span class="k">Score</span><span>4.7 <span class="delta-dn">-1.23</span> = 3.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="604.html">Charles Borg Grech</a>, <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="1106.html">James Farrugia (pro) George Grech</a>, <a class="player-link" href="998.html">Shawn Sciberras</a>, <a class="player-link" href="690.html">Stephen Belli</a> + 4 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="392.html">Eric Roca</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #80</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 5.3</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1002.html">Earvin Grech Meli</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#93 <span class="delta-up">+22</span> = #71</span></div><div class="metric"><span class="k">Score</span><span>3.9 <span class="delta-up">+1.99</span> = 5.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="974.html">Marco Borg</a>, <a class="player-link" href="959.html">Paul Micallef</a> + 17 more</div></div></div></div></td></tr><tr class="match-row" data-mid="15013"><td class="expand-trigger" data-mid="15013">▶</td><td>2021-10-30</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2021 2021</td><td class="muted">Men B final</td><td><a class="player-link" href="384.html">Willem Steenkamer</a></td><td><a class="player-link" href="471.html">Luigi Porto</a> / <a class="player-link" href="945.html">Richard Byrne</a></td><td class="score">3-6, 6-3</td><td class="num"><span class="loss">L (g)</span> 9-9</td><td class="num muted" data-sort="-1">—</td><td class="num">28.53<span class="rank-tag">#88</span></td><td class="num"></td><td class="num">8.09</td><td class="num"></td></tr><tr class="impact-row" data-mid="15013" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="471.html">Luigi Porto</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#25 <span class="delta-dn">-1</span> = #26</span></div><div class="metric"><span class="k">Score</span><span>13.5 <span class="delta-dn">-0.12</span> = 13.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="966.html">Joe Carabott</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="945.html">Richard Byrne</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#6 <span class="delta-z">±0</span> = #6</span></div><div class="metric"><span class="k">Score</span><span>20.2 <span class="delta-dn">-0.24</span> = 20.0</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="384.html">Willem Steenkamer</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#20 <span class="delta-up">+4</span> = #16</span></div><div class="metric"><span class="k">Score</span><span>15.0 <span class="delta-up">+0.79</span> = 15.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="234.html">Victor Rutter</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="465.html">Matthew Borg</a>, <a class="player-link" href="732.html">Nicholas Gollcher</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1038.html">Albert Pace Asciak</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #88</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 4.3</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":1038,"focal_name":"Albert Pace Asciak","window_start":"2021-10-29","window_end":"2021-11-24","chart_pids":[1038,384,945,471,830,392,1002,211],"players":{"384":{"name":"Willem Steenkamer","short":"Willem"},"392":{"name":"Eric Roca","short":"Eric"},"1002":{"name":"Earvin Grech Meli","short":"Earvin"},"1038":{"name":"Albert Pace Asciak","short":"Albert"},"974":{"name":"Marco Borg","short":"Marco"},"945":{"name":"Richard Byrne","short":"Richard"},"690":{"name":"Stephen Belli","short":"Stephen"},"211":{"name":"Duncan D'Alessandro","short":"Duncan"},"471":{"name":"Luigi Porto","short":"Luigi"},"830":{"name":"Tobias Kristensen","short":"Tobias"}},"events":[{"match_id":15013,"date":"2021-10-30","tournament":"Wilson Autumn Team Tournament 2021","division":"Men B","team1":[471,945],"team2":[384,1038],"winner":0,"is_tied":true,"score":"6-3 3-6","a_games":9,"b_games":9,"expected1":0.7998,"deltas":{"471":-0.1216,"945":-0.2355,"384":0.7931,"1038":4.2632},"mu_pre":{"471":31.628,"945":36.637,"384":31.365,"1038":25.0},"sigma_pre":{"471":6.041,"945":5.472,"384":5.444,"1038":8.333},"new_player":{"471":false,"945":false,"384":false,"1038":true},"upset":false},{"match_id":14891,"date":"2021-11-03","tournament":"Wilson Autumn Team Tournament 2021","division":"Men B","team1":[1038,830],"team2":[392,1002],"winner":2,"is_tied":false,"score":"0-6 2-6","a_games":2,"b_games":12,"expected1":0.5798,"deltas":{"1038":-1.2407,"830":-1.2309,"392":5.252,"1002":1.9855},"mu_pre":{"1038":28.528,"830":25.928,"392":25.0,"1002":26.118},"sigma_pre":{"1038":8.088,"830":7.087,"392":8.333,"1002":7.4},"new_player":{"1038":true,"830":true,"392":true,"1002":true},"upset":false},{"match_id":14899,"date":"2021-11-12","tournament":"Wilson Autumn Team Tournament 2021","division":"Men B","team1":[211,974],"team2":[1038,384],"winner":2,"is_tied":false,"score":"3-6 4-6","a_games":7,"b_games":12,"expected1":0.2574,"deltas":{"211":-0.666,"974":-0.9242,"1038":1.4196,"384":1.2723},"mu_pre":{"211":25.025,"974":23.934,"1038":26.861,"384":31.957},"sigma_pre":{"211":8.041,"974":6.134,"1038":7.946,"384":5.377},"new_player":{"211":true,"974":false,"1038":true,"384":false},"upset":false},{"match_id":14947,"date":"2021-11-24","tournament":"Wilson Autumn Team Tournament 2021","division":"Men B","team1":[690,945],"team2":[1038,384],"winner":1,"is_tied":true,"score":"6-3 4-6","a_games":10,"b_games":9,"expected1":0.5142,"deltas":{"690":1.3513,"945":1.5057,"1038":-0.7112,"384":-1.3784},"mu_pre":{"690":26.841,"945":35.591,"1038":27.81,"384":34.122},"sigma_pre":{"690":6.806,"945":5.315,"1038":7.789,"384":5.283},"new_player":{"690":false,"945":false,"1038":true,"384":false},"upset":false}],"series":{"1038":[{"date":"2021-10-29","score":0.0},{"date":"2021-10-30","score":4.2632},{"date":"2021-11-03","score":3.0226},{"date":"2021-11-12","score":4.4421},{"date":"2021-11-24","score":3.731}],"384":[{"date":"2021-10-29","score":15.0333},{"date":"2021-10-30","score":15.8264},{"date":"2021-11-12","score":17.0987},{"date":"2021-11-24","score":16.8953}],"945":[{"date":"2021-10-29","score":20.2202},{"date":"2021-10-30","score":19.9847},{"date":"2021-11-24","score":21.1521}],"471":[{"date":"2021-10-29","score":13.5057},{"date":"2021-10-30","score":13.3841},{"date":"2021-11-24","score":13.3841}],"830":[{"date":"2021-10-29","score":4.668},{"date":"2021-11-03","score":3.4371},{"date":"2021-11-24","score":3.4371}],"392":[{"date":"2021-10-29","score":0.0},{"date":"2021-11-03","score":5.252},{"date":"2021-11-24","score":5.252}],"1002":[{"date":"2021-10-29","score":3.9191},{"date":"2021-11-03","score":5.9046},{"date":"2021-11-24","score":5.9046}],"211":[{"date":"2021-10-29","score":1.7464},{"date":"2021-11-12","score":0.2365},{"date":"2021-11-24","score":0.2365}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

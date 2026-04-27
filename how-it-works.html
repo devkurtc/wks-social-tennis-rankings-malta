@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — RallyRank</title>
+<link rel="stylesheet" href="styles.css?v=0349a8454e">
+</head>
+<body>
+<nav class="topnav"><a href="index.html">Leaderboard</a><span class="sep">·</span><a href="matches.html">All matches</a><span class="sep">·</span><a href="disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="aliases.html">Mapping</a><span class="sep">·</span><a href="changelog.html">What’s new</a><span class="sep">·</span><a href="how-it-works.html" class="active">How it works</a></nav>
+<header>
+  <h1>How RallyRank works</h1>
+  <p>Plain English. No jargon. With a calculator at the bottom you can poke at.</p>
+</header>
+
+<main class="hwr">
+  <p class="lead">Reading time: about 90 seconds. Skip to the calculator if you just want to play.</p>
+
+  <section>
+    <h2>The big idea</h2>
+    <p>We don't just count wins. After every match, the system updates <em>both</em> a guess of how good you are <em>and</em> how confident it is in that guess. Two numbers per player, refined every time you step on court.</p>
+  </section>
+
+  <section>
+    <h2>Two numbers: μ (skill) and σ (uncertainty)</h2>
+    <p>Every player has two numbers behind their name:</p>
+    <ul>
+      <li><span class="code">μ</span> ("mu") — the system's best guess of your skill. Higher = stronger.</li>
+      <li><span class="code">σ</span> ("sigma") — how unsure the system is. Higher = less confident. Shrinks as you play more matches.</li>
+    </ul>
+    <p>You can picture each player as a bell curve: μ is the peak, σ is the width. The wider the curve, the less the system trusts the number yet.</p>
+
+    <div class="diagram">
+      
+<svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Two bell curves showing two players' rating distributions.">
+  <defs>
+    <linearGradient id="hwr-a" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#46c281" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#46c281" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="hwr-b" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#4ea1ff" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#4ea1ff" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+  <!-- baseline axis -->
+  <line x1="40" y1="200" x2="560" y2="200" stroke="#2a3242" stroke-width="1"/>
+  <text x="40" y="220" fill="#8b96a8" font-size="11" font-family="system-ui">weaker</text>
+  <text x="525" y="220" fill="#8b96a8" font-size="11" font-family="system-ui">stronger</text>
+  <text x="295" y="220" fill="#8b96a8" font-size="11" font-family="system-ui" text-anchor="middle">skill →</text>
+
+  <!-- Player A: narrow, tall (experienced, low σ) -->
+  <!-- Approximate Gaussian with a smooth Bezier "hill" -->
+  <path d="M 200,200 C 240,200 260,30 300,30 C 340,30 360,200 400,200 Z"
+        fill="url(#hwr-a)" stroke="#46c281" stroke-width="1.5"/>
+  <!-- mu marker -->
+  <line x1="300" y1="30" x2="300" y2="200" stroke="#46c281" stroke-dasharray="3 3" stroke-width="1"/>
+  <text x="300" y="22" fill="#46c281" font-size="11" font-family="system-ui" text-anchor="middle" font-weight="600">μ (Avery — many matches)</text>
+
+  <!-- Player B: wide, lower peak (newer, high σ) -->
+  <path d="M 100,200 C 170,200 220,80 320,80 C 420,80 470,200 540,200 Z"
+        fill="url(#hwr-b)" stroke="#4ea1ff" stroke-width="1.5"/>
+  <line x1="320" y1="80" x2="320" y2="200" stroke="#4ea1ff" stroke-dasharray="3 3" stroke-width="1"/>
+  <text x="320" y="72" fill="#4ea1ff" font-size="11" font-family="system-ui" text-anchor="middle" font-weight="600">μ (Blake — new player)</text>
+
+  <!-- σ width brackets -->
+  <line x1="200" y1="208" x2="400" y2="208" stroke="#46c281" stroke-width="1"/>
+  <text x="300" y="180" fill="#46c281" font-size="10" font-family="system-ui" text-anchor="middle">narrow σ ⇒ confident</text>
+  <line x1="100" y1="216" x2="540" y2="216" stroke="#4ea1ff" stroke-width="1" opacity="0.7"/>
+  <text x="320" y="135" fill="#4ea1ff" font-size="10" font-family="system-ui" text-anchor="middle">wide σ ⇒ unsure</text>
+</svg>
+
+      <div class="diagram-caption">Avery has played a lot — narrow bell, system is confident. Blake is new — wide bell, system is hedging until they play more.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why the leaderboard sorts by μ − 3σ</h2>
+    <p>If we ranked by μ alone, a brand-new player who happened to win their first match would shoot to the top. So we use a <em>conservative</em> number: <span class="code">μ − 3σ</span>. It's roughly "the lowest skill we're 99% sure this player is at least as strong as."</p>
+    <p>Practical effect: new players start near the bottom and climb as their σ shrinks. Once you've played ~15+ matches, σ has shrunk enough that μ − 3σ is close to your real skill estimate.</p>
+  </section>
+
+  <section>
+    <h2>What changes a rating after a match</h2>
+    <p>Win or lose, both teams' ratings move. The base move is whatever OpenSkill's math says (bigger upset ⇒ bigger move). On top of that, four multipliers stack to scale the change up or down:</p>
+    <ul>
+      <li><strong>Game volume</strong> — a 26-game battle is more informative than a 6-0 6-0 blowout, so it changes ratings more.</li>
+      <li><strong>Division K</strong> — a Div 1 win moves your rating more than a Div 4 win (higher division = stronger field = stronger signal).</li>
+      <li><strong>Time decay</strong> — matches from two years ago count for less than matches from last month. Recent form weighs heavier.</li>
+      <li><strong>Partner weighting</strong> — within a pair, the stronger partner's rating moves a bit more (they probably contributed more). Net team change is preserved.</li>
+    </ul>
+    <p>Walkovers count, but at half weight — the win was real, the play wasn't.</p>
+
+    <p class="diagram-caption" style="margin-top:18px;">Interactive: slide the multipliers below to see how they stack on a hypothetical winning player whose baseline μ change is +1.00:</p>
+    <div class="stack-diagram" id="hwr-stack">
+      <div class="stack-row">
+        <div class="stack-label">Baseline (OpenSkill)<span class="stack-mult" id="stk-base-mult">×1.00</span></div>
+        <div class="stack-bar-track"><div class="stack-bar-fill baseline" id="stk-base-bar" style="width:50%;"></div></div>
+        <div class="stack-value" id="stk-base-val">+1.00</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Game volume
+          <span class="stack-mult" id="stk-vol-mult">×1.00</span>
+          <input type="range" id="stk-vol" min="6" max="36" step="1" value="18"
+                 style="width:100%;margin-top:4px;" aria-label="Total games in match">
+          <span style="font-size:10px;color:var(--muted);" id="stk-vol-label">18 games (typical)</span>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-vol-bar" style="width:50%;"></div></div>
+        <div class="stack-value" id="stk-vol-val">+1.00</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Division K
+          <span class="stack-mult" id="stk-div-mult">×0.85</span>
+          <select id="stk-div" style="width:100%;margin-top:4px;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:11px;">
+            <option value="1.00">Div 1</option>
+            <option value="0.85" selected>Div 2</option>
+            <option value="0.70">Div 3</option>
+            <option value="0.55">Div 4</option>
+          </select>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-div-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-div-val">+0.85</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Time decay
+          <span class="stack-mult" id="stk-time-mult">×1.00</span>
+          <input type="range" id="stk-time" min="0" max="1095" step="30" value="0"
+                 style="width:100%;margin-top:4px;" aria-label="Match age in days">
+          <span style="font-size:10px;color:var(--muted);" id="stk-time-label">today</span>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-time-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-time-val">+0.85</div>
+      </div>
+      <div class="stack-row">
+        <div class="stack-label">
+          Partner share
+          <span class="stack-mult" id="stk-pw-mult">×1.00</span>
+          <input type="range" id="stk-pw" min="35" max="65" step="1" value="50"
+                 style="width:100%;margin-top:4px;" aria-label="This player's share of pair strength, percent">
+          <span style="font-size:10px;color:var(--muted);" id="stk-pw-label">50% (equal partners)</span>
+        </div>
+        <div class="stack-bar-track"><div class="stack-bar-fill" id="stk-pw-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-pw-val">+0.85</div>
+      </div>
+      <div class="stack-row stack-final-row">
+        <div class="stack-label">Final μ change</div>
+        <div class="stack-bar-track"><div class="stack-bar-fill up" id="stk-final-bar" style="width:42%;"></div></div>
+        <div class="stack-value" id="stk-final-val">+0.85</div>
+      </div>
+    </div>
+    <p class="diagram-caption">Try: slide the time-decay slider out to 2 years and watch the final move shrink. Or push the partner-share slider to 65% to see the stronger partner's bump.</p>
+  </section>
+
+  <section>
+    <h2>Two leaderboards: KC Version vs DF Version</h2>
+    <p>The leaderboard has a tab toggle between <strong>KC Version</strong> and <strong>DF Version</strong>. Both rank the same 696 players using the same 4,062 matches — the source data is <em>identical</em>. What differs is the <em>algorithm</em> reading those matches.</p>
+
+    <h3 style="margin-top:18px;font-size:14px;">If you don't do maths</h3>
+    <p>Think of it like two referees watching the same game and writing down "skill marks" for each player. They see the same plays, but they keep score on different sheets:</p>
+    <ul>
+      <li><strong>KC's referee (OpenSkill)</strong> uses a 0-to-50ish scale. After each match they nudge the four players' marks up or down a tiny amount based on whether the result was expected (small nudge) or surprising (big nudge), and how lopsided the games were.</li>
+      <li><strong>DF's referee (Glicko-2)</strong> uses a 0-to-3000ish scale (chess uses the same scale). They do the same idea — nudge marks up or down — but the maths underneath is shaped differently. Each player carries a "reliability" number that shrinks the more they play.</li>
+    </ul>
+    <p>Both referees agree on the <em>question</em> — "given everyone's history, how should this match shift things?" — and both arrive at <em>roughly</em> the same ranking. But the maths they use is different, so the answers won't be identical. That's the point.</p>
+    <p><strong>So why have both?</strong> A rating system is a model of reality, and every model has blind spots. Running two side-by-side is a built-in BS detector. If KC says you're player #5 and DF says you're player #50, that's a flag worth a closer look — usually a small data quirk (very few matches, weird tournament format) that one model handles better than the other. Where they agree, you can trust the answer. Where they disagree, dig in.</p>
+
+    <details style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;">
+      <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--accent);">If you do maths — the technical comparison</summary>
+
+      <div style="margin-top:12px;">
+        <p>Both algorithms are <strong>Bayesian rating systems</strong>: each player has a prior distribution over their "true skill", and every match is a likelihood observation that updates the posterior. They differ in <em>which</em> prior, <em>which</em> likelihood, and how doubles is handled.</p>
+
+        <h4 style="font-size:13px;margin-top:14px;">Shared scaffolding</h4>
+        <ul>
+          <li><strong>Score function.</strong> Both consume <code>S = games_won / (games_won + games_lost)</code> ∈ [0, 1] — the "universal score" from PLAN.md §5.2. Replaces the cruder binary win/loss with a continuous outcome that captures match dominance. Walkovers are clamped to S = 0.90 / 0.10 (the win was real; the play wasn't).</li>
+          <li><strong>Conservative rank.</strong> Both display "μ − 3σ" (KC) or "r − 3·RD" (DF) — the lower 99% bound of the player's posterior. New players sit near the floor and rise as uncertainty shrinks.</li>
+          <li><strong>Source iterator.</strong> Both call <code>rating._iter_active_matches(conn)</code> in chronological order. Same 4,062 matches, same filter (<code>superseded_by_run_id IS NULL</code>), same order.</li>
+        </ul>
+
+        <h4 style="font-size:13px;margin-top:14px;">KC — OpenSkill Plackett-Luce</h4>
+        <ul>
+          <li><strong>Prior:</strong> each player has skill θ ~ 𝒩(μ, σ²). Default μ = 25, σ = 25/3.</li>
+          <li><strong>Likelihood:</strong> a Plackett-Luce ranking model — P(team A finishes ahead of team B) ∝ exp(strength<sub>A</sub>) / (exp(strength<sub>A</sub>) + exp(strength<sub>B</sub>)) — where each team's strength is derived from its players' θ.</li>
+          <li><strong>Update:</strong> approximate Bayesian inference produces closed-form (μ, σ) updates per player after each match. Bigger upset = larger μ shift. Higher prior σ = larger update step.</li>
+          <li><strong>Doubles:</strong> native multi-agent — Plackett-Luce treats each team as the sum of its players' skills, and the per-player update is split fairly across the team.</li>
+          <li><strong>On top of OpenSkill's base move</strong>, the production engine layers <em>four multipliers</em>: game volume, division K, time decay (τ = 365 d), partner-share weighting. See "What changes a rating" above.</li>
+        </ul>
+
+        <h4 style="font-size:13px;margin-top:14px;">DF — Glicko-2 (doubles-adapted)</h4>
+        <ul>
+          <li><strong>Prior:</strong> each player has rating r ~ 𝒩(r̂, RD²) and a volatility σ tracking rating reliability over time. Default r = 1500, RD = 350, σ = 0.06.</li>
+          <li><strong>Likelihood:</strong> logistic — E[score against opponent] = 1 / (1 + exp(−g(RD<sub>opp</sub>)·(r − r<sub>opp</sub>) / 400·ln 10)), where <span style="white-space:nowrap;">g(RD) = 1 / √(1 + 3·RD² / π²)</span> dampens the update for opponents with high uncertainty.</li>
+          <li><strong>Update:</strong> Glickman's 2012 paper — closed-form updates to (r, RD, σ) per match. r shifts toward the observed outcome scaled by g(RD<sub>opp</sub>); RD shrinks; σ adjusts based on whether recent results were surprising.</li>
+          <li><strong>Doubles:</strong> the opponent <em>team</em> is collapsed to a single virtual entity — r<sub>team</sub> = average of partner r's, RD<sub>team</sub> = √((RD<sub>p1</sub>² + RD<sub>p2</sub>²) / 2) (RMS-combined). The focal player updates against this virtual opponent. Approximation, not native — but well-behaved in practice.</li>
+          <li><strong>Time handling:</strong> RD inflates between rating periods (volatility-driven), no separate decay multiplier.</li>
+        </ul>
+
+        <h4 style="font-size:13px;margin-top:14px;">Where they will disagree</h4>
+        <ul>
+          <li><strong>Players with very few matches.</strong> KC's μ−3σ pushes new players toward the floor more aggressively than DF's r−3·RD; rapid risers may rank lower under KC for longer.</li>
+          <li><strong>Players with long inactive gaps.</strong> KC has explicit time-decay multiplier τ = 365 d (older matches contribute less). DF's volatility-driven RD inflation grows uncertainty during gaps but doesn't down-weight old results — so a comeback player's rank can lag in DF until a few new matches recalibrate.</li>
+          <li><strong>Lopsided pairs.</strong> KC's partner-share multiplier credits the stronger partner with more of the team's update. DF's symmetric doubles aggregation splits credit equally. A clearly dominant player paired with a weaker partner may rank slightly higher under KC.</li>
+          <li><strong>Strong wins by underdogs.</strong> Plackett-Luce's exponential and Glicko-2's logistic disagree most sharply at the tails — surprise upsets shift ratings differently in the two models.</li>
+        </ul>
+
+        <p style="margin-top:14px;">If a specific player ranks 50+ places apart between the two leaderboards, that's the most useful signal the dual-model architecture produces. It usually points at one of the divergence cases above — worth a closer look at their match history before trusting either rank as gospel.</p>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>Captain's say sits on top</h2>
+    <p>For tournaments where captains pre-assign players to A/B/C/D teams, the leaderboard groups by that captain choice <em>first</em>, then ranks by μ − 3σ <em>within</em> the group. Math knows numbers; captains know things math can't see (chemistry, injury, attitude). Both views are visible — the default respects captains, and a "raw" sort shows pure math.</p>
+  </section>
+
+  <section class="calc-section">
+    <h2>Try it: predict the next match</h2>
+    <p>Pick four players (start typing — the box autocompletes from real RallyRank players). The calculator shows who's favoured and by how much, using the production decay-weighted ratings.</p>
+
+    <div class="calc">
+      <div class="calc-pair">
+        <span class="pair-label">Pair A</span>
+        <input type="text" id="hwr-a1" list="hwr-players" placeholder="Player 1 name" autocomplete="off">
+        <input type="text" id="hwr-a2" list="hwr-players" placeholder="Player 2 name" autocomplete="off">
+      </div>
+      <div class="calc-vs">vs</div>
+      <div class="calc-pair">
+        <span class="pair-label">Pair B</span>
+        <input type="text" id="hwr-b1" list="hwr-players" placeholder="Player 3 name" autocomplete="off">
+        <input type="text" id="hwr-b2" list="hwr-players" placeholder="Player 4 name" autocomplete="off">
+      </div>
+      <datalist id="hwr-players"></datalist>
+      <div id="hwr-out" class="calc-out placeholder">
+        Pick four different players to see a prediction.
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Heads up:</strong> the prediction assumes both pairs play their typical level on the day. Tennis is a contact-with-a-ball sport — surface, weather, fatigue, and a bad decision in a tiebreak all swing real outcomes. Treat this as "what should happen on average," not a guaranteed result.
+    </div>
+  </section>
+
+  <section>
+    <h2>Want more depth?</h2>
+    <p>The full algorithm is <a href="https://openskill.me/" target="_blank" rel="noopener">OpenSkill (Plackett-Luce)</a> with a time-decay weight, partner-weighted updates, and division-aware K. Engineering details live in the project's <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/PLAN.md" target="_blank" rel="noopener">PLAN.md</a> on GitHub.</p>
+  </section>
+</main>
+
+<script>
+(function() {
+  const PLAYERS = [{"id": 946, "name": "John Sciberras", "g": "M", "mu": 27.8848, "sigma": 8.3386, "n": 30}, {"id": 947, "name": "Chris Calleja", "g": "M", "mu": 27.9838, "sigma": 8.3438, "n": 15}, {"id": 942, "name": "Mark Azzopardi", "g": "M", "mu": 27.9889, "sigma": 8.3403, "n": 24}, {"id": 1057, "name": "Clifton Caruana", "g": "M", "mu": 28.0009, "sigma": 8.3332, "n": 6}, {"id": 921, "name": "Audrey Friggieri", "g": "F", "mu": 30.8616, "sigma": 8.3395, "n": 22}, {"id": 467, "name": "Doriana Portelli", "g": "F", "mu": 30.8619, "sigma": 7.5899, "n": 49}, {"id": 531, "name": "Erika Azzopardi", "g": "F", "mu": 31.4793, "sigma": 7.5492, "n": 38}, {"id": 956, "name": "Elaine Azzopardi", "g": "F", "mu": 30.9928, "sigma": 8.34, "n": 14}, {"id": 1058, "name": "Monica Cachia Markham", "g": "F", "mu": 26.5343, "sigma": 8.0636, "n": 15}, {"id": 871, "name": "Helga Azzopardi", "g": "F", "mu": 24.3999, "sigma": 7.651, "n": 47}, {"id": 968, "name": "Yvonne Borg Cardona", "g": "F", "mu": 26.064, "sigma": 8.3376, "n": 29}, {"id": 271, "name": "Mary Borg", "g": "F", "mu": 20.0208, "sigma": 6.6257, "n": 76}, {"id": 205, "name": "Manuel Mifsud", "g": "M", "mu": 22.3961, "sigma": 6.3964, "n": 74}, {"id": 909, "name": "Mary Ciantar", "g": "F", "mu": 24.2569, "sigma": 7.8385, "n": 31}, {"id": 404, "name": "Twanny Pule'", "g": "M", "mu": 20.9839, "sigma": 7.2729, "n": 51}, {"id": 1059, "name": "Lyndsey Napier", "g": "F", "mu": 24.9979, "sigma": 8.3384, "n": 19}, {"id": 542, "name": "Maurice Borg", "g": "M", "mu": 21.7316, "sigma": 6.7502, "n": 66}, {"id": 201, "name": "Romina Gauci", "g": "F", "mu": 24.6625, "sigma": 5.9713, "n": 76}, {"id": 234, "name": "Victor Rutter", "g": "M", "mu": 27.8656, "sigma": 7.7375, "n": 48}, {"id": 933, "name": "Sharon Mizzi", "g": "F", "mu": 23.0968, "sigma": 7.6454, "n": 40}, {"id": 210, "name": "Jesmond Pule'", "g": "M", "mu": 20.8073, "sigma": 6.1389, "n": 64}, {"id": 378, "name": "Ivan Cachia", "g": "M", "mu": 26.3224, "sigma": 5.4624, "n": 103}, {"id": 1091, "name": "Suniel Balani", "g": "M", "mu": 33.0009, "sigma": 8.3331, "n": 6}, {"id": 242, "name": "Trevor Rutter", "g": "M", "mu": 42.977, "sigma": 5.1365, "n": 119}, {"id": 604, "name": "Charles Borg Grech", "g": "M", "mu": 23.0161, "sigma": 8.2832, "n": 28}, {"id": 368, "name": "Mario Abdilla", "g": "M", "mu": 20.4479, "sigma": 7.1523, "n": 60}, {"id": 1061, "name": "Victor Zammit", "g": "M", "mu": 23.0, "sigma": 8.3333, "n": 1}, {"id": 373, "name": "Matthew Schembri", "g": "M", "mu": 19.2088, "sigma": 6.0709, "n": 74}, {"id": 923, "name": "John Bartolo", "g": "M", "mu": 17.9947, "sigma": 8.3401, "n": 19}, {"id": 413, "name": "Andrew Spiteri", "g": "M", "mu": 16.8152, "sigma": 8.1313, "n": 29}, {"id": 1062, "name": "Daniel Magrin", "g": "M", "mu": 18.0, "sigma": 8.3352, "n": 7}, {"id": 1063, "name": "Ralph Bahmuller", "g": "M", "mu": 18.0006, "sigma": 8.3366, "n": 2}, {"id": 1064, "name": "Lino Zammit", "g": "M", "mu": 24.999, "sigma": 8.3333, "n": 3}, {"id": 930, "name": "Marthese Camoin", "g": "F", "mu": 25.006, "sigma": 8.3391, "n": 22}, {"id": 384, "name": "Willem Steenkamer", "g": "M", "mu": 26.8862, "sigma": 5.1376, "n": 126}, {"id": 239, "name": "Alison Muscat", "g": "F", "mu": 24.1854, "sigma": 5.2727, "n": 111}, {"id": 713, "name": "Elaine Grech", "g": "F", "mu": 38.8105, "sigma": 6.5652, "n": 57}, {"id": 238, "name": "Kim Fava", "g": "F", "mu": 34.4925, "sigma": 6.7668, "n": 63}, {"id": 929, "name": "Monica Muscat", "g": "F", "mu": 30.9076, "sigma": 8.3403, "n": 25}, {"id": 263, "name": "Darrell Pace", "g": "M", "mu": 17.0423, "sigma": 6.9525, "n": 53}, {"id": 1065, "name": "Christ Attard", "g": "M", "mu": 17.998, "sigma": 8.3377, "n": 6}, {"id": 1066, "name": "Joe Grech", "g": "M", "mu": 17.999, "sigma": 8.3333, "n": 4}, {"id": 1005, "name": "Robert Abela", "g": "M", "mu": 17.9806, "sigma": 8.3457, "n": 10}, {"id": 958, "name": "Jesmond Cachia", "g": "M", "mu": 25.0056, "sigma": 8.3455, "n": 21}, {"id": 948, "name": "Carmen Difesa", "g": "F", "mu": 24.9876, "sigma": 8.3403, "n": 28}, {"id": 1067, "name": "Matthias Nasbaum", "g": "", "mu": 24.9997, "sigma": 8.3333, "n": 1}, {"id": 1068, "name": "Anna Fenech", "g": "F", "mu": 23.0953, "sigma": 7.9883, "n": 20}, {"id": 663, "name": "David Mifsud", "g": "M", "mu": 28.9222, "sigma": 5.8712, "n": 66}, {"id": 999, "name": "Clint Cassar", "g": "M", "mu": 33.1399, "sigma": 8.0067, "n": 20}, {"id": 273, "name": "John Azzopardi", "g": "M", "mu": 34.6817, "sigma": 6.5914, "n": 58}, {"id": 1069, "name": "Paula Difesa", "g": "F", "mu": 25.999, "sigma": 8.3354, "n": 10}, {"id": 216, "name": "Christine Scerri", "g": "F", "mu": 21.9664, "sigma": 6.0891, "n": 79}, {"id": 203, "name": "Angele Pule'", "g": "F", "mu": 21.9175, "sigma": 6.7498, "n": 47}, {"id": 247, "name": "Jennifer Mifsud", "g": "F", "mu": 26.4827, "sigma": 7.1634, "n": 43}, {"id": 945, "name": "Richard Byrne", "g": "M", "mu": 28.0506, "sigma": 8.3358, "n": 35}, {"id": 989, "name": "Simon Micallef", "g": "M", "mu": 27.9562, "sigma": 8.3436, "n": 18}, {"id": 964, "name": "Antoine Chircop", "g": "M", "mu": 27.9651, "sigma": 8.3431, "n": 19}, {"id": 974, "name": "Marco Borg", "g": "M", "mu": 27.9028, "sigma": 8.3416, "n": 21}, {"id": 751, "name": "Franco Montesin", "g": "M", "mu": 17.6418, "sigma": 7.5591, "n": 47}, {"id": 594, "name": "Joseph Randich", "g": "M", "mu": 16.4679, "sigma": 7.2643, "n": 27}, {"id": 602, "name": "Frans Ellul", "g": "M", "mu": 22.1738, "sigma": 7.729, "n": 55}, {"id": 1070, "name": "Ray Cardona", "g": "M", "mu": 23.0051, "sigma": 8.3388, "n": 15}, {"id": 213, "name": "Josette Cassar", "g": "F", "mu": 18.0152, "sigma": 6.6924, "n": 53}, {"id": 1071, "name": "Angela Delia", "g": "F", "mu": 26.0021, "sigma": 8.3361, "n": 13}, {"id": 952, "name": "Rose Anne Portelli", "g": "F", "mu": 25.9848, "sigma": 8.3433, "n": 19}, {"id": 1072, "name": "Leah Meekers", "g": "F", "mu": 25.9986, "sigma": 8.3332, "n": 4}, {"id": 959, "name": "Paul Micallef", "g": "M", "mu": 24.9972, "sigma": 8.3445, "n": 14}, {"id": 246, "name": "Annabelle Abela", "g": "F", "mu": 22.851, "sigma": 7.1972, "n": 43}, {"id": 483, "name": "George Grech", "g": "M", "mu": 26.1823, "sigma": 7.2128, "n": 44}, {"id": 607, "name": "Martina Cuschieri", "g": "F", "mu": 26.3797, "sigma": 7.5422, "n": 44}, {"id": 249, "name": "Julian Esposito", "g": "M", "mu": 18.9297, "sigma": 6.2846, "n": 77}, {"id": 262, "name": "Mavric Sawyer", "g": "M", "mu": 14.3219, "sigma": 6.7288, "n": 60}, {"id": 251, "name": "David Camilleri", "g": "M", "mu": 17.7052, "sigma": 6.5374, "n": 66}, {"id": 231, "name": "Clint Agius", "g": "M", "mu": 23.8335, "sigma": 6.0735, "n": 54}, {"id": 972, "name": "Mario Morales", "g": "M", "mu": 24.971, "sigma": 8.3434, "n": 20}, {"id": 1073, "name": "Michela Di Giorgio", "g": "F", "mu": 24.9989, "sigma": 8.3356, "n": 7}, {"id": 1074, "name": "Antoine Muscat", "g": "M", "mu": 25.0005, "sigma": 8.3332, "n": 4}, {"id": 617, "name": "Tanya Cassar", "g": "F", "mu": 25.0908, "sigma": 7.5308, "n": 58}, {"id": 237, "name": "Olivia Belli", "g": "F", "mu": 26.3491, "sigma": 6.0395, "n": 74}, {"id": 1075, "name": "Christine Muscat", "g": "F", "mu": 31.001, "sigma": 8.3332, "n": 5}, {"id": 988, "name": "Grace Barbara", "g": "F", "mu": 30.992, "sigma": 8.3474, "n": 5}, {"id": 1076, "name": "Josanne Cassar", "g": "F", "mu": 30.9972, "sigma": 8.3391, "n": 11}, {"id": 728, "name": "Manuel Gatt", "g": "M", "mu": 27.6491, "sigma": 8.1945, "n": 18}, {"id": 241, "name": "Karl Debattista", "g": "M", "mu": 18.9148, "sigma": 6.7805, "n": 37}, {"id": 518, "name": "James Farrugia", "g": "M", "mu": 31.4674, "sigma": 7.4703, "n": 36}, {"id": 718, "name": "Lawrence Alamango", "g": "M", "mu": 27.6347, "sigma": 8.2447, "n": 21}, {"id": 719, "name": "Richard Curmi", "g": "M", "mu": 29.4761, "sigma": 7.3515, "n": 28}, {"id": 967, "name": "Norbert Coleiro", "g": "M", "mu": 32.9722, "sigma": 8.3386, "n": 26}, {"id": 401, "name": "Clyde Grech", "g": "M", "mu": 36.0202, "sigma": 6.8768, "n": 58}, {"id": 614, "name": "Juan Debono", "g": "M", "mu": 22.1459, "sigma": 6.5615, "n": 84}, {"id": 866, "name": "Charles Grech", "g": "M", "mu": 23.1707, "sigma": 8.2303, "n": 18}, {"id": 199, "name": "Ray Ciantar", "g": "M", "mu": 22.2836, "sigma": 7.822, "n": 43}, {"id": 934, "name": "Eric Micallef", "g": "M", "mu": 20.864, "sigma": 7.9595, "n": 45}, {"id": 949, "name": "Natasha Hedley", "g": "F", "mu": 31.0001, "sigma": 8.341, "n": 11}, {"id": 935, "name": "Kristina Cauchi", "g": "F", "mu": 31.0099, "sigma": 8.3416, "n": 10}, {"id": 953, "name": "Marcelo Villanueva", "g": "M", "mu": 32.9884, "sigma": 8.3366, "n": 31}, {"id": 1077, "name": "Etienne Micallef", "g": "M", "mu": 32.9989, "sigma": 8.3332, "n": 3}, {"id": 990, "name": "Neville Cassar", "g": "M", "mu": 27.9739, "sigma": 8.3457, "n": 10}, {"id": 1078, "name": "Lorenzo Donato", "g": "M", "mu": 24.993, "sigma": 8.3385, "n": 17}, {"id": 1079, "name": "Ian Gusman", "g": "M", "mu": 25.0012, "sigma": 8.336, "n": 7}, {"id": 1080, "name": "Marcon Gusman", "g": "F", "mu": 24.999, "sigma": 8.3333, "n": 3}, {"id": 1081, "name": "Ricky Galea", "g": "M", "mu": 18.0013, "sigma": 8.3332, "n": 5}, {"id": 399, "name": "Deborah Farrugia", "g": "F", "mu": 23.1407, "sigma": 5.8318, "n": 77}, {"id": 1082, "name": "Alex Falzon", "g": "M", "mu": 24.9999, "sigma": 8.3332, "n": 4}, {"id": 676, "name": "Roberta Fenech", "g": "F", "mu": 34.2213, "sigma": 6.6743, "n": 41}, {"id": 1083, "name": "Yanica Gusman", "g": "F", "mu": 24.9994, "sigma": 8.3333, "n": 2}, {"id": 1085, "name": "John Falzon", "g": "M", "mu": 17.9986, "sigma": 8.3357, "n": 6}, {"id": 1086, "name": "Silvio Gusman", "g": "M", "mu": 18.0004, "sigma": 8.3333, "n": 4}, {"id": 1087, "name": "Alfred Vella", "g": "M", "mu": 32.9941, "sigma": 8.34, "n": 8}, {"id": 1088, "name": "Paul Fenech", "g": "M", "mu": 32.9947, "sigma": 8.3389, "n": 14}, {"id": 1089, "name": "Omar Debono", "g": "M", "mu": 22.9996, "sigma": 8.3333, "n": 3}, {"id": 1090, "name": "Osbert Xuereb", "g": "M", "mu": 23.0004, "sigma": 8.3359, "n": 15}, {"id": 202, "name": "Mariska Steenkamer", "g": "F", "mu": 26.6758, "sigma": 5.3399, "n": 118}, {"id": 244, "name": "Brenda Baldacchino", "g": "F", "mu": 20.1031, "sigma": 5.7403, "n": 99}, {"id": 960, "name": "Carmen Elden", "g": "F", "mu": 31.0091, "sigma": 8.3418, "n": 21}, {"id": 1092, "name": "Owen Scicluna", "g": "M", "mu": 32.9994, "sigma": 8.3332, "n": 3}, {"id": 605, "name": "Claude Mifsud Wismayer", "g": "M", "mu": 30.169, "sigma": 7.9968, "n": 19}, {"id": 944, "name": "Dave Elden", "g": "M", "mu": 33.0039, "sigma": 8.3427, "n": 16}, {"id": 696, "name": "Ralf Bahmuller", "g": "M", "mu": 18.2955, "sigma": 8.0233, "n": 22}, {"id": 1093, "name": "Malcolm Pace", "g": "M", "mu": 17.9998, "sigma": 8.3333, "n": 3}, {"id": 1094, "name": "Roger Galea", "g": "M", "mu": 17.9992, "sigma": 8.3333, "n": 3}, {"id": 1095, "name": "Manuel Casha", "g": "M", "mu": 24.9991, "sigma": 8.3333, "n": 3}, {"id": 1096, "name": "Rose Falzon", "g": "F", "mu": 24.0853, "sigma": 8.2934, "n": 12}, {"id": 1097, "name": "Frank Camilleri", "g": "M", "mu": 24.9932, "sigma": 8.3395, "n": 14}, {"id": 535, "name": "Andrew Pule'", "g": "M", "mu": 29.3293, "sigma": 6.4166, "n": 49}, {"id": 261, "name": "Charles Micallef", "g": "M", "mu": 20.1962, "sigma": 7.0079, "n": 47}, {"id": 388, "name": "Bernardette Fenech", "g": "F", "mu": 32.2742, "sigma": 7.4778, "n": 36}, {"id": 1098, "name": "Rinaldo D'Alessandro", "g": "M", "mu": 23.0004, "sigma": 8.3333, "n": 3}, {"id": 1099, "name": "Ionella Barcanescu", "g": "F", "mu": 25.0048, "sigma": 8.3385, "n": 15}, {"id": 1100, "name": "Emanuel Gatt", "g": "M", "mu": 27.9995, "sigma": 8.3332, "n": 3}, {"id": 1101, "name": "Mattias Nasbaum", "g": "", "mu": 24.9996, "sigma": 8.3333, "n": 1}, {"id": 1035, "name": "Shawn Roderick Sciberras", "g": "M", "mu": 24.9733, "sigma": 8.3495, "n": 9}, {"id": 1102, "name": "Mario Ebejer", "g": "M", "mu": 17.9993, "sigma": 8.3333, "n": 3}, {"id": 1103, "name": "Frans Ellul (pro) Marco Borg", "g": "M", "mu": 25.0001, "sigma": 8.3333, "n": 2}, {"id": 1104, "name": "Mary Ciantar (pro) Helga Azzopardi", "g": "F", "mu": 26.0003, "sigma": 8.3333, "n": 1}, {"id": 1105, "name": "Yanika Gusman", "g": "F", "mu": 25.0001, "sigma": 8.3333, "n": 3}, {"id": 1106, "name": "James Farrugia (pro) George Grech", "g": "M", "mu": 28.0003, "sigma": 8.3333, "n": 1}, {"id": 1107, "name": "Rose Falzon (pro) Mary Borg", "g": "F", "mu": 25.9996, "sigma": 8.3333, "n": 1}, {"id": 1109, "name": "Mattihas Nassbaum", "g": "", "mu": 25.0003, "sigma": 8.3333, "n": 1}, {"id": 998, "name": "Shawn Sciberras", "g": "M", "mu": 27.9846, "sigma": 8.3446, "n": 11}, {"id": 1110, "name": "Michela Di Giorgio (pro) Josette Cassar", "g": "", "mu": 24.9996, "sigma": 8.3333, "n": 1}, {"id": 1111, "name": "Natasha Hadley (pro) Annabelle Abela", "g": "", "mu": 25.0003, "sigma": 8.3333, "n": 1}, {"id": 1112, "name": "Claude M. Wismayer", "g": "M", "mu": 32.9996, "sigma": 8.3333, "n": 1}, {"id": 1113, "name": "Baldacchino", "g": "F", "mu": 30.9995, "sigma": 8.3333, "n": 1}, {"id": 1122, "name": "Matthias Nussbaum", "g": "M", "mu": 25.0, "sigma": 8.3388, "n": 14}, {"id": 1115, "name": "Matthew Schembri (pro) Rinaldo D'Alessandro", "g": "", "mu": 25.0003, "sigma": 8.3333, "n": 1}, {"id": 1116, "name": "Matthew Schembri (pro)", "g": "", "mu": 24.9998, "sigma": 8.3333, "n": 1}, {"id": 927, "name": "Tiziana Borg Anastasi", "g": "F", "mu": 26.0694, "sigma": 8.3382, "n": 19}, {"id": 389, "name": "Lucienne Meli", "g": "F", "mu": 21.6056, "sigma": 6.1947, "n": 45}, {"id": 966, "name": "Joe Carabott", "g": "M", "mu": 28.0306, "sigma": 8.3357, "n": 20}, {"id": 1145, "name": "Ian Guzman", "g": "M", "mu": 18.0011, "sigma": 8.3333, "n": 2}, {"id": 969, "name": "Vukile Mazantsana", "g": "M", "mu": 18.0042, "sigma": 8.3376, "n": 14}, {"id": 1148, "name": "Anna Ancilleri", "g": "F", "mu": 21.001, "sigma": 8.3332, "n": 3}, {"id": 1149, "name": "Mona Camilleri", "g": "F", "mu": 26.0, "sigma": 8.3332, "n": 2}, {"id": 1124, "name": "Antonella Dalli", "g": "F", "mu": 25.9974, "sigma": 8.3346, "n": 6}, {"id": 1150, "name": "Carmen Mercieca", "g": "F", "mu": 25.9986, "sigma": 8.3335, "n": 4}, {"id": 1151, "name": "Clive Silvio Borg", "g": "M", "mu": 23.0008, "sigma": 8.3331, "n": 5}, {"id": 690, "name": "Stephen Belli", "g": "M", "mu": 22.8861, "sigma": 7.4938, "n": 27}, {"id": 465, "name": "Matthew Borg", "g": "M", "mu": 40.573, "sigma": 6.0224, "n": 57}, {"id": 228, "name": "Nikolai Belli", "g": "M", "mu": 38.5703, "sigma": 6.2685, "n": 57}, {"id": 197, "name": "Conrad Treeby Ward", "g": "M", "mu": 23.3477, "sigma": 6.9803, "n": 39}, {"id": 937, "name": "Joseph Attard", "g": "M", "mu": 18.0036, "sigma": 8.3383, "n": 14}, {"id": 265, "name": "Kirsty Mercieca", "g": "F", "mu": 33.7764, "sigma": 5.1644, "n": 100}, {"id": 936, "name": "Andrea Mifsud", "g": "F", "mu": 21.0149, "sigma": 8.3374, "n": 25}, {"id": 268, "name": "Christine Seychell", "g": "F", "mu": 19.8368, "sigma": 6.8211, "n": 54}, {"id": 661, "name": "Diane Debono", "g": "F", "mu": 22.3452, "sigma": 7.0734, "n": 46}, {"id": 597, "name": "Marcette Sciriha", "g": "F", "mu": 29.2984, "sigma": 7.9219, "n": 26}, {"id": 471, "name": "Luigi Porto", "g": "M", "mu": 27.1616, "sigma": 6.2951, "n": 86}, {"id": 207, "name": "Sebastian Attard", "g": "M", "mu": 22.1941, "sigma": 6.9161, "n": 24}, {"id": 992, "name": "Stefan Licari", "g": "M", "mu": 27.9219, "sigma": 8.3401, "n": 16}, {"id": 240, "name": "Kurt Carabott", "g": "M", "mu": 31.6395, "sigma": 6.1776, "n": 50}, {"id": 609, "name": "Kevin Formosa", "g": "M", "mu": 16.7945, "sigma": 8.0736, "n": 35}, {"id": 369, "name": "Isaac Zammit", "g": "M", "mu": 16.9836, "sigma": 8.2678, "n": 17}, {"id": 1154, "name": "SawyerMavric", "g": "M", "mu": 18.0003, "sigma": 8.3333, "n": 1}, {"id": 978, "name": "Clive Borg", "g": "M", "mu": 33.015, "sigma": 8.3402, "n": 15}, {"id": 523, "name": "Anabel Borg", "g": "F", "mu": 18.5607, "sigma": 5.971, "n": 63}, {"id": 1155, "name": "Diane Debono (pro) Annabelle Abela", "g": "F", "mu": 30.9987, "sigma": 8.3333, "n": 1}, {"id": 1118, "name": "Nadine Zammit", "g": "F", "mu": 26.0038, "sigma": 8.3344, "n": 9}, {"id": 400, "name": "Charles Sacco", "g": "M", "mu": 25.7932, "sigma": 6.1166, "n": 73}, {"id": 409, "name": "Roberto Murdocco", "g": "M", "mu": 23.0727, "sigma": 6.3335, "n": 58}, {"id": 979, "name": "Joyce Xerri", "g": "F", "mu": 20.8042, "sigma": 8.2376, "n": 13}, {"id": 390, "name": "Christina Bonett", "g": "F", "mu": 25.4494, "sigma": 5.4742, "n": 63}, {"id": 716, "name": "Claire Genovese", "g": "F", "mu": 20.2975, "sigma": 8.2254, "n": 17}, {"id": 245, "name": "Lonia Carabott", "g": "F", "mu": 23.0103, "sigma": 6.3689, "n": 58}, {"id": 380, "name": "Andrew Spiteri Willets", "g": "M", "mu": 27.159, "sigma": 7.2167, "n": 19}, {"id": 1158, "name": "David Elden", "g": "M", "mu": 32.9993, "sigma": 8.3333, "n": 1}, {"id": 965, "name": "Sarah Vella", "g": "F", "mu": 30.9684, "sigma": 8.3449, "n": 9}, {"id": 1159, "name": "Michela DiGiorgio", "g": "F", "mu": 21.0007, "sigma": 8.3332, "n": 2}, {"id": 1160, "name": "Monica Camilleri", "g": "F", "mu": 25.9987, "sigma": 8.3332, "n": 2}, {"id": 1161, "name": "Osbert Xuereb (Pro Paul Fenech)", "g": "M", "mu": 28.0007, "sigma": 8.3333, "n": 1}, {"id": 1162, "name": "Twanny Pule' (Pro Neville Cassar)", "g": "M", "mu": 22.9996, "sigma": 8.3333, "n": 1}, {"id": 1163, "name": "Lucienne Meli Bellizzi", "g": "F", "mu": 32.7082, "sigma": 8.0618, "n": 5}, {"id": 1164, "name": "Annabel Abela", "g": "F", "mu": 30.9984, "sigma": 8.3332, "n": 2}, {"id": 734, "name": "Tiziana Borg", "g": "F", "mu": 25.9227, "sigma": 8.2694, "n": 5}, {"id": 1165, "name": "Richard Curmi (Pro David Mifsud)", "g": "M", "mu": 32.9999, "sigma": 8.3333, "n": 1}, {"id": 1166, "name": "Rose Ann Portellin(Pro Mary Ciantar)", "g": "F", "mu": 21.0003, "sigma": 8.3333, "n": 1}, {"id": 1167, "name": "Lonia Carabot (Pro Romina Gauci)", "g": "F", "mu": 31.0007, "sigma": 8.3333, "n": 1}, {"id": 1168, "name": "Brenda Baldacchino (Pro Elaine Azzopardi)", "g": "F", "mu": 31.0007, "sigma": 8.3333, "n": 1}, {"id": 1169, "name": "Charles Sacco (Pro Daniel Magrin)", "g": "M", "mu": 17.9996, "sigma": 8.3333, "n": 1}, {"id": 1172, "name": "Ben Fenech", "g": "F", "mu": 20.9999, "sigma": 8.3333, "n": 1}, {"id": 275, "name": "Marco Mercieca", "g": "M", "mu": 27.7468, "sigma": 5.267, "n": 93}, {"id": 925, "name": "Marc Vella Bonnici", "g": "M", "mu": 33.1494, "sigma": 8.3353, "n": 15}, {"id": 940, "name": "Vincenzo Pappalardo", "g": "M", "mu": 32.9951, "sigma": 8.3369, "n": 6}, {"id": 1117, "name": "Anna Vella Bonnici", "g": "F", "mu": 25.9999, "sigma": 8.3332, "n": 2}, {"id": 941, "name": "Paul Gatt", "g": "M", "mu": 27.9925, "sigma": 8.335, "n": 20}, {"id": 250, "name": "Neville Sciriha", "g": "M", "mu": 28.8651, "sigma": 7.5912, "n": 35}, {"id": 1119, "name": "Joseph Fenech", "g": "M", "mu": 17.998, "sigma": 8.3348, "n": 8}, {"id": 1120, "name": "Kit Brewer", "g": "M", "mu": 18.0024, "sigma": 8.3331, "n": 4}, {"id": 1121, "name": "Mary Cianter", "g": "F", "mu": 21.0006, "sigma": 8.3333, "n": 1}, {"id": 951, "name": "Rosette Tufigno", "g": "F", "mu": 20.9987, "sigma": 8.3366, "n": 7}, {"id": 932, "name": "Paula Caruana", "g": "F", "mu": 31.0306, "sigma": 8.3374, "n": 14}, {"id": 1004, "name": "Henry Micallef", "g": "M", "mu": 17.9944, "sigma": 8.3416, "n": 6}, {"id": 711, "name": "Gareth Magri", "g": "M", "mu": 40.0923, "sigma": 6.4133, "n": 41}, {"id": 1125, "name": "Rosabel Azzopardi", "g": "F", "mu": 20.9986, "sigma": 8.3332, "n": 2}, {"id": 931, "name": "Nicole Fava", "g": "F", "mu": 30.9997, "sigma": 8.3326, "n": 22}, {"id": 750, "name": "Malcolm Schembri", "g": "M", "mu": 20.9507, "sigma": 7.1601, "n": 20}, {"id": 954, "name": "Eugene Debono", "g": "M", "mu": 33.0037, "sigma": 8.3354, "n": 11}, {"id": 924, "name": "Jack Steenkamer", "g": "M", "mu": 23.0395, "sigma": 8.336, "n": 18}, {"id": 950, "name": "Anna Casingena", "g": "F", "mu": 25.9808, "sigma": 8.3384, "n": 14}, {"id": 971, "name": "Sean Paul Micallef", "g": "M", "mu": 17.9927, "sigma": 8.3376, "n": 6}, {"id": 248, "name": "Max Anastasi", "g": "M", "mu": 26.9098, "sigma": 6.0506, "n": 68}, {"id": 1127, "name": "Paula Scicluna", "g": "F", "mu": 31.0009, "sigma": 8.3333, "n": 1}, {"id": 1130, "name": "Sean Micallef", "g": "M", "mu": 17.9998, "sigma": 8.3332, "n": 2}, {"id": 365, "name": "Ruth Micallef", "g": "F", "mu": 22.6898, "sigma": 7.0397, "n": 51}, {"id": 1132, "name": "Rosabel Azopardi", "g": "F", "mu": 21.0012, "sigma": 8.3333, "n": 1}, {"id": 1133, "name": "David Mifsud (pro) Matthew Borg", "g": "M", "mu": 32.9986, "sigma": 8.3332, "n": 1}, {"id": 1134, "name": "Brenda Baldacchino (pro) Alison Muscat", "g": "F", "mu": 31.0011, "sigma": 8.3332, "n": 1}, {"id": 1135, "name": "Nicole Meli", "g": "F", "mu": 30.9999, "sigma": 8.333, "n": 3}, {"id": 1137, "name": "Ivan Cachia (pro) Matthew Borg", "g": "M", "mu": 32.9989, "sigma": 8.3332, "n": 1}, {"id": 1139, "name": "Josanne Cassar (pro) Audrey Friggieri", "g": "F", "mu": 31.0011, "sigma": 8.3332, "n": 1}, {"id": 1140, "name": "Mary Borg (pro) Jennifer Mifsud", "g": "F", "mu": 26.001, "sigma": 8.3333, "n": 1}, {"id": 1141, "name": "Anna Casingena (pro) Anna Vella Bonnici", "g": "F", "mu": 25.999, "sigma": 8.3333, "n": 1}, {"id": 1142, "name": "Kirsty Mercieca (Pro Tiziana Borg Anastasi)", "g": "F", "mu": 26.0, "sigma": 8.3333, "n": 1}, {"id": 1143, "name": "Kirsty Mercieca (pro) Tiziana Borg Anastasi", "g": "F", "mu": 25.9988, "sigma": 8.3332, "n": 1}, {"id": 256, "name": "Keith Micallef", "g": "M", "mu": 32.2909, "sigma": 6.7524, "n": 51}, {"id": 1174, "name": "Julian Esposito (Pro Frank Camilleri)", "g": "M", "mu": 22.9989, "sigma": 8.3332, "n": 1}, {"id": 1175, "name": "Adam Briffa", "g": "M", "mu": 22.998, "sigma": 8.3332, "n": 1}, {"id": 776, "name": "Arthur Napier", "g": "M", "mu": 16.77, "sigma": 8.1597, "n": 15}, {"id": 832, "name": "Matthew Napier", "g": "M", "mu": 17.8145, "sigma": 7.8705, "n": 14}, {"id": 830, "name": "Tobias Kristensen", "g": "M", "mu": 24.2272, "sigma": 7.4587, "n": 20}, {"id": 973, "name": "Michelle Braddick-Southgate", "g": "F", "mu": 31.004, "sigma": 8.3348, "n": 3}, {"id": 732, "name": "Nicholas Gollcher", "g": "M", "mu": 32.7385, "sigma": 8.1119, "n": 22}, {"id": 957, "name": "Chris Farrugia", "g": "M", "mu": 18.0059, "sigma": 8.3343, "n": 6}, {"id": 962, "name": "Anna Buhagiar", "g": "F", "mu": 26.0044, "sigma": 8.3343, "n": 17}, {"id": 1176, "name": "Raymond Cardona", "g": "M", "mu": 22.9983, "sigma": 8.3332, "n": 1}, {"id": 363, "name": "Francesca Sciortino", "g": "F", "mu": 22.6811, "sigma": 5.6684, "n": 93}, {"id": 919, "name": "Geraldine Zammit", "g": "F", "mu": 26.0006, "sigma": 8.3342, "n": 5}, {"id": 470, "name": "Gene Zammit", "g": "M", "mu": 18.487, "sigma": 6.1635, "n": 67}, {"id": 1178, "name": "Andre' Casha", "g": "M", "mu": 17.9995, "sigma": 8.3334, "n": 4}, {"id": 1179, "name": "Jack Rory Steenkamer", "g": "M", "mu": 28.0021, "sigma": 8.3332, "n": 1}, {"id": 264, "name": "Alexia Spiteri Willets", "g": "F", "mu": 32.1379, "sigma": 5.1795, "n": 82}, {"id": 537, "name": "Daniel Falzon", "g": "M", "mu": 24.8509, "sigma": 8.1793, "n": 20}, {"id": 874, "name": "Joseph Zammit", "g": "M", "mu": 17.3979, "sigma": 8.2497, "n": 5}, {"id": 620, "name": "Anthony Pule'", "g": "M", "mu": 21.4964, "sigma": 8.1374, "n": 12}, {"id": 1180, "name": "Jack Steenkamer (pro) Ivan Cachia", "g": "M", "mu": 32.9981, "sigma": 8.3332, "n": 1}, {"id": 1182, "name": "Keith Micallef (pro) Jesmond Pule,", "g": "M", "mu": 32.9979, "sigma": 8.3332, "n": 1}, {"id": 1183, "name": "Jack Steenkamer (pro) Andrew Spiteri", "g": "M", "mu": 32.9997, "sigma": 8.3332, "n": 1}, {"id": 922, "name": "Mario Portelli", "g": "M", "mu": 17.9932, "sigma": 8.3364, "n": 6}, {"id": 379, "name": "Manuel Bonello", "g": "M", "mu": 32.9009, "sigma": 5.7367, "n": 59}, {"id": 395, "name": "Anthea Gauci", "g": "F", "mu": 19.2373, "sigma": 6.5426, "n": 45}, {"id": 926, "name": "Julia Barbara", "g": "F", "mu": 26.0114, "sigma": 8.3283, "n": 15}, {"id": 938, "name": "Jean Paul Micallef", "g": "M", "mu": 17.9984, "sigma": 8.3332, "n": 1}, {"id": 939, "name": "Richard Magri", "g": "M", "mu": 31.0238, "sigma": 7.7335, "n": 12}, {"id": 370, "name": "Gabriel Pace", "g": "M", "mu": 15.3999, "sigma": 6.4938, "n": 58}, {"id": 717, "name": "Alain Frendo", "g": "M", "mu": 19.5351, "sigma": 6.4667, "n": 57}, {"id": 943, "name": "Marcus Mamo", "g": "M", "mu": 18.0036, "sigma": 8.3328, "n": 4}, {"id": 377, "name": "Silvana Portelli", "g": "F", "mu": 21.1408, "sigma": 5.5223, "n": 78}, {"id": 217, "name": "Naomi Zammit Ciantar", "g": "F", "mu": 31.5722, "sigma": 6.5343, "n": 38}, {"id": 955, "name": "Martina Demanuele", "g": "F", "mu": 31.0027, "sigma": 8.3326, "n": 3}, {"id": 545, "name": "Jake Gatt", "g": "M", "mu": 17.9368, "sigma": 8.321, "n": 15}, {"id": 961, "name": "Maria Elena Grech", "g": "F", "mu": 21.0287, "sigma": 8.3348, "n": 8}, {"id": 519, "name": "Nancy Wong", "g": "F", "mu": 29.4071, "sigma": 5.4088, "n": 95}, {"id": 963, "name": "Dean Callus", "g": "M", "mu": 32.9764, "sigma": 8.3348, "n": 6}, {"id": 387, "name": "Anna Napier", "g": "F", "mu": 18.4294, "sigma": 7.8215, "n": 16}, {"id": 970, "name": "Andrew Zammit", "g": "M", "mu": 17.9973, "sigma": 8.3331, "n": 2}, {"id": 490, "name": "Josette D'Alessandro", "g": "F", "mu": 20.4225, "sigma": 8.2595, "n": 22}, {"id": 254, "name": "Isaac Joseph Zammit", "g": "M", "mu": 21.4104, "sigma": 7.7113, "n": 25}, {"id": 980, "name": "Lonia Carabott (pro) Kirsty Mercieca", "g": "F", "mu": 30.9963, "sigma": 8.333, "n": 1}, {"id": 981, "name": "Max Anastasi (pro) Willem Steenkamer", "g": "M", "mu": 28.0031, "sigma": 8.3331, "n": 1}, {"id": 982, "name": "Franco Montesin (pro) Julian Esposito", "g": "M", "mu": 23.0025, "sigma": 8.3331, "n": 1}, {"id": 402, "name": "Jean Carl Azzopardi", "g": "M", "mu": 30.6146, "sigma": 6.3776, "n": 38}, {"id": 983, "name": "Michela Demanuela", "g": "F", "mu": 30.9967, "sigma": 8.3331, "n": 1}, {"id": 985, "name": "Kristina Cauchi (pro)", "g": "F", "mu": 25.9976, "sigma": 8.3331, "n": 1}, {"id": 986, "name": "Josette D'Alessandro (pro)", "g": "F", "mu": 25.9976, "sigma": 8.3331, "n": 1}, {"id": 987, "name": "Ansbelle Abela", "g": "F", "mu": 26.0033, "sigma": 8.3331, "n": 1}, {"id": 272, "name": "Matthew Mifsud", "g": "M", "mu": 30.2158, "sigma": 5.6208, "n": 73}, {"id": 712, "name": "James Brincat", "g": "M", "mu": 22.757, "sigma": 7.3126, "n": 36}, {"id": 514, "name": "Dorianne Buhagiar", "g": "F", "mu": 27.8415, "sigma": 6.0171, "n": 49}, {"id": 991, "name": "Luca Borg Pardo", "g": "M", "mu": 27.988, "sigma": 8.3297, "n": 6}, {"id": 598, "name": "Alexia Gouder", "g": "F", "mu": 23.7566, "sigma": 7.9447, "n": 22}, {"id": 274, "name": "Melchior Farrugia", "g": "M", "mu": 40.9364, "sigma": 5.3511, "n": 99}, {"id": 468, "name": "Kelsey Gauci", "g": "F", "mu": 24.4498, "sigma": 7.2725, "n": 29}, {"id": 411, "name": "Yanika Pace", "g": "F", "mu": 22.007, "sigma": 6.1663, "n": 48}, {"id": 994, "name": "Matthew Calleja", "g": "M", "mu": 18.0019, "sigma": 8.3312, "n": 5}, {"id": 532, "name": "Adrian Chetcuti", "g": "M", "mu": 27.2217, "sigma": 7.2041, "n": 41}, {"id": 996, "name": "Marcelle Borg", "g": "F", "mu": 21.0, "sigma": 8.3322, "n": 2}, {"id": 997, "name": "Francica Sciortino", "g": "F", "mu": 21.0089, "sigma": 8.3327, "n": 1}, {"id": 522, "name": "Monique Attard", "g": "F", "mu": 21.6383, "sigma": 8.1869, "n": 13}, {"id": 218, "name": "Amanda Falzon", "g": "F", "mu": 28.5412, "sigma": 5.6558, "n": 60}, {"id": 599, "name": "Dominique Francica", "g": "F", "mu": 26.5356, "sigma": 8.1803, "n": 14}, {"id": 278, "name": "Rowena Caruana", "g": "F", "mu": 26.0075, "sigma": 5.9251, "n": 68}, {"id": 230, "name": "Jonathan Vella", "g": "M", "mu": 25.5024, "sigma": 5.5419, "n": 70}, {"id": 507, "name": "Pierina Holmin", "g": "F", "mu": 22.9594, "sigma": 6.0005, "n": 40}, {"id": 1002, "name": "Earvin Grech Meli", "g": "M", "mu": 25.0075, "sigma": 8.3313, "n": 7}, {"id": 1003, "name": "Andrew SpiteriWillets", "g": "M", "mu": 32.9928, "sigma": 8.3328, "n": 1}, {"id": 692, "name": "Kurt Sapiano", "g": "M", "mu": 29.5659, "sigma": 7.6307, "n": 19}, {"id": 1006, "name": "Darren Buhagiar", "g": "M", "mu": 33.2054, "sigma": 8.3258, "n": 4}, {"id": 1007, "name": "Silvan Gauci", "g": "M", "mu": 27.9952, "sigma": 8.3317, "n": 3}, {"id": 1008, "name": "Roseanne Portelli", "g": "F", "mu": 20.994, "sigma": 8.3328, "n": 1}, {"id": 1009, "name": "Charmaine Brignano", "g": "F", "mu": 21.012, "sigma": 8.3306, "n": 5}, {"id": 1040, "name": "Yasmine Hefny", "g": "F", "mu": 28.4566, "sigma": 7.5139, "n": 19}, {"id": 1012, "name": "John Azzopardi (pro) Adrian Chetcuti", "g": "M", "mu": 32.991, "sigma": 8.3326, "n": 1}, {"id": 1013, "name": "Carmen Cuschieri", "g": "F", "mu": 25.9602, "sigma": 8.3302, "n": 5}, {"id": 1017, "name": "Ray Ciantar (pro) John Sciberras", "g": "M", "mu": 22.9939, "sigma": 8.3329, "n": 1}, {"id": 1018, "name": "Pierina Hollman", "g": "F", "mu": 30.9892, "sigma": 8.3326, "n": 1}, {"id": 1019, "name": "Gharles Grech", "g": "M", "mu": 23.0037, "sigma": 8.3329, "n": 1}, {"id": 1020, "name": "Rowena Caruana (pro) Lonia Carabott", "g": "F", "mu": 26.0078, "sigma": 8.3327, "n": 1}, {"id": 1021, "name": "Jesmond Cachia (pro) John Sciberras", "g": "M", "mu": 23.0048, "sigma": 8.3328, "n": 1}, {"id": 1023, "name": "Rowena Caruana (pro) Kirsty Mercieca", "g": "", "mu": 25.0082, "sigma": 8.3327, "n": 1}, {"id": 1024, "name": "Jake Pace", "g": "M", "mu": 22.9942, "sigma": 8.3329, "n": 1}, {"id": 1025, "name": "Anna Casingena in lieu of Marcelle Borg", "g": "F", "mu": 20.9953, "sigma": 8.3329, "n": 1}, {"id": 1026, "name": "Nicole Fave", "g": "F", "mu": 31.0122, "sigma": 8.3326, "n": 1}, {"id": 1029, "name": "Julia Barbara (pro) Roberta Fenech", "g": "F", "mu": 31.0031, "sigma": 8.333, "n": 1}, {"id": 405, "name": "Christine Schembri", "g": "F", "mu": 28.2494, "sigma": 5.5615, "n": 55}, {"id": 206, "name": "Ryan Ebejer", "g": "M", "mu": 21.7094, "sigma": 6.8756, "n": 39}, {"id": 1042, "name": "Yvette Rutter", "g": "F", "mu": 20.986, "sigma": 8.3293, "n": 3}, {"id": 1030, "name": "Ryan Mizzi", "g": "M", "mu": 22.9998, "sigma": 8.3281, "n": 4}, {"id": 603, "name": "Kenneth Caruana", "g": "M", "mu": 15.8842, "sigma": 7.1654, "n": 32}, {"id": 1039, "name": "Max Anastasi Jr", "g": "M", "mu": 17.9657, "sigma": 8.3282, "n": 5}, {"id": 1046, "name": "Rueben Borg", "g": "M", "mu": 32.9563, "sigma": 8.3284, "n": 3}, {"id": 1048, "name": "Charles Sacco (pro) Roberto Murdocca", "g": "", "mu": 24.973, "sigma": 8.3316, "n": 1}, {"id": 222, "name": "David Schembri", "g": "M", "mu": 29.1031, "sigma": 5.7006, "n": 63}, {"id": 1049, "name": "Eric Micallef (Pro George Grech)", "g": "M", "mu": 28.0248, "sigma": 8.3322, "n": 1}, {"id": 211, "name": "Duncan D'Alessandro", "g": "M", "mu": 19.7938, "sigma": 5.5476, "n": 62}, {"id": 258, "name": "Roderick Spiteri", "g": "M", "mu": 23.067, "sigma": 6.6988, "n": 42}, {"id": 546, "name": "Nicole Lia", "g": "F", "mu": 19.2765, "sigma": 8.1289, "n": 13}, {"id": 1050, "name": "Kristen Cachia (Pro Ahmed Elnakroud)", "g": "M", "mu": 18.014, "sigma": 8.3324, "n": 1}, {"id": 1051, "name": "Albert Pace Axiaq", "g": "M", "mu": 27.9799, "sigma": 8.3315, "n": 1}, {"id": 385, "name": "Aaron Micallef Piccione", "g": "M", "mu": 17.9823, "sigma": 6.9255, "n": 31}, {"id": 1053, "name": "Max Junior Anastasi", "g": "M", "mu": 18.0174, "sigma": 8.3322, "n": 1}, {"id": 691, "name": "Rebecca Pace", "g": "F", "mu": 27.0567, "sigma": 7.2847, "n": 31}, {"id": 223, "name": "Kristen Cachia", "g": "M", "mu": 34.2377, "sigma": 5.1837, "n": 101}, {"id": 276, "name": "Kristina Briffa", "g": "F", "mu": 37.0278, "sigma": 5.2421, "n": 70}, {"id": 1056, "name": "Alexia Gauci", "g": "F", "mu": 26.0208, "sigma": 8.3315, "n": 1}, {"id": 1038, "name": "Albert Pace Asciak", "g": "M", "mu": 27.991, "sigma": 8.3266, "n": 4}, {"id": 224, "name": "Ceridwen Scerri", "g": "F", "mu": 28.1605, "sigma": 6.0519, "n": 67}, {"id": 391, "name": "Jennifer Roca", "g": "F", "mu": 19.4421, "sigma": 6.3734, "n": 48}, {"id": 392, "name": "Eric Roca", "g": "M", "mu": 27.1791, "sigma": 7.1472, "n": 34}, {"id": 1041, "name": "Ahmed Elnakroud", "g": "M", "mu": 18.0285, "sigma": 8.3313, "n": 2}, {"id": 49, "name": "Borg Reuben", "g": "M", "mu": 31.983, "sigma": 7.7095, "n": 25}, {"id": 425, "name": "Tanti Keith", "g": "", "mu": 25.0236, "sigma": 8.3215, "n": 5}, {"id": 73, "name": "Vella Lydon", "g": "M", "mu": 20.7111, "sigma": 7.6881, "n": 26}, {"id": 441, "name": "Zammit Marquette Celeste", "g": "", "mu": 24.9665, "sigma": 8.3226, "n": 5}, {"id": 442, "name": "Azzopardi Vanessa", "g": "", "mu": 25.0967, "sigma": 8.3211, "n": 5}, {"id": 444, "name": "Buhagiar Maria Emma", "g": "", "mu": 24.9274, "sigma": 8.3221, "n": 5}, {"id": 445, "name": "Marcos Gio", "g": "", "mu": 25.1364, "sigma": 8.3225, "n": 5}, {"id": 447, "name": "Mahoney Michelle", "g": "", "mu": 24.9424, "sigma": 8.3234, "n": 4}, {"id": 46, "name": "Caruana Denis", "g": "M", "mu": 27.9374, "sigma": 7.7209, "n": 25}, {"id": 454, "name": "Laureen Agius", "g": "", "mu": 24.7263, "sigma": 8.31, "n": 5}, {"id": 461, "name": "Meli Eman", "g": "", "mu": 24.894, "sigma": 8.3249, "n": 4}, {"id": 462, "name": "Hercegovac Stephanie", "g": "", "mu": 24.894, "sigma": 8.3249, "n": 4}, {"id": 116, "name": "FARRUGIA JAMES-2", "g": "M", "mu": 29.3733, "sigma": 7.9668, "n": 38}, {"id": 127, "name": "MIFSUD MATTHEW JOHN", "g": "M", "mu": 32.7715, "sigma": 7.9017, "n": 32}, {"id": 635, "name": "MICALLEF YLENIA", "g": "F", "mu": 31.7927, "sigma": 8.1925, "n": 20}, {"id": 1235, "name": "MANGION ANNEMARI", "g": "F", "mu": 30.9902, "sigma": 8.2982, "n": 8}, {"id": 567, "name": "ATTARD JEAN PIERRE", "g": "M", "mu": 29.0752, "sigma": 8.0219, "n": 30}, {"id": 640, "name": "CASSAR BRUNO", "g": "M", "mu": 27.8358, "sigma": 8.1894, "n": 20}, {"id": 1236, "name": "CELESTE ZAMMIT", "g": "F", "mu": 24.9378, "sigma": 8.3037, "n": 8}, {"id": 1240, "name": "ALAN LAW", "g": "M", "mu": 23.113, "sigma": 8.307, "n": 8}, {"id": 1244, "name": "DEGIORGO JOHN", "g": "M", "mu": 24.7185, "sigma": 8.3122, "n": 5}, {"id": 103, "name": "SARKIS ANKESHIAN", "g": "M", "mu": 24.1996, "sigma": 8.2074, "n": 13}, {"id": 463, "name": "Lara Pule'", "g": "F", "mu": 24.9732, "sigma": 6.8417, "n": 40}, {"id": 510, "name": "Mirka Micallef", "g": "F", "mu": 28.1044, "sigma": 7.3564, "n": 17}, {"id": 534, "name": "Adrian Manduca", "g": "M", "mu": 25.5948, "sigma": 7.5843, "n": 18}, {"id": 364, "name": "Julie Spiteri", "g": "F", "mu": 23.7338, "sigma": 5.3058, "n": 87}, {"id": 469, "name": "Alexia Meilak Gouder", "g": "", "mu": 25.2349, "sigma": 8.2271, "n": 10}, {"id": 473, "name": "Cristian Andreozzi", "g": "M", "mu": 33.3549, "sigma": 7.102, "n": 37}, {"id": 539, "name": "Chi Chi Canonce", "g": "M", "mu": 27.8681, "sigma": 7.5893, "n": 27}, {"id": 540, "name": "Yana Cachia", "g": "F", "mu": 26.3748, "sigma": 7.865, "n": 18}, {"id": 257, "name": "Cyril Lastimosa", "g": "M", "mu": 23.8801, "sigma": 5.9551, "n": 78}, {"id": 484, "name": "Jayboy Lastimosa", "g": "M", "mu": 27.6617, "sigma": 7.338, "n": 44}, {"id": 515, "name": "Daniel Farrugia", "g": "", "mu": 23.8383, "sigma": 8.097, "n": 11}, {"id": 516, "name": "Diane Farrugia", "g": "F", "mu": 21.9163, "sigma": 7.9313, "n": 15}, {"id": 491, "name": "Emma Camilleri", "g": "", "mu": 25.4133, "sigma": 8.2386, "n": 10}, {"id": 252, "name": "Robert Attard", "g": "M", "mu": 23.6782, "sigma": 5.8805, "n": 94}, {"id": 398, "name": "JP Sciberras", "g": "M", "mu": 20.2053, "sigma": 7.3561, "n": 41}, {"id": 232, "name": "Cory Greenland", "g": "M", "mu": 29.947, "sigma": 5.7998, "n": 86}, {"id": 543, "name": "Marica Cassar", "g": "F", "mu": 26.4442, "sigma": 7.2518, "n": 35}, {"id": 485, "name": "Sophia Re", "g": "", "mu": 25.1571, "sigma": 8.2463, "n": 11}, {"id": 489, "name": "Matthew Micallef", "g": "M", "mu": 20.6408, "sigma": 7.5114, "n": 32}, {"id": 544, "name": "Karl Azzopardi", "g": "", "mu": 24.868, "sigma": 8.3077, "n": 5}, {"id": 512, "name": "Dawn Azzopardi", "g": "F", "mu": 27.0485, "sigma": 7.9366, "n": 14}, {"id": 482, "name": "Dunstan Vella", "g": "M", "mu": 19.9923, "sigma": 5.9422, "n": 79}, {"id": 279, "name": "Heidi Tabone", "g": "F", "mu": 20.6778, "sigma": 6.9254, "n": 44}, {"id": 200, "name": "Kevin Sciberras", "g": "M", "mu": 24.3709, "sigma": 6.2897, "n": 70}, {"id": 509, "name": "Giada Sciberras", "g": "F", "mu": 35.4176, "sigma": 6.9841, "n": 24}, {"id": 529, "name": "Clayton Saliba Hersey", "g": "", "mu": 23.1921, "sigma": 8.1343, "n": 10}, {"id": 227, "name": "Frances Saliba Hersey", "g": "F", "mu": 26.8238, "sigma": 6.6214, "n": 34}, {"id": 503, "name": "Sammy Ben Tamer", "g": "M", "mu": 24.8961, "sigma": 8.1308, "n": 17}, {"id": 269, "name": "Martina Murdocco", "g": "F", "mu": 17.8283, "sigma": 6.6088, "n": 46}, {"id": 493, "name": "Dayle Scicluna", "g": "M", "mu": 17.4031, "sigma": 7.0102, "n": 29}, {"id": 270, "name": "Alida Borg", "g": "F", "mu": 22.1721, "sigma": 6.3764, "n": 51}, {"id": 208, "name": "Juan Sammut", "g": "M", "mu": 23.4704, "sigma": 5.9019, "n": 74}, {"id": 204, "name": "Jade Sammut", "g": "F", "mu": 23.1393, "sigma": 6.0758, "n": 49}, {"id": 382, "name": "Sean Cachia", "g": "M", "mu": 31.1606, "sigma": 6.7414, "n": 48}, {"id": 225, "name": "Daphne Vella", "g": "F", "mu": 21.5573, "sigma": 6.2658, "n": 56}, {"id": 638, "name": "FENECH ANNE", "g": "F", "mu": 20.5177, "sigma": 8.25, "n": 12}, {"id": 650, "name": "SALIBA IVAN", "g": "M", "mu": 23.0454, "sigma": 8.0195, "n": 24}, {"id": 587, "name": "TULA SOKOLI", "g": "M", "mu": 25.2293, "sigma": 8.1635, "n": 17}, {"id": 655, "name": "ANASTAZI MAX", "g": "M", "mu": 24.8306, "sigma": 8.1151, "n": 16}, {"id": 552, "name": "CASSAR MARIKA", "g": "F", "mu": 26.0717, "sigma": 8.2706, "n": 6}, {"id": 560, "name": "BOJAN TASIC", "g": "M", "mu": 25.357, "sigma": 8.2724, "n": 6}, {"id": 561, "name": "BOYAR AHMET", "g": "M", "mu": 25.5338, "sigma": 8.1229, "n": 13}, {"id": 573, "name": "ERIKSEN MIKE", "g": "M", "mu": 23.0325, "sigma": 8.2751, "n": 6}, {"id": 579, "name": "DECOLONGON DONALD", "g": "M", "mu": 22.6648, "sigma": 7.9507, "n": 24}, {"id": 581, "name": "MIFSUD REBECCA", "g": "F", "mu": 31.3607, "sigma": 8.1694, "n": 12}, {"id": 900, "name": "HEFNI YASMINE", "g": "F", "mu": 30.4987, "sigma": 8.2447, "n": 6}, {"id": 885, "name": "TONNA RUBEN", "g": "M", "mu": 25.5534, "sigma": 8.1244, "n": 10}, {"id": 209, "name": "Clayton Zammit Cesare", "g": "M", "mu": 49.3875, "sigma": 5.4774, "n": 66}, {"id": 464, "name": "Kaya Sammut", "g": "F", "mu": 27.1628, "sigma": 6.1043, "n": 40}, {"id": 220, "name": "Jonathan Martinelli", "g": "M", "mu": 24.9984, "sigma": 5.1524, "n": 76}, {"id": 472, "name": "Natalya Abela", "g": "F", "mu": 30.4551, "sigma": 6.7983, "n": 50}, {"id": 475, "name": "Ivan Farrugia", "g": "", "mu": 25.4885, "sigma": 8.0262, "n": 10}, {"id": 371, "name": "Stephanie Farrugia", "g": "F", "mu": 19.3587, "sigma": 6.4949, "n": 44}, {"id": 376, "name": "Jin Attard", "g": "F", "mu": 33.9678, "sigma": 5.8251, "n": 72}, {"id": 476, "name": "Javier Viloria", "g": "M", "mu": 28.9239, "sigma": 6.527, "n": 33}, {"id": 477, "name": "Andrea Magaldi", "g": "F", "mu": 25.617, "sigma": 6.0623, "n": 42}, {"id": 479, "name": "Karolina Papiernak", "g": "M", "mu": 24.3193, "sigma": 7.636, "n": 22}, {"id": 481, "name": "Sabrina Xuereb", "g": "F", "mu": 29.6823, "sigma": 6.508, "n": 31}, {"id": 487, "name": "Dylan Birmingham", "g": "M", "mu": 24.725, "sigma": 6.4296, "n": 43}, {"id": 488, "name": "Sarah Axiaq", "g": "F", "mu": 23.8331, "sigma": 5.5058, "n": 65}, {"id": 397, "name": "Simone Re", "g": "M", "mu": 23.2568, "sigma": 6.1313, "n": 57}, {"id": 372, "name": "Maria Angela Gambin", "g": "F", "mu": 27.8409, "sigma": 5.4656, "n": 71}, {"id": 494, "name": "Owen Farrugia", "g": "M", "mu": 19.4397, "sigma": 7.7947, "n": 10}, {"id": 495, "name": "Jodie Stivala", "g": "F", "mu": 26.0705, "sigma": 6.1418, "n": 54}, {"id": 496, "name": "Chris Vella", "g": "M", "mu": 23.6238, "sigma": 7.2868, "n": 32}, {"id": 497, "name": "Leanne Sammut", "g": "F", "mu": 31.9412, "sigma": 6.1122, "n": 58}, {"id": 393, "name": "Justin Scicluna", "g": "M", "mu": 23.4091, "sigma": 7.2121, "n": 40}, {"id": 498, "name": "Maria Ellul", "g": "F", "mu": 22.9023, "sigma": 6.9687, "n": 44}, {"id": 499, "name": "Isaac Baldacchino", "g": "M", "mu": 14.907, "sigma": 6.57, "n": 51}, {"id": 366, "name": "Janice Galea", "g": "F", "mu": 20.0372, "sigma": 5.8625, "n": 60}, {"id": 500, "name": "Steve Gambin", "g": "M", "mu": 24.0276, "sigma": 6.0546, "n": 65}, {"id": 501, "name": "Suzanne Gambin", "g": "", "mu": 24.1857, "sigma": 8.1111, "n": 9}, {"id": 502, "name": "Gabriel Gauci", "g": "M", "mu": 26.2221, "sigma": 8.0097, "n": 14}, {"id": 381, "name": "Tiffany Fenech", "g": "F", "mu": 27.6969, "sigma": 6.3485, "n": 39}, {"id": 215, "name": "Christabelle Chetcuti", "g": "F", "mu": 21.5848, "sigma": 6.6434, "n": 36}, {"id": 504, "name": "Sharleen Sciberras", "g": "F", "mu": 22.7025, "sigma": 7.9618, "n": 15}, {"id": 235, "name": "Jason Lee Evans", "g": "M", "mu": 29.5949, "sigma": 6.0341, "n": 60}, {"id": 689, "name": "Raoul Fenech", "g": "M", "mu": 23.1585, "sigma": 7.3586, "n": 24}, {"id": 681, "name": "Kurt Portelli", "g": "M", "mu": 20.9992, "sigma": 7.977, "n": 12}, {"id": 670, "name": "Jurgen Cachia", "g": "M", "mu": 25.3933, "sigma": 7.0692, "n": 21}, {"id": 1267, "name": "Isaac Claude Camilleri", "g": "M", "mu": 24.5811, "sigma": 7.7219, "n": 16}, {"id": 106, "name": "XIAOCHEN QI", "g": "F", "mu": 26.8753, "sigma": 8.18, "n": 7}, {"id": 214, "name": "Roberta Grixti", "g": "F", "mu": 14.4475, "sigma": 6.1465, "n": 52}, {"id": 126, "name": "ANDREOZZI IGNAZIO", "g": "M", "mu": 32.2237, "sigma": 8.1679, "n": 7}, {"id": 864, "name": "Adrian Sciberras", "g": "M", "mu": 25.0162, "sigma": 7.4627, "n": 13}, {"id": 131, "name": "CHENGJAN LI", "g": "M", "mu": 26.2492, "sigma": 8.208, "n": 6}, {"id": 133, "name": "ZAMMIT ROBERT", "g": "M", "mu": 21.039, "sigma": 8.0882, "n": 11}, {"id": 666, "name": "Duncan Zammit", "g": "M", "mu": 25.8142, "sigma": 7.1535, "n": 30}, {"id": 1266, "name": "Lucienne Magri", "g": "F", "mu": 24.1632, "sigma": 7.667, "n": 16}, {"id": 1226, "name": "Joseph Zammit Ciantar", "g": "", "mu": 21.2663, "sigma": 7.7441, "n": 11}, {"id": 664, "name": "Anna Fava", "g": "F", "mu": 30.3015, "sigma": 7.3746, "n": 20}, {"id": 112, "name": "ROCA JENIFFER", "g": "F", "mu": 24.8232, "sigma": 8.1911, "n": 7}, {"id": 705, "name": "Reuben Tonna", "g": "M", "mu": 27.5598, "sigma": 7.4862, "n": 22}, {"id": 114, "name": "BUHAGIAR DORIENNE", "g": "F", "mu": 25.2678, "sigma": 8.175, "n": 7}, {"id": 710, "name": "Nikolai Micallef", "g": "M", "mu": 26.2538, "sigma": 7.6166, "n": 16}, {"id": 1268, "name": "Daphne-Anne Vella", "g": "F", "mu": 27.5557, "sigma": 7.9122, "n": 12}, {"id": 699, "name": "Mary Muscat", "g": "F", "mu": 25.1708, "sigma": 8.051, "n": 8}, {"id": 8, "name": "Brigniano Charmaine", "g": "F", "mu": 26.1, "sigma": 7.6271, "n": 28}, {"id": 20, "name": "Baldacchino Ylenia", "g": "F", "mu": 25.7325, "sigma": 7.4788, "n": 27}, {"id": 714, "name": "Luisa Andreozzi", "g": "F", "mu": 31.8968, "sigma": 7.2183, "n": 26}, {"id": 671, "name": "Juanita Sapiano", "g": "F", "mu": 20.515, "sigma": 7.0438, "n": 26}, {"id": 236, "name": "Leanne Vassallo", "g": "F", "mu": 38.5713, "sigma": 5.5694, "n": 49}, {"id": 16, "name": "Baldacchino Luke", "g": "M", "mu": 31.2371, "sigma": 7.6706, "n": 27}, {"id": 780, "name": "Artiom Kiricenko", "g": "M", "mu": 25.2599, "sigma": 7.9393, "n": 10}, {"id": 665, "name": "Lawrence Micallef", "g": "M", "mu": 27.1125, "sigma": 7.1671, "n": 27}, {"id": 62, "name": "Degiorgio Matthew", "g": "M", "mu": 21.8591, "sigma": 7.6576, "n": 28}, {"id": 706, "name": "Marco Ricci", "g": "M", "mu": 19.1869, "sigma": 7.4513, "n": 22}, {"id": 521, "name": "Tiziana Spiteri", "g": "F", "mu": 22.7519, "sigma": 5.6513, "n": 66}, {"id": 1207, "name": "Jan Micallef", "g": "M", "mu": 24.133, "sigma": 7.871, "n": 10}, {"id": 160, "name": "GOLCHER NICK", "g": "M", "mu": 33.2737, "sigma": 8.2325, "n": 5}, {"id": 260, "name": "Jean Paul Vella", "g": "M", "mu": 18.7273, "sigma": 5.6382, "n": 68}, {"id": 408, "name": "Kenneth Farrugia", "g": "M", "mu": 29.8772, "sigma": 5.4954, "n": 87}, {"id": 700, "name": "John Degiorgio", "g": "M", "mu": 24.5879, "sigma": 7.3979, "n": 24}, {"id": 1216, "name": "Judith Ricci", "g": "F", "mu": 28.7294, "sigma": 8.0884, "n": 8}, {"id": 189, "name": "BALDACHINO LILLIAN", "g": "F", "mu": 25.687, "sigma": 8.1795, "n": 6}, {"id": 883, "name": "MAGRI DARYL", "g": "M", "mu": 31.3091, "sigma": 8.1422, "n": 6}, {"id": 884, "name": "BORG MATTEW", "g": "M", "mu": 33.0155, "sigma": 8.1398, "n": 6}, {"id": 886, "name": "LI CHENGJIAN", "g": "M", "mu": 25.9879, "sigma": 8.1755, "n": 6}, {"id": 888, "name": "FENECH RAUL", "g": "M", "mu": 27.5107, "sigma": 8.1497, "n": 6}, {"id": 890, "name": "SULTANA GLEN", "g": "M", "mu": 26.3877, "sigma": 8.0552, "n": 11}, {"id": 896, "name": "DEBONO DIANNE", "g": "F", "mu": 25.9921, "sigma": 8.1729, "n": 6}, {"id": 889, "name": "VELLA DUNSTEN", "g": "M", "mu": 28.6512, "sigma": 8.1595, "n": 6}, {"id": 2, "name": "Szalkowska Ania", "g": "F", "mu": 24.0575, "sigma": 7.9933, "n": 12}, {"id": 4, "name": "Balzan Bernardette", "g": "F", "mu": 25.3574, "sigma": 7.7026, "n": 21}, {"id": 12, "name": "Hili Michele", "g": "M", "mu": 19.8132, "sigma": 7.83, "n": 18}, {"id": 35, "name": "Daryl John Ellul", "g": "M", "mu": 19.3705, "sigma": 8.0006, "n": 15}, {"id": 38, "name": "Filippi Davide", "g": "M", "mu": 23.4127, "sigma": 7.666, "n": 24}, {"id": 14, "name": "Pace Daryl", "g": "M", "mu": 24.6143, "sigma": 7.8454, "n": 18}, {"id": 27, "name": "Vella Jeanpaul", "g": "M", "mu": 22.8439, "sigma": 7.7482, "n": 18}, {"id": 54, "name": "Vella Daphne Anne", "g": "F", "mu": 23.2853, "sigma": 7.7077, "n": 21}, {"id": 669, "name": "Brian Cohen", "g": "M", "mu": 24.1322, "sigma": 7.954, "n": 10}, {"id": 70, "name": "Mangion Daniel", "g": "M", "mu": 21.5602, "sigma": 7.8037, "n": 18}, {"id": 221, "name": "Ivan Cassar", "g": "M", "mu": 27.6793, "sigma": 5.9543, "n": 51}, {"id": 600, "name": "Julian Bilocca", "g": "M", "mu": 23.2949, "sigma": 8.0477, "n": 11}, {"id": 383, "name": "JP Holland", "g": "M", "mu": 29.5494, "sigma": 7.5647, "n": 17}, {"id": 406, "name": "Karolina Papiernik", "g": "F", "mu": 29.1268, "sigma": 5.6036, "n": 66}, {"id": 266, "name": "Renette Magro", "g": "F", "mu": 51.4498, "sigma": 5.5497, "n": 70}, {"id": 722, "name": "Lawrence Alamango (dem) Antoine Bugeja", "g": "M", "mu": 17.7436, "sigma": 8.3135, "n": 1}, {"id": 723, "name": "Pietro Scala", "g": "M", "mu": 18.8148, "sigma": 8.2357, "n": 5}, {"id": 724, "name": "Michele Giglio", "g": "M", "mu": 19.0698, "sigma": 8.1294, "n": 10}, {"id": 277, "name": "Ann Marie Attard", "g": "F", "mu": 28.022, "sigma": 5.8446, "n": 53}, {"id": 612, "name": "Donald Deguzman", "g": "M", "mu": 18.1272, "sigma": 7.705, "n": 22}, {"id": 615, "name": "Lillian Baldacchino", "g": "F", "mu": 24.6753, "sigma": 7.8184, "n": 14}, {"id": 63, "name": "Brancaccio Antonio", "g": "M", "mu": 22.3176, "sigma": 7.794, "n": 21}, {"id": 55, "name": "Vassallo Celine", "g": "F", "mu": 22.4227, "sigma": 7.8991, "n": 18}, {"id": 403, "name": "Fotios Evangelou", "g": "M", "mu": 42.1208, "sigma": 6.4019, "n": 27}, {"id": 729, "name": "Willem Steenkmar", "g": "M", "mu": 27.411, "sigma": 8.2983, "n": 1}, {"id": 255, "name": "Redent Scicluna", "g": "M", "mu": 29.0812, "sigma": 6.5786, "n": 42}, {"id": 606, "name": "Tiziana Anastasi", "g": "F", "mu": 28.3494, "sigma": 8.1145, "n": 6}, {"id": 394, "name": "Kurt Cassar", "g": "M", "mu": 25.979, "sigma": 7.1023, "n": 30}, {"id": 730, "name": "Stephanie Farrugia (Pro Yana Cachia)", "g": "F", "mu": 31.2845, "sigma": 8.3081, "n": 1}, {"id": 613, "name": "Glenn Micallef", "g": "M", "mu": 18.6936, "sigma": 7.4399, "n": 30}, {"id": 596, "name": "Antoine Bugeja", "g": "M", "mu": 20.9395, "sigma": 7.3129, "n": 31}, {"id": 267, "name": "Diane Fenech", "g": "F", "mu": 27.5692, "sigma": 6.5643, "n": 42}, {"id": 93, "name": "Massa Carolina", "g": "F", "mu": 25.3015, "sigma": 7.7876, "n": 19}, {"id": 95, "name": "Vassallo Nadine", "g": "F", "mu": 21.2731, "sigma": 7.9415, "n": 15}, {"id": 737, "name": "Mariska Steenkamer (dem) Christabelle Chetcuti", "g": "F", "mu": 20.7482, "sigma": 8.3082, "n": 1}, {"id": 741, "name": "Jean Paul Holland", "g": "M", "mu": 28.3572, "sigma": 8.3039, "n": 1}, {"id": 742, "name": "Jin Attard (Promoted) Dorianne Buhagiar", "g": "F", "mu": 26.3388, "sigma": 8.3028, "n": 1}, {"id": 743, "name": "Simone Re (demot.) Glenn Micallef", "g": "M", "mu": 17.731, "sigma": 8.3057, "n": 1}, {"id": 744, "name": "Jason Lee", "g": "M", "mu": 17.9115, "sigma": 8.3236, "n": 1}, {"id": 746, "name": "Doriana Portelli (Pro Luisa Andreozzi)", "g": "F", "mu": 30.21, "sigma": 8.2812, "n": 1}, {"id": 1246, "name": "SALIBA H. FRANCES", "g": "F", "mu": 25.1137, "sigma": 8.1549, "n": 5}, {"id": 1247, "name": "FARRUGIA MELCHIOUR", "g": "M", "mu": 33.2736, "sigma": 8.1286, "n": 4}, {"id": 1257, "name": "AIUPPA MASSIMILIANO", "g": "M", "mu": 17.6738, "sigma": 8.239, "n": 4}, {"id": 259, "name": "Kyle Magro", "g": "M", "mu": 16.0859, "sigma": 7.1464, "n": 24}, {"id": 601, "name": "Emman Xuereb", "g": "M", "mu": 25.0899, "sigma": 6.0862, "n": 41}, {"id": 212, "name": "Jean Attard", "g": "M", "mu": 34.2093, "sigma": 6.1463, "n": 36}, {"id": 219, "name": "Annmarie Mangion", "g": "F", "mu": 43.2531, "sigma": 5.7144, "n": 41}, {"id": 1263, "name": "CATANIA MICHAEL", "g": "M", "mu": 18.7668, "sigma": 8.2374, "n": 4}, {"id": 608, "name": "Stefania Camilleri", "g": "F", "mu": 19.0982, "sigma": 7.5308, "n": 11}, {"id": 610, "name": "Mario Abdilla (pro Ryan Ebejer)", "g": "M", "mu": 22.9129, "sigma": 8.303, "n": 1}, {"id": 616, "name": "Jean Frendo", "g": "F", "mu": 16.2665, "sigma": 7.7781, "n": 12}, {"id": 618, "name": "Justin Scicluna (Dem) Michael Bugeja", "g": "M", "mu": 17.6439, "sigma": 8.3054, "n": 1}, {"id": 619, "name": "Adam Green", "g": "M", "mu": 19.1146, "sigma": 7.7751, "n": 13}, {"id": 525, "name": "Michael Bugeja", "g": "M", "mu": 17.1592, "sigma": 8.1503, "n": 7}, {"id": 1264, "name": "SPITERI RODRICK", "g": "M", "mu": 27.2256, "sigma": 8.2216, "n": 3}, {"id": 625, "name": "Max Anastasi (pro Willen Steenkamer)", "g": "M", "mu": 28.0863, "sigma": 8.2935, "n": 1}, {"id": 414, "name": "Jean Paul Sciberras", "g": "M", "mu": 20.2924, "sigma": 6.7454, "n": 24}, {"id": 872, "name": "Mark Gatt", "g": "M", "mu": 33.2445, "sigma": 8.0854, "n": 5}, {"id": 229, "name": "Peter Khiev", "g": "M", "mu": 38.8843, "sigma": 6.3758, "n": 32}, {"id": 677, "name": "Sam Zammit", "g": "M", "mu": 27.2545, "sigma": 7.869, "n": 9}, {"id": 374, "name": "Matthias Sciriha", "g": "M", "mu": 24.655, "sigma": 7.709, "n": 16}, {"id": 875, "name": "Christan Xuereb", "g": "M", "mu": 24.6458, "sigma": 8.0799, "n": 6}, {"id": 833, "name": "Clinton Cutajar", "g": "M", "mu": 22.2377, "sigma": 7.0764, "n": 23}, {"id": 876, "name": "Luke Gambin", "g": "M", "mu": 18.6877, "sigma": 8.1965, "n": 5}, {"id": 528, "name": "Liam Vella", "g": "M", "mu": 19.1565, "sigma": 8.0396, "n": 9}, {"id": 877, "name": "Mark Treeby Ward", "g": "M", "mu": 17.2892, "sigma": 8.2238, "n": 4}, {"id": 749, "name": "Clifford Debono", "g": "M", "mu": 15.2658, "sigma": 6.9809, "n": 27}, {"id": 253, "name": "Matthias Cremona", "g": "M", "mu": 24.3829, "sigma": 6.4613, "n": 39}, {"id": 824, "name": "Oliver Brincat", "g": "M", "mu": 18.4896, "sigma": 7.4232, "n": 16}, {"id": 233, "name": "Braydon Galea", "g": "M", "mu": 19.4808, "sigma": 6.8364, "n": 33}, {"id": 362, "name": "Pamela Cohen", "g": "F", "mu": 24.1798, "sigma": 7.1891, "n": 15}, {"id": 879, "name": "Katrina Grech", "g": "F", "mu": 28.2956, "sigma": 8.135, "n": 5}, {"id": 880, "name": "Antoinette Aquilina", "g": "F", "mu": 17.6331, "sigma": 7.5517, "n": 13}, {"id": 396, "name": "Francesca Mamo", "g": "F", "mu": 21.1836, "sigma": 5.6695, "n": 54}, {"id": 508, "name": "Harvey Wadge", "g": "", "mu": 27.941, "sigma": 8.0712, "n": 5}, {"id": 511, "name": "Stefan Holmin", "g": "M", "mu": 22.7244, "sigma": 7.5447, "n": 12}, {"id": 513, "name": "Luke Genuis", "g": "M", "mu": 26.4024, "sigma": 6.3263, "n": 30}, {"id": 517, "name": "Vanessa Farrugia", "g": "", "mu": 24.4575, "sigma": 8.0782, "n": 5}, {"id": 520, "name": "Dorian Demanuele", "g": "M", "mu": 21.1136, "sigma": 7.6809, "n": 11}, {"id": 198, "name": "Daniele Privitera", "g": "M", "mu": 23.6342, "sigma": 6.9198, "n": 27}, {"id": 526, "name": "Jurgen Farrugia", "g": "M", "mu": 25.7766, "sigma": 6.7295, "n": 17}, {"id": 527, "name": "Abigail Farrugia", "g": "", "mu": 24.0584, "sigma": 8.144, "n": 5}, {"id": 858, "name": "Gavin Borg", "g": "M", "mu": 30.2651, "sigma": 8.1072, "n": 4}, {"id": 859, "name": "Massimo Giovannini", "g": "M", "mu": 30.2651, "sigma": 8.1072, "n": 4}, {"id": 860, "name": "Justin Graeme Christie", "g": "M", "mu": 29.0431, "sigma": 8.1451, "n": 4}, {"id": 865, "name": "Benjamin Valencia", "g": "M", "mu": 22.1308, "sigma": 8.1472, "n": 5}, {"id": 867, "name": "Simone Ercolani", "g": "M", "mu": 18.6571, "sigma": 8.1948, "n": 5}, {"id": 869, "name": "Yana Marie Cachia", "g": "F", "mu": 29.4347, "sigma": 8.0519, "n": 5}, {"id": 870, "name": "Elisa Sacco", "g": "F", "mu": 21.7459, "sigma": 8.1827, "n": 4}, {"id": 1209, "name": "Lawrence Azzopardi", "g": "M", "mu": 27.0707, "sigma": 7.8979, "n": 4}, {"id": 1231, "name": "Kaydee Azzopardi Magri", "g": "F", "mu": 29.7571, "sigma": 7.4409, "n": 10}, {"id": 708, "name": "Keith Agius", "g": "M", "mu": 22.7032, "sigma": 7.2549, "n": 15}, {"id": 628, "name": "Jean Paul Tabone", "g": "M", "mu": 23.3527, "sigma": 8.2973, "n": 1}, {"id": 773, "name": "Kenneth Farrugia (Dem Joseph Randich)", "g": "M", "mu": 17.714, "sigma": 8.299, "n": 1}, {"id": 774, "name": "Yanika Pace(pro Lucienne Meli)", "g": "F", "mu": 31.9127, "sigma": 8.2626, "n": 1}, {"id": 775, "name": "Jean Paul Tabone (Pro Stefan Holmin)", "g": "M", "mu": 27.4523, "sigma": 8.2763, "n": 1}, {"id": 778, "name": "Janice Galea (Pro Deborah Farrugia)", "g": "F", "mu": 25.5141, "sigma": 8.2887, "n": 1}, {"id": 779, "name": "Etienne Formosa Carabez", "g": "M", "mu": 23.5, "sigma": 7.0973, "n": 16}, {"id": 781, "name": "Becky Hayes", "g": "F", "mu": 28.045, "sigma": 8.0784, "n": 4}, {"id": 783, "name": "Tanya Cassar (Pro Anthea Gauci)", "g": "F", "mu": 26.3906, "sigma": 8.295, "n": 1}, {"id": 784, "name": "Donald Dugazman", "g": "M", "mu": 18.3087, "sigma": 8.3032, "n": 1}, {"id": 785, "name": "Glenn Micallef (pro Victor Rutter)", "g": "M", "mu": 22.8914, "sigma": 8.2966, "n": 1}, {"id": 786, "name": "Clyde Magro", "g": "M", "mu": 34.0153, "sigma": 8.2616, "n": 1}, {"id": 787, "name": "Kenneth Farrugia (Dem Simone Re)", "g": "M", "mu": 18.2187, "sigma": 8.3128, "n": 1}, {"id": 788, "name": "Anthea Gauci (Pro Rebecca Mifsud)", "g": "F", "mu": 31.3963, "sigma": 8.2947, "n": 1}, {"id": 790, "name": "Emmanuel Bonello", "g": "M", "mu": 33.6061, "sigma": 8.2627, "n": 1}, {"id": 791, "name": "Juan Sammut (Pro JP Holland)", "g": "M", "mu": 27.6189, "sigma": 8.3006, "n": 1}, {"id": 794, "name": "Ivan Cassar (pro Andrew Pule')", "g": "M", "mu": 32.2039, "sigma": 8.2608, "n": 1}, {"id": 796, "name": "David Camilleri (pro Aaron Micallef Piccione)", "g": "M", "mu": 23.2555, "sigma": 8.3097, "n": 1}, {"id": 800, "name": "Brenda Baldacchino (pro Anthea Gauci)", "g": "F", "mu": 25.359, "sigma": 8.2778, "n": 1}, {"id": 801, "name": "Tanya Cassar (pro Marcette Sciriha)", "g": "F", "mu": 25.359, "sigma": 8.2778, "n": 1}, {"id": 805, "name": "Kaya Sammut (Pro Becky Hayes)", "g": "F", "mu": 31.332, "sigma": 8.3019, "n": 1}, {"id": 809, "name": "Kristen Cachia (pro Jean Attard)", "g": "M", "mu": 31.5752, "sigma": 8.2393, "n": 1}, {"id": 812, "name": "Matthias Scihira", "g": "M", "mu": 23.7031, "sigma": 8.2858, "n": 1}, {"id": 814, "name": "Ann Marie Attard (dem) Maria Ellul", "g": "F", "mu": 20.652, "sigma": 8.2891, "n": 1}, {"id": 815, "name": "Angele Pule' (Dem Lonia Carabott)", "g": "F", "mu": 21.3402, "sigma": 8.3052, "n": 1}, {"id": 816, "name": "Kurt Cassar (Pro Manuel Bonello)", "g": "M", "mu": 33.4968, "sigma": 8.2931, "n": 1}, {"id": 818, "name": "Julie Spiteri (pro Kaya Sammut)", "g": "F", "mu": 31.9996, "sigma": 8.2612, "n": 1}, {"id": 819, "name": "Jin Attard (pro Mariska Steenkamer)", "g": "F", "mu": 26.3381, "sigma": 8.2998, "n": 1}, {"id": 820, "name": "Kevin Sciberras (pro Kenneth Caruana)", "g": "M", "mu": 17.8558, "sigma": 8.3146, "n": 1}, {"id": 662, "name": "Liam Spiteri", "g": "M", "mu": 25.0892, "sigma": 7.2058, "n": 15}, {"id": 659, "name": "Daryl Xuereb", "g": "M", "mu": 23.7211, "sigma": 8.2001, "n": 2}, {"id": 667, "name": "Ignasi de Azpiazu Nadal", "g": "M", "mu": 26.9898, "sigma": 7.6438, "n": 9}, {"id": 668, "name": "Tony Tabone", "g": "M", "mu": 21.9492, "sigma": 7.7141, "n": 10}, {"id": 674, "name": "Christine Manduca", "g": "F", "mu": 27.6723, "sigma": 7.6985, "n": 7}, {"id": 679, "name": "Zammit Anthony", "g": "M", "mu": 20.4314, "sigma": 8.0984, "n": 4}, {"id": 683, "name": "Johann Gatt", "g": "M", "mu": 28.1751, "sigma": 7.978, "n": 6}, {"id": 684, "name": "Andres Molina", "g": "M", "mu": 25.621, "sigma": 7.9492, "n": 6}, {"id": 685, "name": "Stephen Lughermo", "g": "M", "mu": 30.5871, "sigma": 8.1533, "n": 2}, {"id": 686, "name": "Malcolm Scerri", "g": "M", "mu": 28.7841, "sigma": 8.0212, "n": 4}, {"id": 688, "name": "Christian Serpina", "g": "M", "mu": 26.6973, "sigma": 8.2229, "n": 2}, {"id": 693, "name": "Mirhea Spiteri", "g": "F", "mu": 23.4834, "sigma": 8.2016, "n": 2}, {"id": 694, "name": "Matthew Azzopardi", "g": "M", "mu": 26.645, "sigma": 7.8318, "n": 8}, {"id": 697, "name": "Andrew Stafrace", "g": "M", "mu": 31.0547, "sigma": 8.1922, "n": 2}, {"id": 707, "name": "Nicolette Moise", "g": "F", "mu": 21.9358, "sigma": 7.6215, "n": 11}, {"id": 302, "name": "CHRISTINE BONNETT", "g": "F", "mu": 32.5616, "sigma": 8.2039, "n": 2}, {"id": 323, "name": "JENNIFER ROCA(DEM)J.CASSAR", "g": "F", "mu": 19.7657, "sigma": 8.2324, "n": 2}, {"id": 359, "name": "ANGELE PULE(DEM)C.CHETCUTI", "g": "F", "mu": 22.0818, "sigma": 8.2452, "n": 2}, {"id": 709, "name": "Celeste M. Zammit", "g": "F", "mu": 26.2713, "sigma": 8.1703, "n": 2}, {"id": 367, "name": "Micky Mitic", "g": "M", "mu": 21.4287, "sigma": 7.5605, "n": 13}, {"id": 386, "name": "Tony Pule'", "g": "M", "mu": 23.192, "sigma": 8.0718, "n": 4}, {"id": 410, "name": "Jin Attard (Pro Alexia Spiteri)", "g": "F", "mu": 29.4246, "sigma": 8.1878, "n": 2}, {"id": 415, "name": "Isaac J. Zammit", "g": "M", "mu": 18.8685, "sigma": 8.2376, "n": 2}, {"id": 1265, "name": "Luana Abela", "g": "F", "mu": 19.2593, "sigma": 8.037, "n": 5}, {"id": 1219, "name": "Caroline Massa", "g": "F", "mu": 13.1851, "sigma": 7.4532, "n": 10}, {"id": 1228, "name": "Nicole Sapiano", "g": "F", "mu": 26.225, "sigma": 7.2635, "n": 10}, {"id": 1206, "name": "Dario Mentosa", "g": "M", "mu": 21.6608, "sigma": 7.9871, "n": 5}, {"id": 1222, "name": "Desiree Bezzina", "g": "F", "mu": 20.564, "sigma": 8.0835, "n": 4}, {"id": 1212, "name": "Doriana Zammit Portelli", "g": "F", "mu": 27.0281, "sigma": 8.0026, "n": 3}, {"id": 1220, "name": "Rebecca Ellul", "g": "F", "mu": 22.4688, "sigma": 7.414, "n": 11}, {"id": 748, "name": "Daniela Curmi", "g": "F", "mu": 28.3066, "sigma": 7.5821, "n": 10}, {"id": 753, "name": "Kim Attard", "g": "F", "mu": 35.2527, "sigma": 7.9237, "n": 4}, {"id": 1232, "name": "Nicholas Azzopardi", "g": "M", "mu": 17.3801, "sigma": 7.5109, "n": 9}, {"id": 752, "name": "Nancy Wong(Dem.)Roberta Grixti", "g": "F", "mu": 20.353, "sigma": 8.2507, "n": 1}, {"id": 754, "name": "JeanPaul Sciberras", "g": "M", "mu": 17.2796, "sigma": 8.2615, "n": 1}, {"id": 755, "name": "Aaron Piccione", "g": "M", "mu": 27.4979, "sigma": 8.2646, "n": 1}, {"id": 757, "name": "Lucienne Meli Bezzina", "g": "F", "mu": 29.6419, "sigma": 8.1993, "n": 1}, {"id": 758, "name": "Maurice Borg (Promoted instead Roberto)", "g": "M", "mu": 27.2903, "sigma": 8.2542, "n": 1}, {"id": 760, "name": "Isaac Baldacchino (Pro instead of James Brincat)", "g": "M", "mu": 22.2723, "sigma": 8.2634, "n": 1}, {"id": 1273, "name": "Mercieqa Kirsty", "g": "F", "mu": 29.4607, "sigma": 8.1573, "n": 2}, {"id": 1278, "name": "Dephne Anne Vella", "g": "F", "mu": 20.1724, "sigma": 8.2633, "n": 1}, {"id": 1281, "name": "Meli Bellizzi Luciene", "g": "", "mu": 25.7158, "sigma": 8.2114, "n": 1}, {"id": 761, "name": "Jennifer Mifsud (dem.) Tiziana Spiteri", "g": "F", "mu": 21.9995, "sigma": 8.2229, "n": 1}, {"id": 762, "name": "Conrad Treeby(Dem.)Mario Abdilla", "g": "M", "mu": 17.7708, "sigma": 8.3034, "n": 1}, {"id": 765, "name": "Angele Pule' (dem.) Josette Cassar", "g": "F", "mu": 20.3082, "sigma": 8.2711, "n": 1}, {"id": 1275, "name": "Ania Szaalkowska", "g": "F", "mu": 20.4519, "sigma": 8.2839, "n": 1}, {"id": 1276, "name": "Fenevh Anna", "g": "F", "mu": 21.5769, "sigma": 8.284, "n": 1}, {"id": 1282, "name": "Scembri Christine", "g": "F", "mu": 29.5599, "sigma": 8.2274, "n": 1}, {"id": 1214, "name": "Kaydee Azzopardi", "g": "F", "mu": 25.2444, "sigma": 8.2623, "n": 1}, {"id": 1286, "name": "Bezzina Desire", "g": "F", "mu": 20.2558, "sigma": 8.2532, "n": 1}, {"id": 766, "name": "Darrell Pace(Dem.)Glenn Micallef", "g": "M", "mu": 17.5213, "sigma": 8.2766, "n": 1}, {"id": 831, "name": "Sergey Kasatkin", "g": "M", "mu": 27.7843, "sigma": 6.6194, "n": 19}, {"id": 912, "name": "Sebastian Sanchez", "g": "M", "mu": 37.8336, "sigma": 7.5191, "n": 8}, {"id": 911, "name": "Neil Buttigieg", "g": "M", "mu": 18.9577, "sigma": 7.8181, "n": 6}, {"id": 914, "name": "Francesca Mamo (Dem.)Jean Frendo", "g": "F", "mu": 21.911, "sigma": 8.1747, "n": 2}, {"id": 1227, "name": "Wanli Jiang", "g": "", "mu": 30.3693, "sigma": 7.5725, "n": 5}, {"id": 838, "name": "Louise Qi", "g": "F", "mu": 29.6049, "sigma": 6.8332, "n": 10}, {"id": 1199, "name": "Sean Borg", "g": "M", "mu": 31.6788, "sigma": 7.7467, "n": 4}, {"id": 1217, "name": "Angelique Sciberras", "g": "F", "mu": 24.0205, "sigma": 7.6622, "n": 4}, {"id": 1230, "name": "Gianluca Cassar", "g": "M", "mu": 17.4073, "sigma": 7.7457, "n": 5}, {"id": 823, "name": "Francesca", "g": "F", "mu": 22.0491, "sigma": 8.199, "n": 1}, {"id": 825, "name": "Sue Stevenson", "g": "F", "mu": 23.3667, "sigma": 7.558, "n": 6}, {"id": 826, "name": "Sam Micallef", "g": "M", "mu": 18.1761, "sigma": 7.5305, "n": 6}, {"id": 827, "name": "Louse Qi", "g": "F", "mu": 29.7623, "sigma": 8.1721, "n": 1}, {"id": 828, "name": "Mae Jane Manzanares", "g": "F", "mu": 34.1356, "sigma": 7.5444, "n": 6}, {"id": 829, "name": "Kim Bonello", "g": "F", "mu": 19.8728, "sigma": 7.7672, "n": 6}, {"id": 840, "name": "Alberto Bafumi", "g": "M", "mu": 15.5619, "sigma": 7.657, "n": 6}, {"id": 839, "name": "Brenda Bugeja", "g": "F", "mu": 15.8186, "sigma": 7.5466, "n": 7}, {"id": 841, "name": "Omar Farrugia", "g": "M", "mu": 16.921, "sigma": 8.2223, "n": 1}, {"id": 852, "name": "Jurgen Farrugia (pro David Mifsud)", "g": "M", "mu": 31.8529, "sigma": 8.1133, "n": 1}, {"id": 836, "name": "Sandro Pecorella", "g": "M", "mu": 21.8774, "sigma": 7.6229, "n": 5}, {"id": 853, "name": "JP (pro Matthew Schembri)", "g": "M", "mu": 24.0274, "sigma": 8.1969, "n": 1}, {"id": 848, "name": "Jean Paul Sciberras(Dem.)Kenneth Caruana", "g": "M", "mu": 19.5856, "sigma": 8.0815, "n": 3}, {"id": 837, "name": "Matthew Pace", "g": "M", "mu": 39.6871, "sigma": 7.1374, "n": 8}, {"id": 856, "name": "Mariska Steenkamer(Dem.)Leanne Sammut", "g": "F", "mu": 20.4341, "sigma": 8.2611, "n": 1}, {"id": 835, "name": "Jordan Lastimosa", "g": "M", "mu": 22.0559, "sigma": 7.4448, "n": 7}, {"id": 857, "name": "Sabrina Xuereb(Dem.)Alida Borg", "g": "F", "mu": 21.679, "sigma": 8.2094, "n": 1}, {"id": 1224, "name": "Katarina Hyzova", "g": "", "mu": 26.1349, "sigma": 7.6271, "n": 3}, {"id": 1233, "name": "Giulia Zammit Lonardelli", "g": "", "mu": 21.7261, "sigma": 7.8024, "n": 4}, {"id": 1225, "name": "Jeankarl Azzopardi", "g": "", "mu": 26.3232, "sigma": 7.8219, "n": 2}, {"id": 1198, "name": "Thomas Hundsrucker", "g": "M", "mu": 23.1464, "sigma": 7.5789, "n": 5}, {"id": 849, "name": "Sabrina Xuereb(Dem.)Karolina Papiernik", "g": "F", "mu": 23.0043, "sigma": 8.1398, "n": 1}, {"id": 850, "name": "Karolina Papiernik(Dem.)Alida Borg", "g": "F", "mu": 21.6776, "sigma": 8.2508, "n": 1}];
+  // BETA controls the spread of skill->probability. 25/6 is the OpenSkill
+  // default; we keep it for consistency with the engine's predict_win.
+  const BETA = 25 / 6;
+
+  // Index by lowercase canonical name for typeahead lookup.
+  const byName = new Map();
+  for (const p of PLAYERS) byName.set(p.name.toLowerCase(), p);
+
+  // Populate the shared <datalist>.
+  const dl = document.getElementById('hwr-players');
+  // Sort alphabetically for the dropdown.
+  const sorted = PLAYERS.slice().sort((a, b) => a.name.localeCompare(b.name));
+  for (const p of sorted) {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    dl.appendChild(opt);
+  }
+
+  // Abramowitz-Stegun erf approximation (max error ~1.5e-7).
+  function erf(x) {
+    const sign = x < 0 ? -1 : 1;
+    x = Math.abs(x);
+    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+    const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-x*x);
+    return sign * y;
+  }
+  function normalCdf(z) { return 0.5 * (1 + erf(z / Math.SQRT2)); }
+
+  function lookup(inputId) {
+    const el = document.getElementById(inputId);
+    const v = el.value.trim().toLowerCase();
+    if (!v) { el.classList.remove('invalid'); return null; }
+    const p = byName.get(v);
+    el.classList.toggle('invalid', !p);
+    return p || null;
+  }
+
+  // Real OpenSkill Plackett-Luce update for 2 teams of 2 players each.
+  // Direct port of openskill.models.weng_lin.plackett_luce._compute (default
+  // gamma = sqrt(team_sigma_squared)/c, no scores/weights/balance), validated
+  // against the Python engine to ~4 decimal places (rest is float-order noise).
+  const KAPPA = 0.0001;
+  function plUpdate(teamA, teamB, winnerSide) {
+    const ranks = winnerSide === 'A' ? [0, 1] : [1, 0];
+    function agg(team) {
+      let mu = 0, varSum = 0;
+      for (const p of team) { mu += p.mu; varSum += p.sigma * p.sigma; }
+      return { mu, varSum };
+    }
+    const aggA = agg(teamA), aggB = agg(teamB);
+    const c = Math.sqrt(aggA.varSum + aggB.varSum + 2 * BETA * BETA);
+    const expA = Math.exp(aggA.mu / c);
+    const expB = Math.exp(aggB.mu / c);
+    const teams = [
+      { mu: aggA.mu, varSum: aggA.varSum, rank: ranks[0], expMu: expA },
+      { mu: aggB.mu, varSum: aggB.varSum, rank: ranks[1], expMu: expB },
+    ];
+    // sum_q[q] = sum over teams i where rank_i >= rank_q of exp(team_mu_i / c)
+    const sum_q = [0, 0];
+    for (const ti of teams) {
+      for (let q = 0; q < 2; q++) {
+        if (ti.rank >= teams[q].rank) sum_q[q] += ti.expMu;
+      }
+    }
+    const a = [1, 1]; // teams have distinct ranks ⇒ one team per rank
+    const updated = [[], []];
+    for (let iIdx = 0; iIdx < 2; iIdx++) {
+      const ti = teams[iIdx];
+      let omega = 0, delta = 0;
+      for (let q = 0; q < 2; q++) {
+        if (teams[q].rank <= ti.rank) {
+          const p = ti.expMu / sum_q[q];
+          delta += p * (1 - p) / a[q];
+          if (q === iIdx) omega += (1 - p) / a[q];
+          else omega -= p / a[q];
+        }
+      }
+      omega *= ti.varSum / c;
+      delta *= ti.varSum / (c * c);
+      const gammaVal = Math.sqrt(ti.varSum) / c;
+      delta *= gammaVal;
+      const team = iIdx === 0 ? teamA : teamB;
+      for (const pl of team) {
+        const sigSq = pl.sigma * pl.sigma;
+        const ratio = sigSq / ti.varSum;
+        const newMu = pl.mu + ratio * omega;
+        const newSigma = pl.sigma * Math.sqrt(Math.max(1 - ratio * delta, KAPPA));
+        updated[iIdx].push({
+          name: pl.name,
+          mu: newMu,
+          sigma: newSigma,
+          deltaMu: newMu - pl.mu,
+          deltaSigma: newSigma - pl.sigma,
+        });
+      }
+    }
+    return { A: updated[0], B: updated[1] };
+  }
+
+  // State for the "if A wins" / "if B wins" toggle. Defaults to whichever
+  // pair is the favourite — flips automatically when the favourite changes.
+  let pickedWinner = null; // 'A' | 'B' | null (auto = favourite)
+  let lastFav = null;
+
+  function fmt2(x) {
+    const v = x.toFixed(2);
+    return x >= 0 ? '+' + v : v; // signed for deltas; non-negative numbers get a + prefix where used
+  }
+  function fmtSigned(x) { return (x >= 0 ? '+' : '') + x.toFixed(2); }
+  function deltaClass(d) {
+    if (Math.abs(d) < 0.005) return 'delta-zero';
+    return d > 0 ? 'delta-pos' : 'delta-neg';
+  }
+
+  function compute() {
+    const a1 = lookup('hwr-a1');
+    const a2 = lookup('hwr-a2');
+    const b1 = lookup('hwr-b1');
+    const b2 = lookup('hwr-b2');
+    const out = document.getElementById('hwr-out');
+
+    const all = [a1, a2, b1, b2].filter(Boolean);
+    if (all.length < 4) {
+      out.classList.add('placeholder');
+      out.innerHTML = 'Pick four different players to see a prediction.';
+      return;
+    }
+    const ids = all.map(p => p.id);
+    if (new Set(ids).size !== 4) {
+      out.classList.add('placeholder');
+      out.innerHTML = 'Pair A and Pair B must be four different players.';
+      return;
+    }
+
+    // Win probability — Phi((muA - muB) / sqrt(2β² + varA + varB)).
+    const muA = a1.mu + a2.mu, muB = b1.mu + b2.mu;
+    const varA = a1.sigma**2 + a2.sigma**2;
+    const varB = b1.sigma**2 + b2.sigma**2;
+    const c = Math.sqrt(2 * BETA * BETA + varA + varB);
+    const pA = normalCdf((muA - muB) / c);
+    const pB = 1 - pA;
+    const aPct = Math.round(pA * 100);
+    const bPct = 100 - aPct;
+
+    const fav = pA >= pB ? 'A' : 'B';
+    const favPct = Math.max(pA, pB);
+    let verdict;
+    if (favPct >= 0.85) verdict = 'a heavy favourite — an upset would be a real surprise.';
+    else if (favPct >= 0.65) verdict = 'the favourite, but the underdog has a real chance.';
+    else if (favPct >= 0.55) verdict = 'a slight edge — close to a coin flip.';
+    else verdict = 'about a coin flip on paper.';
+    const favText = fav === 'A'
+      ? `Pair A (${a1.name} + ${a2.name})`
+      : `Pair B (${b1.name} + ${b2.name})`;
+
+    // If favourite flipped (e.g. user swapped players), reset auto-pick to the new favourite.
+    if (lastFav !== fav) { pickedWinner = null; lastFav = fav; }
+    const winner = pickedWinner || fav;
+
+    // Compute post-match ratings under the chosen scenario.
+    const teamA = [{name: a1.name, mu: a1.mu, sigma: a1.sigma},
+                   {name: a2.name, mu: a2.mu, sigma: a2.sigma}];
+    const teamB = [{name: b1.name, mu: b1.mu, sigma: b1.sigma},
+                   {name: b2.name, mu: b2.mu, sigma: b2.sigma}];
+    const after = plUpdate(teamA, teamB, winner);
+
+    function rowFor(before, side, idx) {
+      const post = after[side][idx];
+      const conf = before.sigma < 4 ? 'high'
+                 : before.sigma < 6 ? 'medium' : 'low';
+      const dMu = post.deltaMu;
+      const dSigma = post.deltaSigma;
+      return `
+        <div>${before.name} <span style="color: var(--muted);">(${side})</span></div>
+        <div class="num">${before.mu.toFixed(2)}</div>
+        <div class="num">${before.sigma.toFixed(2)}</div>
+        <div class="num hide-mobile" style="color: var(--muted);">${conf} · ${before.n}m</div>
+        <div class="num ${deltaClass(dMu)}">${fmtSigned(dMu)} → ${post.mu.toFixed(2)}</div>
+        <div class="num ${deltaClass(dSigma)} hide-mobile">${fmtSigned(dSigma)} → ${post.sigma.toFixed(2)}</div>
+      `;
+    }
+
+    const isUpset = (winner !== fav);
+    const upsetTag = isUpset
+      ? ` <span style="color: var(--loss); font-weight:600;">(upset!)</span>`
+      : '';
+
+    out.classList.remove('placeholder');
+    out.innerHTML = `
+      <p><strong>${favText}</strong> is ${verdict}</p>
+      <div class="calc-bar">
+        <div class="a" style="width: ${Math.max(aPct, 6)}%;">A · ${aPct}%</div>
+        <div class="b" style="width: ${Math.max(bPct, 6)}%;">B · ${bPct}%</div>
+      </div>
+
+      <div class="calc-section-head">If the match is played</div>
+      <div class="calc-toggle" role="tablist">
+        <button data-pick="A" class="${winner === 'A' ? 'active' : ''}">Pair A wins</button>
+        <button data-pick="B" class="${winner === 'B' ? 'active' : ''}">Pair B wins</button>
+      </div>
+      <p style="margin: 8px 0 0 0; color: var(--muted); font-size: 12.5px;">Showing rating moves if <strong style="color: var(--fg);">${winner === 'A' ? 'Pair A' : 'Pair B'}</strong> wins${upsetTag}. Toggle to see the other outcome.</p>
+
+      <div class="calc-table">
+        <div class="calc-th">Player</div>
+        <div class="calc-th num">μ before</div>
+        <div class="calc-th num">σ before</div>
+        <div class="calc-th num hide-mobile">Conf · n</div>
+        <div class="calc-th num">Δ μ → after</div>
+        <div class="calc-th num hide-mobile">Δ σ → after</div>
+        ${rowFor(a1, 'A', 0)}
+        ${rowFor(a2, 'A', 1)}
+        ${rowFor(b1, 'B', 0)}
+        ${rowFor(b2, 'B', 1)}
+      </div>
+    `;
+
+    // Wire the toggle buttons inside the freshly-rendered output.
+    out.querySelectorAll('.calc-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pickedWinner = btn.dataset.pick;
+        compute();
+      });
+    });
+  }
+
+  ['hwr-a1','hwr-a2','hwr-b1','hwr-b2'].forEach(id => {
+    document.getElementById(id).addEventListener('input', compute);
+    document.getElementById(id).addEventListener('change', compute);
+  });
+
+  // --- Multiplier-stack diagram (interactive) ---
+  // Visualizes how the four post-match multipliers scale a baseline μ
+  // change of +1.00 for one player on the winning side. Pure illustration —
+  // numbers come from the production constants in scripts/phase0/rating.py.
+  function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+  function volMult(games) {
+    // rating.py: max(0.5, min(1.5, games / 18)) — clamped at [0.5, 1.5].
+    return clamp(games / 18, 0.5, 1.5);
+  }
+  function timeDecayMult(days) {
+    // openskill_pl_decay365: w = exp(-age / 365).
+    return Math.exp(-days / 365);
+  }
+  function partnerMult(sharePct) {
+    // Stronger partner gets larger share of pair's net Δμ. We model this
+    // as a linear amplifier: 50% share = ×1.00 (equal split), 65% = ×1.30,
+    // 35% = ×0.70. (rating.apply_partner_weighting in code; visualization
+    // keeps the linear shape since absolute size depends on partner's μ.)
+    return sharePct / 50;
+  }
+
+  function updateStack() {
+    const baseline = 1.00;
+    const games = parseFloat(document.getElementById('stk-vol').value);
+    const div = parseFloat(document.getElementById('stk-div').value);
+    const days = parseFloat(document.getElementById('stk-time').value);
+    const share = parseFloat(document.getElementById('stk-pw').value);
+
+    const mVol = volMult(games);
+    const mDiv = div;
+    const mTime = timeDecayMult(days);
+    const mPw = partnerMult(share);
+
+    const vBase = baseline;
+    const vVol = vBase * mVol;
+    const vDiv = vVol * mDiv;
+    const vTime = vDiv * mTime;
+    const vPw = vTime * mPw;
+
+    // Bar widths normalized so the largest of the running values uses 100%.
+    const ref = Math.max(2.0, Math.abs(vBase), Math.abs(vVol), Math.abs(vDiv), Math.abs(vTime), Math.abs(vPw));
+    const pct = (v) => Math.max(0, Math.min(100, Math.abs(v) / ref * 100));
+
+    document.getElementById('stk-base-bar').style.width = pct(vBase) + '%';
+    document.getElementById('stk-base-val').textContent = fmtSigned(vBase);
+
+    document.getElementById('stk-vol-mult').textContent = '×' + mVol.toFixed(2);
+    document.getElementById('stk-vol-bar').style.width = pct(vVol) + '%';
+    document.getElementById('stk-vol-val').textContent = fmtSigned(vVol);
+    const volLabel = games < 14 ? `${games} games (blowout)`
+                  : games > 22 ? `${games} games (long battle)`
+                  : `${games} games (typical)`;
+    document.getElementById('stk-vol-label').textContent = volLabel;
+
+    document.getElementById('stk-div-mult').textContent = '×' + mDiv.toFixed(2);
+    document.getElementById('stk-div-bar').style.width = pct(vDiv) + '%';
+    document.getElementById('stk-div-val').textContent = fmtSigned(vDiv);
+
+    document.getElementById('stk-time-mult').textContent = '×' + mTime.toFixed(2);
+    document.getElementById('stk-time-bar').style.width = pct(vTime) + '%';
+    document.getElementById('stk-time-val').textContent = fmtSigned(vTime);
+    let tLabel;
+    if (days === 0) tLabel = 'today';
+    else if (days < 60) tLabel = `${Math.round(days)} days ago`;
+    else if (days < 730) tLabel = `${Math.round(days/30)} months ago`;
+    else tLabel = `${(days/365).toFixed(1)} years ago`;
+    document.getElementById('stk-time-label').textContent = tLabel;
+
+    document.getElementById('stk-pw-mult').textContent = '×' + mPw.toFixed(2);
+    document.getElementById('stk-pw-bar').style.width = pct(vPw) + '%';
+    document.getElementById('stk-pw-val').textContent = fmtSigned(vPw);
+    let pwLabel;
+    if (share < 45) pwLabel = `${share}% (weaker half of pair)`;
+    else if (share > 55) pwLabel = `${share}% (stronger half of pair)`;
+    else pwLabel = `${share}% (equal partners)`;
+    document.getElementById('stk-pw-label').textContent = pwLabel;
+
+    const finalBar = document.getElementById('stk-final-bar');
+    finalBar.style.width = pct(vPw) + '%';
+    finalBar.classList.toggle('up', vPw >= 0);
+    finalBar.classList.toggle('down', vPw < 0);
+    document.getElementById('stk-final-val').textContent = fmtSigned(vPw);
+  }
+
+  ['stk-vol', 'stk-div', 'stk-time', 'stk-pw'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateStack);
+    document.getElementById(id).addEventListener('change', updateStack);
+  });
+  updateStack();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Matthew Pace — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Matthew Pace</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #837
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">42.57</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">6.45</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">23.22</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">8</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">6</span>-<span class="loss">2</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">75%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">81-47</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">3W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">3</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">1</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span><span class="b w">W</span><span class="b w">W</span><span class="b l">L*</span><span class="b w">W</span><span class="b w">W</span><span class="b w">W*</span><span class="b l">L*</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">17</td><td class="cls">B1</td><td><a class="player-link" href="256.html">Keith Micallef</a></td><td class="num">36.05</td><td class="num">3.89</td><td class="num"><strong>24.38</strong></td><td class="num"><span class="loss">+1.16</span></td><td class="num">52</td><td class="num"><span class="win">15</span>-<span class="loss">37</span></td><td class="num">29%</td></tr><tr><td class="num">18</td><td class="cls">A3</td><td><a class="player-link" href="273.html">John Azzopardi</a></td><td class="num">35.04</td><td class="num">3.70</td><td class="num"><strong>23.95</strong></td><td class="num"><span class="loss">+0.72</span></td><td class="num">61</td><td class="num"><span class="win">23</span>-<span class="loss">38</span></td><td class="num">38%</td></tr><tr><td class="num">19</td><td class="cls">A2</td><td><a class="player-link" href="535.html">Andrew Pule&#x27;</a></td><td class="num">35.20</td><td class="num">3.81</td><td class="num"><strong>23.76</strong></td><td class="num"><span class="loss">+0.54</span></td><td class="num">68</td><td class="num"><span class="win">28</span>-<span class="loss">40</span></td><td class="num">41%</td></tr><tr style="background:#22304a"><td class="num">20</td><td class="cls">A1</td><td><strong>Matthew Pace</strong></td><td class="num">42.57</td><td class="num">6.45</td><td class="num"><strong>23.22</strong></td><td class="num"><span class="muted">—</span></td><td class="num">8</td><td class="num"><span class="win">5</span>-<span class="loss">3</span></td><td class="num">62%</td></tr><tr><td class="num">21</td><td class="cls">A1</td><td><a class="player-link" href="732.html">Nicholas Gollcher</a></td><td class="num">39.30</td><td class="num">5.41</td><td class="num"><strong>23.07</strong></td><td class="num"><span class="win">-0.16</span></td><td class="num">22</td><td class="num"><span class="win">7</span>-<span class="loss">15</span></td><td class="num">32%</td></tr><tr><td class="num">22</td><td class="cls">B2</td><td><a class="player-link" href="945.html">Richard Byrne</a></td><td class="num">35.66</td><td class="num">4.23</td><td class="num"><strong>22.97</strong></td><td class="num"><span class="win">-0.25</span></td><td class="num">59</td><td class="num"><span class="win">30</span>-<span class="loss">29</span></td><td class="num">51%</td></tr><tr><td class="num">23</td><td class="cls">B1</td><td><a class="player-link" href="223.html">Kristen Cachia</a></td><td class="num">31.76</td><td class="num">3.00</td><td class="num"><strong>22.76</strong></td><td class="num"><span class="win">-0.46</span></td><td class="num">113</td><td class="num"><span class="win">46</span>-<span class="loss">67</span></td><td class="num">41%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="237.0" x2="904" y2="237.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="240.0" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="204.7" x2="904" y2="204.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="207.7" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="172.5" x2="904" y2="172.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="175.5" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="140.2" x2="904" y2="140.2" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="143.2" text-anchor="end" fill="#8b96a8" font-size="10">25</text><line x1="50" y1="108.0" x2="904" y2="108.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="111.0" text-anchor="end" fill="#8b96a8" font-size="10">30</text><line x1="50" y1="75.7" x2="904" y2="75.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="78.7" text-anchor="end" fill="#8b96a8" font-size="10">35</text><line x1="50" y1="43.5" x2="904" y2="43.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="46.5" text-anchor="end" fill="#8b96a8" font-size="10">40</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2026</text>
+  <polyline points="50.0,243.5 172.0,208.6 294.0,201.6 416.0,170.4 538.0,174.8 660.0,171.2 782.0,161.8 904.0,151.7" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,60.4 172.0,85.2 294.0,102.4 416.0,137.6 538.0,161.5 660.0,168.7 782.0,185.3 904.0,203.6" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,89.0 172.0,59.2 294.0,55.8 416.0,31.8 538.0,41.3 660.0,39.2 782.0,33.2 904.0,26.9" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">5.9</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.2</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.5</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2026</strong></td><td class="num">8</td><td class="num"><span class="win">6</span>-<span class="loss">2</span></td><td class="num">75%</td><td class="num">81-47</td><td class="num">32.95 → 42.57</td><td class="num"><span class="win">+9.62</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="242.html">Trevor Rutter</a> / <a class="player-link" href="275.html">Marco Mercieca</a></td><td class="score">6-3, 4-6</td><td class="num"><span class="win">W (g)</span></td><td class="num"><span class="win">+4.62</span></td></tr><tr><td>2026-02-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="229.html">Peter Khiev</a></td><td><a class="player-link" href="242.html">Trevor Rutter</a> / <a class="player-link" href="378.html">Ivan Cachia</a></td><td class="score">6-2, 6-3</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+3.71</span></td></tr><tr><td>2026-03-21</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="229.html">Peter Khiev</a></td><td><a class="player-link" href="275.html">Marco Mercieca</a> / <a class="player-link" href="378.html">Ivan Cachia</a></td><td class="score">6-2, 6-3</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+0.97</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2026-02-27</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="711.html">Gareth Magri</a> / <a class="player-link" href="403.html">Fotios Evangelou</a></td><td class="score">3-6, 6-4</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-1.47</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Matthew Pace</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2026</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td>Team C</td><td class="muted">Jean Paul Sciberras</td><td class="cls">A1</td></tr><tr><td>2026</td><td><span class="tag">vltc</span> San Michel Results 2026 (live gsheet 2026-04-26)</td><td>Team C</td><td class="muted">Jean Paul Sciberras</td><td class="cls">A1</td></tr><tr><td>2026</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td>Team C</td><td class="muted">Jean Paul Sciberras</td><td class="cls">A1</td></tr></tbody>
+  </table>
+  </div>
+
+  
+
+  <h2 id="match-log" class="section-title">Match log (8)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="15413"><td class="expand-trigger" data-mid="15413">▶</td><td>2026-03-21</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 9</td><td><a class="player-link" href="229.html">Peter Khiev</a></td><td><a class="player-link" href="275.html">Marco Mercieca</a> / <a class="player-link" href="378.html">Ivan Cachia</a></td><td class="score">6-2, 6-3</td><td class="num"><span class="win">W</span> 12-5</td><td class="num muted" data-sort="-1">—</td><td class="num">42.57<span class="rank-tag">#20</span></td><td class="num"><span class="win">+0.97</span></td><td class="num">6.45</td><td class="num"><span class="muted">-0.20</span></td></tr><tr class="impact-row" data-mid="15413" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#27 <span class="delta-up">+7</span> = #20</span></div><div class="metric"><span class="k">Score</span><span>21.7 <span class="delta-up">+1.56</span> = 23.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="945.html">Richard Byrne</a>, <a class="player-link" href="240.html">Kurt Carabott</a>, <a class="player-link" href="732.html">Nicholas Gollcher</a>, <a class="player-link" href="692.html">Kurt Sapiano</a>, <a class="player-link" href="222.html">David Schembri</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="229.html">Peter Khiev</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#18 <span class="delta-up">+4</span> = #14</span></div><div class="metric"><span class="k">Score</span><span>24.0 <span class="delta-up">+1.23</span> = 25.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="535.html">Andrew Pule&#x27;</a>, <a class="player-link" href="256.html">Keith Micallef</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="275.html">Marco Mercieca</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#8 <span class="delta-z">±0</span> = #8</span></div><div class="metric"><span class="k">Score</span><span>29.2 <span class="delta-dn">-0.21</span> = 29.0</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="378.html">Ivan Cachia</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#15 <span class="delta-dn">-2</span> = #17</span></div><div class="metric"><span class="k">Score</span><span>24.7 <span class="delta-dn">-0.18</span> = 24.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="229.html">Peter Khiev</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15384"><td class="expand-trigger" data-mid="15384">▶</td><td>2026-03-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 8</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="240.html">Kurt Carabott</a> / <a class="player-link" href="212.html">Jean Attard</a></td><td class="score">6-2, 6-0</td><td class="num"><span class="win">W</span> 12-2</td><td class="num muted" data-sort="-1">—</td><td class="num">41.59<span class="rank-tag">#26</span></td><td class="num"><span class="win">+0.93</span></td><td class="num">6.64</td><td class="num"><span class="muted">-0.18</span></td></tr><tr class="impact-row" data-mid="15384" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="379.html">Manuel Bonello</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#10 <span class="delta-up">+2</span> = #8</span></div><div class="metric"><span class="k">Score</span><span>27.6 <span class="delta-up">+0.96</span> = 28.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="275.html">Marco Mercieca</a>, <a class="player-link" href="711.html">Gareth Magri</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#34 <span class="delta-up">+8</span> = #26</span></div><div class="metric"><span class="k">Score</span><span>20.2 <span class="delta-up">+1.47</span> = 21.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="471.html">Luigi Porto</a>, <a class="player-link" href="240.html">Kurt Carabott</a>, <a class="player-link" href="532.html">Adrian Chetcuti</a>, <a class="player-link" href="223.html">Kristen Cachia</a> + 3 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="240.html">Kurt Carabott</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#26 <span class="delta-dn">-3</span> = #29</span></div><div class="metric"><span class="k">Score</span><span>21.6 <span class="delta-dn">-0.42</span> = 21.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="539.html">Chi Chi Canonce</a>, <a class="player-link" href="837.html">Matthew Pace</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="212.html">Jean Attard</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#13 <span class="delta-z">±0</span> = #13</span></div><div class="metric"><span class="k">Score</span><span>26.5 <span class="delta-dn">-0.48</span> = 26.0</span></div></div></div></div></td></tr><tr class="match-row" data-mid="15378"><td class="expand-trigger" data-mid="15378">▶</td><td>2026-03-13</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 7</td><td><a class="player-link" href="229.html">Peter Khiev</a></td><td><a class="player-link" href="211.html">Duncan D&#x27;Alessandro</a> / <a class="player-link" href="210.html">Jesmond Pule&#x27;</a></td><td class="score">6-4</td><td class="num"><span class="win">W</span> 6-4</td><td class="num muted" data-sort="-1">—</td><td class="num">40.66<span class="rank-tag">#33</span></td><td class="num"><span class="win">+0.33</span></td><td class="num">6.82</td><td class="num"><span class="muted">-0.08</span></td></tr><tr class="impact-row" data-mid="15378" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#35 <span class="delta-up">+2</span> = #33</span></div><div class="metric"><span class="k">Score</span><span>19.6 <span class="delta-up">+0.56</span> = 20.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="232.html">Cory Greenland</a>, <a class="player-link" href="476.html">Javier Viloria</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="229.html">Peter Khiev</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#20 <span class="delta-up">+1</span> = #19</span></div><div class="metric"><span class="k">Score</span><span>23.6 <span class="delta-up">+0.43</span> = 24.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="273.html">John Azzopardi</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="211.html">Duncan D&#x27;Alessandro</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#42 <span class="delta-z">±0</span> = #42</span></div><div class="metric"><span class="k">Score</span><span>18.7 <span class="delta-dn">-0.10</span> = 18.6</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="210.html">Jesmond Pule&#x27;</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#52 <span class="delta-dn">-1</span> = #53</span></div><div class="metric"><span class="k">Score</span><span>16.9 <span class="delta-dn">-0.09</span> = 16.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="944.html">Dave Elden</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15334"><td class="expand-trigger" data-mid="15334">▶</td><td>2026-02-27</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 5</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="711.html">Gareth Magri</a> / <a class="player-link" href="403.html">Fotios Evangelou</a></td><td class="score">3-6, 6-4</td><td class="num"><span class="loss">L (g)</span> 9-10</td><td class="num muted" data-sort="-1">—</td><td class="num">40.33<span class="rank-tag">#32</span></td><td class="num"><span class="loss">-1.47</span></td><td class="num">6.90</td><td class="num"><span class="muted">-0.26</span></td></tr><tr class="impact-row" data-mid="15334" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#13 <span class="delta-z">±0</span> = #13</span></div><div class="metric"><span class="k">Score</span><span>26.3 <span class="delta-up">+0.79</span> = 27.1</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="403.html">Fotios Evangelou</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#6 <span class="delta-up">+3</span> = #3</span></div><div class="metric"><span class="k">Score</span><span>31.9 <span class="delta-up">+0.91</span> = 32.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="401.html">Clyde Grech</a>, <a class="player-link" href="925.html">Marc Vella Bonnici</a>, <a class="player-link" href="274.html">Melchior Farrugia</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="379.html">Manuel Bonello</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#8 <span class="delta-dn">-2</span> = #10</span></div><div class="metric"><span class="k">Score</span><span>29.2 <span class="delta-dn">-1.31</span> = 27.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="275.html">Marco Mercieca</a>, <a class="player-link" href="272.html">Matthew Mifsud</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#30 <span class="delta-dn">-2</span> = #32</span></div><div class="metric"><span class="k">Score</span><span>20.3 <span class="delta-dn">-0.70</span> = 19.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="471.html">Luigi Porto</a>, <a class="player-link" href="532.html">Adrian Chetcuti</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15309"><td class="expand-trigger" data-mid="15309">▶</td><td>2026-02-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 4</td><td><a class="player-link" href="229.html">Peter Khiev</a></td><td><a class="player-link" href="242.html">Trevor Rutter</a> / <a class="player-link" href="378.html">Ivan Cachia</a></td><td class="score">6-2, 6-3</td><td class="num"><span class="win">W</span> 12-5</td><td class="num muted" data-sort="-1">—</td><td class="num">41.80<span class="rank-tag">#30</span></td><td class="num"><span class="win">+3.71</span></td><td class="num">7.16</td><td class="num"><span class="muted">-0.38</span></td></tr><tr class="impact-row" data-mid="15309" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#62 <span class="delta-up">+32</span> = #30</span></div><div class="metric"><span class="k">Score</span><span>15.5 <span class="delta-up">+4.85</span> = 20.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="234.html">Victor Rutter</a>, <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="231.html">Clint Agius</a> + 27 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="229.html">Peter Khiev</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#32 <span class="delta-up">+14</span> = #18</span></div><div class="metric"><span class="k">Score</span><span>19.8 <span class="delta-up">+4.01</span> = 23.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="273.html">John Azzopardi</a>, <a class="player-link" href="945.html">Richard Byrne</a>, <a class="player-link" href="471.html">Luigi Porto</a>, <a class="player-link" href="240.html">Kurt Carabott</a> + 9 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="242.html">Trevor Rutter</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#2 <span class="delta-z">±0</span> = #2</span></div><div class="metric"><span class="k">Score</span><span>42.0 <span class="delta-dn">-0.76</span> = 41.2</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="378.html">Ivan Cachia</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#14 <span class="delta-dn">-1</span> = #15</span></div><div class="metric"><span class="k">Score</span><span>25.3 <span class="delta-dn">-0.50</span> = 24.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="535.html">Andrew Pule&#x27;</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15272"><td class="expand-trigger" data-mid="15272">▶</td><td>2026-02-06</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 2</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="210.html">Jesmond Pule&#x27;</a> / <a class="player-link" href="663.html">David Mifsud</a></td><td class="score">6-2, 6-2</td><td class="num"><span class="win">W</span> 12-4</td><td class="num muted" data-sort="-1">—</td><td class="num">38.09<span class="rank-tag">#63</span></td><td class="num"><span class="win">+0.53</span></td><td class="num">7.54</td><td class="num"><span class="muted">-0.18</span></td></tr><tr class="impact-row" data-mid="15272" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#69 <span class="delta-up">+6</span> = #63</span></div><div class="metric"><span class="k">Score</span><span>14.4 <span class="delta-up">+1.08</span> = 15.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1091.html">Suniel Balani</a>, <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="966.html">Joe Carabott</a>, <a class="player-link" href="230.html">Jonathan Vella</a>, <a class="player-link" href="513.html">Luke Genuis</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="379.html">Manuel Bonello</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#9 <span class="delta-up">+1</span> = #8</span></div><div class="metric"><span class="k">Score</span><span>28.6 <span class="delta-up">+0.61</span> = 29.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="275.html">Marco Mercieca</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="210.html">Jesmond Pule&#x27;</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#51 <span class="delta-z">±0</span> = #51</span></div><div class="metric"><span class="k">Score</span><span>17.1 <span class="delta-dn">-0.15</span> = 17.0</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="663.html">David Mifsud</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#35 <span class="delta-dn">-1</span> = #36</span></div><div class="metric"><span class="k">Score</span><span>19.5 <span class="delta-dn">-0.17</span> = 19.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="127.html">MIFSUD MATTHEW JOHN</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15453"><td class="expand-trigger" data-mid="15453">▶</td><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A semi-final</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="242.html">Trevor Rutter</a> / <a class="player-link" href="275.html">Marco Mercieca</a></td><td class="score">6-3, 4-6</td><td class="num"><span class="win">W (g)</span> 10-9</td><td class="num muted" data-sort="-1">—</td><td class="num">37.56<span class="rank-tag">#68</span></td><td class="num"><span class="win">+4.62</span></td><td class="num">7.72</td><td class="num"><span class="muted">-0.27</span></td></tr><tr class="impact-row" data-mid="15453" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#118 <span class="delta-up">+50</span> = #68</span></div><div class="metric"><span class="k">Score</span><span>9.0 <span class="delta-up">+5.42</span> = 14.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="205.html">Manuel Mifsud</a>, <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="602.html">Frans Ellul</a>, <a class="player-link" href="249.html">Julian Esposito</a>, <a class="player-link" href="241.html">Karl Debattista</a> + 45 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="379.html">Manuel Bonello</a><span class="side-tag win">A · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#17 <span class="delta-up">+9</span> = #8</span></div><div class="metric"><span class="k">Score</span><span>23.7 <span class="delta-up">+4.96</span> = 28.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="535.html">Andrew Pule&#x27;</a>, <a class="player-link" href="228.html">Nikolai Belli</a>, <a class="player-link" href="275.html">Marco Mercieca</a> + 4 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="242.html">Trevor Rutter</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#2 <span class="delta-z">±0</span> = #2</span></div><div class="metric"><span class="k">Score</span><span>43.6 <span class="delta-dn">-1.15</span> = 42.4</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="275.html">Marco Mercieca</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#8 <span class="delta-dn">-1</span> = #9</span></div><div class="metric"><span class="k">Score</span><span>29.2 <span class="delta-dn">-0.83</span> = 28.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="379.html">Manuel Bonello</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15438"><td class="expand-trigger" data-mid="15438">▶</td><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Men A day 10</td><td><a class="player-link" href="379.html">Manuel Bonello</a></td><td><a class="player-link" href="403.html">Fotios Evangelou</a> / <a class="player-link" href="223.html">Kristen Cachia</a></td><td class="score">2-6, 6-2</td><td class="num"><span class="loss">L (g)</span> 8-8</td><td class="num muted" data-sort="-1">—</td><td class="num">32.95<span class="rank-tag">#118</span></td><td class="num"></td><td class="num">7.99</td><td class="num"></td></tr><tr class="impact-row" data-mid="15438" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="403.html">Fotios Evangelou</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#10 <span class="delta-up">+1</span> = #9</span></div><div class="metric"><span class="k">Score</span><span>27.5 <span class="delta-up">+0.11</span> = 27.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="212.html">Jean Attard</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="223.html">Kristen Cachia</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#53 <span class="delta-z">±0</span> = #53</span></div><div class="metric"><span class="k">Score</span><span>17.0 <span class="delta-up">+0.04</span> = 17.0</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="837.html">Matthew Pace</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #118</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 9.0</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="379.html">Manuel Bonello</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#17 <span class="delta-z">±0</span> = #17</span></div><div class="metric"><span class="k">Score</span><span>23.6 <span class="delta-up">+0.03</span> = 23.7</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":837,"focal_name":"Matthew Pace","window_start":"2026-01-29","window_end":"2026-03-21","chart_pids":[837,379,229,403,242,275,210,378],"players":{"837":{"name":"Matthew Pace","short":"Matthew"},"229":{"name":"Peter Khiev","short":"Peter"},"711":{"name":"Gareth Magri","short":"Gareth"},"240":{"name":"Kurt Carabott","short":"Kurt"},"242":{"name":"Trevor Rutter","short":"Trevor"},"403":{"name":"Fotios Evangelou","short":"Fotios"},"275":{"name":"Marco Mercieca","short":"Marco"},"210":{"name":"Jesmond Pule'","short":"Jesmond"},"211":{"name":"Duncan D'Alessandro","short":"Duncan"},"663":{"name":"David Mifsud","short":"David"},"212":{"name":"Jean Attard","short":"Jean"},"378":{"name":"Ivan Cachia","short":"Ivan"},"379":{"name":"Manuel Bonello","short":"Manuel"},"223":{"name":"Kristen Cachia","short":"Kristen"}},"events":[{"match_id":15438,"date":"2026-01-30","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[403,223],"team2":[837,379],"winner":0,"is_tied":true,"score":"6-2 2-6","a_games":8,"b_games":8,"expected1":0.7222,"deltas":{"403":0.107,"223":0.0448,"837":8.9814,"379":0.0339},"mu_pre":{"403":40.574,"223":26.455,"837":25.0,"379":34.876},"sigma_pre":{"403":4.364,"223":3.163,"837":8.333,"379":3.75},"new_player":{"403":false,"223":false,"837":true,"379":false},"upset":false},{"match_id":15453,"date":"2026-01-30","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[837,379],"team2":[242,275],"winner":1,"is_tied":true,"score":"6-3 4-6","a_games":10,"b_games":9,"expected1":0.0253,"deltas":{"837":5.4182,"379":4.9558,"242":-1.1505,"275":-0.8321},"mu_pre":{"837":32.947,"379":34.819,"242":52.085,"275":37.854},"sigma_pre":{"837":7.988,"379":3.72,"242":2.829,"275":2.894},"new_player":{"837":true,"379":false,"242":false,"275":false},"upset":true},{"match_id":15272,"date":"2026-02-06","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[837,379],"team2":[210,663],"winner":1,"is_tied":false,"score":"6-2 6-2","a_games":12,"b_games":4,"expected1":0.9518,"deltas":{"837":1.0783,"379":0.6121,"210":-0.1497,"663":-0.1682},"mu_pre":{"837":37.564,"379":39.699,"210":28.304,"663":29.745},"sigma_pre":{"837":7.721,"379":3.695,"210":3.732,"663":3.403},"new_player":{"837":true,"379":false,"210":false,"663":false},"upset":false},{"match_id":15309,"date":"2026-02-20","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[837,229],"team2":[242,378],"winner":1,"is_tied":false,"score":"6-2 6-3","a_games":12,"b_games":5,"expected1":0.2119,"deltas":{"837":4.8506,"229":4.014,"242":-0.7581,"378":-0.5002},"mu_pre":{"837":38.089,"229":36.516,"242":50.36,"378":33.648},"sigma_pre":{"837":7.537,"229":5.571,"242":2.796,"378":2.797},"new_player":{"837":true,"229":false,"242":false,"378":false},"upset":true},{"match_id":15334,"date":"2026-02-27","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[711,403],"team2":[379,837],"winner":1,"is_tied":true,"score":"6-3 4-6","a_games":10,"b_games":9,"expected1":0.5232,"deltas":{"711":0.7866,"403":0.9143,"379":-1.3147,"837":-0.6956},"mu_pre":{"711":38.267,"403":44.461,"379":40.254,"837":41.803},"sigma_pre":{"711":3.998,"403":4.2,"379":3.675,"837":7.158},"new_player":{"711":false,"403":false,"379":false,"837":true},"upset":false},{"match_id":15378,"date":"2026-03-13","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[837,229],"team2":[211,210],"winner":1,"is_tied":false,"score":"6-4","a_games":6,"b_games":4,"expected1":0.9704,"deltas":{"837":0.5584,"229":0.4283,"211":-0.1013,"210":-0.0941},"mu_pre":{"837":40.333,"229":39.664,"211":29.733,"210":28.08},"sigma_pre":{"837":6.9,"229":5.347,"211":3.688,"210":3.716},"new_player":{"837":false,"229":false,"211":false,"210":false},"upset":false},{"match_id":15384,"date":"2026-03-20","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[379,837],"team2":[240,212],"winner":1,"is_tied":false,"score":"6-2 6-0","a_games":12,"b_games":2,"expected1":0.6862,"deltas":{"379":0.9583,"837":1.4694,"240":-0.4171,"212":-0.4829},"mu_pre":{"379":38.439,"837":40.661,"240":34.0,"212":39.561},"sigma_pre":{"379":3.621,"837":6.823,"240":4.123,"212":4.363},"new_player":{"379":false,"837":false,"240":false,"212":false},"upset":false},{"match_id":15413,"date":"2026-03-21","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Men A","team1":[837,229],"team2":[275,378],"winner":1,"is_tied":false,"score":"6-2 6-3","a_games":12,"b_games":5,"expected1":0.835,"deltas":{"837":1.5614,"229":1.2331,"275":-0.2058,"378":-0.1793},"mu_pre":{"837":41.593,"229":39.986,"275":37.785,"378":32.993},"sigma_pre":{"837":6.644,"229":5.312,"275":2.856,"378":2.78},"new_player":{"837":false,"229":false,"275":false,"378":false},"upset":false}],"series":{"837":[{"date":"2026-01-29","score":0.0},{"date":"2026-01-30","score":8.9814},{"date":"2026-01-30","score":14.3997},{"date":"2026-02-06","score":15.478},{"date":"2026-02-20","score":20.3286},{"date":"2026-02-27","score":19.633},{"date":"2026-03-13","score":20.1913},{"date":"2026-03-20","score":21.6608},{"date":"2026-03-21","score":23.2221}],"379":[{"date":"2026-01-29","score":24.5498},{"date":"2026-01-30","score":23.6597},{"date":"2026-01-30","score":28.6155},{"date":"2026-02-06","score":29.2276},{"date":"2026-02-27","score":27.913},{"date":"2026-03-20","score":28.5353},{"date":"2026-03-21","score":28.5353}],"229":[{"date":"2026-01-29","score":20.4461},{"date":"2026-02-20","score":23.8161},{"date":"2026-03-13","score":24.05},{"date":"2026-03-21","score":25.2831}],"403":[{"date":"2026-01-29","score":26.9206},{"date":"2026-01-30","score":27.5889},{"date":"2026-02-27","score":32.7749},{"date":"2026-03-21","score":32.7749}],"242":[{"date":"2026-01-29","score":42.9641},{"date":"2026-01-30","score":42.4458},{"date":"2026-02-20","score":41.2137},{"date":"2026-03-21","score":41.2137}],"275":[{"date":"2026-01-29","score":28.7053},{"date":"2026-01-30","score":28.3405},{"date":"2026-03-21","score":29.0116}],"210":[{"date":"2026-01-29","score":17.5589},{"date":"2026-02-06","score":16.9585},{"date":"2026-03-13","score":16.838},{"date":"2026-03-21","score":16.838}],"378":[{"date":"2026-01-29","score":26.0558},{"date":"2026-02-20","score":24.7577},{"date":"2026-03-21","score":24.4736}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

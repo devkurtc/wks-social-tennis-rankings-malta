@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Vincenzo Pappalardo — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">Vincenzo Pappalardo</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #940
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">28.94</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.28</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">7.10</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">6</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">5</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">17%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">49-60</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">1W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">5</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span><span class="b l">L*</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L*</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">139</td><td class="cls"></td><td><a class="player-link" href="1088.html">Paul Fenech</a></td><td class="num">26.75</td><td class="num">6.48</td><td class="num"><strong>7.30</strong></td><td class="num"><span class="loss">+0.20</span></td><td class="num">14</td><td class="num"><span class="win">4</span>-<span class="loss">10</span></td><td class="num">29%</td></tr><tr><td class="num">140</td><td class="cls"></td><td><a class="player-link" href="1180.html">Jack Steenkamer (pro) Ivan Cachia</a></td><td class="num">31.81</td><td class="num">8.19</td><td class="num"><strong>7.25</strong></td><td class="num"><span class="loss">+0.16</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">141</td><td class="cls"></td><td><a class="player-link" href="809.html">Kristen Cachia (pro Jean Attard)</a></td><td class="num">30.80</td><td class="num">7.86</td><td class="num"><strong>7.23</strong></td><td class="num"><span class="loss">+0.13</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr style="background:#22304a"><td class="num">142</td><td class="cls">A3</td><td><strong>Vincenzo Pappalardo</strong></td><td class="num">28.94</td><td class="num">7.28</td><td class="num"><strong>7.10</strong></td><td class="num"><span class="muted">—</span></td><td class="num">6</td><td class="num"><span class="win">1</span>-<span class="loss">5</span></td><td class="num">17%</td></tr><tr><td class="num">143</td><td class="cls">B4</td><td><a class="player-link" href="947.html">Chris Calleja</a></td><td class="num">26.78</td><td class="num">6.56</td><td class="num"><strong>7.09</strong></td><td class="num"><span class="win">-0.01</span></td><td class="num">15</td><td class="num"><span class="win">2</span>-<span class="loss">13</span></td><td class="num">13%</td></tr><tr><td class="num">144</td><td class="cls">C2</td><td><a class="player-link" href="992.html">Stefan Licari</a></td><td class="num">26.36</td><td class="num">6.44</td><td class="num"><strong>7.03</strong></td><td class="num"><span class="win">-0.07</span></td><td class="num">16</td><td class="num"><span class="win">6</span>-<span class="loss">10</span></td><td class="num">38%</td></tr><tr><td class="num">145</td><td class="cls"></td><td><a class="player-link" href="502.html">Gabriel Gauci</a></td><td class="num">27.64</td><td class="num">6.88</td><td class="num"><strong>7.00</strong></td><td class="num"><span class="win">-0.10</span></td><td class="num">14</td><td class="num"><span class="win">11</span>-<span class="loss">3</span></td><td class="num">79%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="237.7" x2="904" y2="237.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="240.7" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="197.6" x2="904" y2="197.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="200.6" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="157.6" x2="904" y2="157.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="160.6" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="117.5" x2="904" y2="117.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="120.5" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="77.4" x2="904" y2="77.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="80.4" text-anchor="end" fill="#8b96a8" font-size="10">25</text><line x1="50" y1="37.4" x2="904" y2="37.4" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="40.4" text-anchor="end" fill="#8b96a8" font-size="10">30</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2018</text><line x1="562.4" y1="14" x2="562.4" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="562.4" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2019</text>
+  <polyline points="50.0,225.5 220.8,220.0 391.6,224.8 562.4,231.7 733.2,242.0 904.0,220.9" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,77.9 220.8,106.7 391.6,123.7 562.4,141.6 733.2,165.9 904.0,186.1" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,30.1 220.8,30.0 391.6,38.0 562.4,48.3 733.2,63.2 904.0,45.8" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">6.8</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.7</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2018</strong></td><td class="num">3</td><td class="num"><span class="win">0</span>-<span class="loss">3</span></td><td class="num">0%</td><td class="num">23-35</td><td class="num">30.91 → 29.92</td><td class="num"><span class="loss">-0.98</span></td></tr><tr><td><strong>2019</strong></td><td class="num">3</td><td class="num"><span class="win">1</span>-<span class="loss">2</span></td><td class="num">33%</td><td class="num">26-25</td><td class="num">28.63 → 28.94</td><td class="num"><span class="win">+0.31</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2019-09-29</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019</td><td><a class="player-link" href="732.html">Nicholas Gollcher</a></td><td><a class="player-link" href="963.html">Dean Callus</a> / <a class="player-link" href="954.html">Eugene Debono</a></td><td class="score">6-3, 6-0</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+2.16</span></td></tr><tr><td>2018-09-08</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2018</td><td><a class="player-link" href="210.html">Jesmond Pule&#x27;</a></td><td><a class="player-link" href="401.html">Clyde Grech</a> / <a class="player-link" href="1088.html">Paul Fenech</a></td><td class="score">7-5 <span class='muted'>(TB)</span>, 4-6</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="win">+0.01</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2019-09-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019</td><td><a class="player-link" href="939.html">Richard Magri</a></td><td><a class="player-link" href="967.html">Norbert Coleiro</a> / <a class="player-link" href="242.html">Trevor Rutter</a></td><td class="score">3-6, 6-4</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-1.85</span></td></tr><tr><td>2019-09-01</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019</td><td><a class="player-link" href="939.html">Richard Magri</a></td><td><a class="player-link" href="605.html">Claude Mifsud Wismayer</a> / <a class="player-link" href="401.html">Clyde Grech</a></td><td class="score">2-6, 3-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.29</span></td></tr><tr><td>2018-09-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2018</td><td><a class="player-link" href="942.html">Mark Azzopardi</a></td><td><a class="player-link" href="953.html">Marcelo Villanueva</a> / <a class="player-link" href="719.html">Richard Curmi</a></td><td class="score">2-6, 3-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.00</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Vincenzo Pappalardo</td><td class="muted">—</td><td class="muted">(canonical)</td></tr><tr><td>Vincenzo Pappalardi</td><td class="muted">2026-04-26</td><td class="muted">Wilson Autumn Results 2019.xlsx</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td><span class="tag">id #977</span> Vincenzo Pappalardi</td><td class="muted">2026-04-26</td><td>typo auto-merge: &#x27;Vincenzo Pappalardi&#x27; (1m) ≈ &#x27;Vincenzo Pappalardo&#x27; (5m), shared club</td><td><a href="../aliases.html#m-580" title="Permalink in mapping log">#580 ↗</a></td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2019</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019</td><td>Team E</td><td class="muted">DIANE DEBONO</td><td class="cls">A3</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">80%</div><div class="muted" style="font-size:10px;">log-loss 0.494</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">80%</div><div class="muted" style="font-size:10px;">log-loss 0.653</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2018-09-15 vs Wilson Autumn Team Tournament 2018 — Vanilla PL said 9%, Decay said 39% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (6)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="14739"><td class="expand-trigger" data-mid="14739">▶</td><td>2019-09-29</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019 2019</td><td class="muted">Men A </td><td><a class="player-link" href="732.html">Nicholas Gollcher</a></td><td><a class="player-link" href="963.html">Dean Callus</a> / <a class="player-link" href="954.html">Eugene Debono</a></td><td class="score">6-3, 6-0</td><td class="num"><span class="win">W</span> 12-3</td><td class="num" data-sort="0.4999" title="Decay-365 said 50% chance of winning. Vanilla PL said 39%."><span class="muted">50%</span></td><td class="num">28.94<span class="rank-tag">#43</span></td><td class="num"><span class="win">+2.16</span></td><td class="num">7.28</td><td class="num"><span class="muted">-0.16</span></td></tr><tr class="impact-row" data-mid="14739" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="963.html">Dean Callus</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#67 <span class="delta-dn">-11</span> = #78</span></div><div class="metric"><span class="k">Score</span><span>4.7 <span class="delta-dn">-1.44</span> = 3.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="249.html">Julian Esposito</a>, <a class="player-link" href="241.html">Karl Debattista</a>, <a class="player-link" href="1079.html">Ian Gusman</a> + 6 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="954.html">Eugene Debono</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#8 <span class="delta-dn">-4</span> = #12</span></div><div class="metric"><span class="k">Score</span><span>19.8 <span class="delta-dn">-2.46</span> = 17.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="273.html">John Azzopardi</a>, <a class="player-link" href="240.html">Kurt Carabott</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="732.html">Nicholas Gollcher</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#18 <span class="delta-up">+5</span> = #13</span></div><div class="metric"><span class="k">Score</span><span>12.9 <span class="delta-up">+3.36</span> = 16.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1091.html">Suniel Balani</a>, <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="465.html">Matthew Borg</a>, <a class="player-link" href="256.html">Keith Micallef</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="940.html">Vincenzo Pappalardo</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#71 <span class="delta-up">+28</span> = #43</span></div><div class="metric"><span class="k">Score</span><span>4.5 <span class="delta-up">+2.63</span> = 7.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="942.html">Mark Azzopardi</a>, <a class="player-link" href="542.html">Maurice Borg</a>, <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="959.html">Paul Micallef</a> + 23 more</div></div></div></div></td></tr><tr class="match-row" data-mid="14692"><td class="expand-trigger" data-mid="14692">▶</td><td>2019-09-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019 2019</td><td class="muted">Men A </td><td><a class="player-link" href="939.html">Richard Magri</a></td><td><a class="player-link" href="967.html">Norbert Coleiro</a> / <a class="player-link" href="242.html">Trevor Rutter</a></td><td class="score">3-6, 6-4</td><td class="num"><span class="loss">L (g)</span> 9-10</td><td class="num" data-sort="0.4999" title="Decay-365 said 50% chance of winning. Vanilla PL said 38%."><span class="muted">50%</span></td><td class="num">26.78<span class="rank-tag">#71</span></td><td class="num"><span class="loss">-1.85</span></td><td class="num">7.44</td><td class="num"><span class="muted">-0.19</span></td></tr><tr class="impact-row" data-mid="14692" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="939.html">Richard Magri</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#29 <span class="delta-dn">-9</span> = #38</span></div><div class="metric"><span class="k">Score</span><span>9.0 <span class="delta-dn">-1.48</span> = 7.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="947.html">Chris Calleja</a>, <a class="player-link" href="958.html">Jesmond Cachia</a>, <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="1070.html">Ray Cardona</a>, <a class="player-link" href="967.html">Norbert Coleiro</a> + 4 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="940.html">Vincenzo Pappalardo</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#59 <span class="delta-dn">-12</span> = #71</span></div><div class="metric"><span class="k">Score</span><span>5.7 <span class="delta-dn">-1.28</span> = 4.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="942.html">Mark Azzopardi</a>, <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="262.html">Mavric Sawyer</a> + 7 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="967.html">Norbert Coleiro</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#34 <span class="delta-up">+7</span> = #27</span></div><div class="metric"><span class="k">Score</span><span>8.4 <span class="delta-up">+1.37</span> = 9.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="1070.html">Ray Cardona</a>, <a class="player-link" href="728.html">Manuel Gatt</a>, <a class="player-link" href="1087.html">Alfred Vella</a>, <a class="player-link" href="228.html">Nikolai Belli</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="242.html">Trevor Rutter</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#6 <span class="delta-up">+1</span> = #5</span></div><div class="metric"><span class="k">Score</span><span>18.9 <span class="delta-up">+1.67</span> = 20.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="944.html">Dave Elden</a></div></div></div></div></td></tr><tr class="match-row" data-mid="14656"><td class="expand-trigger" data-mid="14656">▶</td><td>2019-09-01</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2019 2019</td><td class="muted">Men A </td><td><a class="player-link" href="939.html">Richard Magri</a></td><td><a class="player-link" href="605.html">Claude Mifsud Wismayer</a> / <a class="player-link" href="401.html">Clyde Grech</a></td><td class="score">2-6, 3-6</td><td class="num"><span class="loss">L</span> 5-12</td><td class="num" data-sort="0.4998" title="Decay-365 said 50% chance of winning. Vanilla PL said 29%."><span class="muted">50%</span></td><td class="num">28.63<span class="rank-tag">#56</span></td><td class="num"><span class="loss">-1.29</span></td><td class="num">7.63</td><td class="num"><span class="muted">-0.14</span></td></tr><tr class="impact-row" data-mid="14656" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="605.html">Claude Mifsud Wismayer</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#14 <span class="delta-up">+5</span> = #9</span></div><div class="metric"><span class="k">Score</span><span>15.4 <span class="delta-up">+1.25</span> = 16.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="242.html">Trevor Rutter</a>, <a class="player-link" href="384.html">Willem Steenkamer</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="944.html">Dave Elden</a>, <a class="player-link" href="465.html">Matthew Borg</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="401.html">Clyde Grech</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#8 <span class="delta-up">+1</span> = #7</span></div><div class="metric"><span class="k">Score</span><span>17.9 <span class="delta-up">+1.10</span> = 19.1</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="240.html">Kurt Carabott</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="939.html">Richard Magri</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #42</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 7.1</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="940.html">Vincenzo Pappalardo</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#44 <span class="delta-dn">-12</span> = #56</span></div><div class="metric"><span class="k">Score</span><span>6.6 <span class="delta-dn">-0.87</span> = 5.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="947.html">Chris Calleja</a>, <a class="player-link" href="942.html">Mark Azzopardi</a>, <a class="player-link" href="483.html">George Grech</a>, <a class="player-link" href="518.html">James Farrugia</a>, <a class="player-link" href="719.html">Richard Curmi</a> + 6 more</div></div></div></div></td></tr><tr class="match-row" data-mid="12191"><td class="expand-trigger" data-mid="12191">▶</td><td>2018-09-15</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2018 2018</td><td class="muted">Men A </td><td><a class="player-link" href="942.html">Mark Azzopardi</a></td><td><a class="player-link" href="953.html">Marcelo Villanueva</a> / <a class="player-link" href="719.html">Richard Curmi</a></td><td class="score">2-6, 3-6</td><td class="num"><span class="loss">L</span> 5-12</td><td class="num" data-sort="0.3886" title="Decay-365 said 39% chance of winning. Vanilla PL said 9%."><span class="muted">39%</span></td><td class="num">29.92<span class="rank-tag">#31</span></td><td class="num"><span class="loss">-1.00</span></td><td class="num">7.77</td><td class="num"><span class="muted">-0.13</span></td></tr><tr class="impact-row" data-mid="12191" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="953.html">Marcelo Villanueva</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#1 <span class="delta-z">±0</span> = #1</span></div><div class="metric"><span class="k">Score</span><span>22.4 <span class="delta-up">+1.07</span> = 23.5</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="719.html">Richard Curmi</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#15 <span class="delta-up">+1</span> = #14</span></div><div class="metric"><span class="k">Score</span><span>10.8 <span class="delta-up">+0.90</span> = 11.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="925.html">Marc Vella Bonnici</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="940.html">Vincenzo Pappalardo</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#28 <span class="delta-dn">-3</span> = #31</span></div><div class="metric"><span class="k">Score</span><span>7.2 <span class="delta-dn">-0.60</span> = 6.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="241.html">Karl Debattista</a>, <a class="player-link" href="1092.html">Owen Scicluna</a>, <a class="player-link" href="228.html">Nikolai Belli</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="942.html">Mark Azzopardi</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#67 <span class="delta-dn">-2</span> = #69</span></div><div class="metric"><span class="k">Score</span><span>2.3 <span class="delta-dn">-0.48</span> = 1.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="964.html">Antoine Chircop</a>, <a class="player-link" href="866.html">Charles Grech</a></div></div></div></div></td></tr><tr class="match-row" data-mid="12175"><td class="expand-trigger" data-mid="12175">▶</td><td>2018-09-08</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2018 2018</td><td class="muted">Men A </td><td><a class="player-link" href="210.html">Jesmond Pule&#x27;</a></td><td><a class="player-link" href="401.html">Clyde Grech</a> / <a class="player-link" href="1088.html">Paul Fenech</a></td><td class="score">7-5 <span class='muted'>(TB)</span>, 4-6</td><td class="num"><span class="loss">L (g)</span> 11-11</td><td class="num muted" data-sort="-1">—</td><td class="num">30.92<span class="rank-tag">#28</span></td><td class="num"><span class="win">+0.01</span></td><td class="num">7.90</td><td class="num"><span class="muted">-0.23</span></td></tr><tr class="impact-row" data-mid="12175" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="210.html">Jesmond Pule&#x27;</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#19 <span class="delta-up">+1</span> = #18</span></div><div class="metric"><span class="k">Score</span><span>9.9 <span class="delta-up">+0.39</span> = 10.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="728.html">Manuel Gatt</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="940.html">Vincenzo Pappalardo</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#32 <span class="delta-up">+4</span> = #28</span></div><div class="metric"><span class="k">Score</span><span>6.5 <span class="delta-up">+0.69</span> = 7.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="241.html">Karl Debattista</a>, <a class="player-link" href="1092.html">Owen Scicluna</a>, <a class="player-link" href="228.html">Nikolai Belli</a>, <a class="player-link" href="711.html">Gareth Magri</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="401.html">Clyde Grech</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#11 <span class="delta-z">±0</span> = #11</span></div><div class="metric"><span class="k">Score</span><span>13.5 <span class="delta-up">+0.41</span> = 13.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1088.html">Paul Fenech</a><span class="side-tag loss">B · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#45 <span class="delta-up">+5</span> = #40</span></div><div class="metric"><span class="k">Score</span><span>4.9 <span class="delta-up">+0.43</span> = 5.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="946.html">John Sciberras</a>, <a class="player-link" href="234.html">Victor Rutter</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="1074.html">Antoine Muscat</a>, <a class="player-link" href="250.html">Neville Sciriha</a></div></div></div></div></td></tr><tr class="match-row" data-mid="12143"><td class="expand-trigger" data-mid="12143">▶</td><td>2018-09-01</td><td><span class="tag">vltc</span> Wilson Autumn Team Tournament 2018 2018</td><td class="muted">Men A </td><td><a class="player-link" href="210.html">Jesmond Pule&#x27;</a></td><td><a class="player-link" href="925.html">Marc Vella Bonnici</a> / <a class="player-link" href="944.html">Dave Elden</a></td><td class="score">4-6, 3-6</td><td class="num"><span class="loss">L</span> 7-12</td><td class="num" data-sort="0.5000" title="Decay-365 said 50% chance of winning. Vanilla PL said 47%."><span class="muted">50%</span></td><td class="num">30.91<span class="rank-tag">#31</span></td><td class="num"></td><td class="num">8.13</td><td class="num"></td></tr><tr class="impact-row" data-mid="12143" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="925.html">Marc Vella Bonnici</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #14</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 10.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="944.html">Dave Elden</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#16 <span class="delta-up">+5</span> = #11</span></div><div class="metric"><span class="k">Score</span><span>10.0 <span class="delta-up">+2.64</span> = 12.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="273.html">John Azzopardi</a>, <a class="player-link" href="401.html">Clyde Grech</a>, <a class="player-link" href="1087.html">Alfred Vella</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="210.html">Jesmond Pule&#x27;</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#13 <span class="delta-dn">-4</span> = #17</span></div><div class="metric"><span class="k">Score</span><span>11.6 <span class="delta-dn">-1.71</span> = 9.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="401.html">Clyde Grech</a>, <a class="player-link" href="1087.html">Alfred Vella</a>, <a class="player-link" href="944.html">Dave Elden</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="940.html">Vincenzo Pappalardo</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #31</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 6.5</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":940,"focal_name":"Vincenzo Pappalardo","window_start":"2018-08-31","window_end":"2019-09-29","chart_pids":[940,210,401,939,925,944,1088,953],"players":{"1088":{"name":"Paul Fenech","short":"Paul"},"963":{"name":"Dean Callus","short":"Dean"},"605":{"name":"Claude Mifsud Wismayer","short":"Claude"},"967":{"name":"Norbert Coleiro","short":"Norbert"},"939":{"name":"Richard Magri","short":"Richard M."},"940":{"name":"Vincenzo Pappalardo","short":"Vincenzo"},"942":{"name":"Mark Azzopardi","short":"Mark"},"719":{"name":"Richard Curmi","short":"Richard C."},"944":{"name":"Dave Elden","short":"Dave"},"401":{"name":"Clyde Grech","short":"Clyde"},"210":{"name":"Jesmond Pule'","short":"Jesmond"},"242":{"name":"Trevor Rutter","short":"Trevor"},"953":{"name":"Marcelo Villanueva","short":"Marcelo"},"954":{"name":"Eugene Debono","short":"Eugene"},"732":{"name":"Nicholas Gollcher","short":"Nicholas"},"925":{"name":"Marc Vella Bonnici","short":"Marc"}},"events":[{"match_id":12143,"date":"2018-09-01","tournament":"Wilson Autumn Team Tournament 2018","division":"Men A","team1":[925,944],"team2":[210,940],"winner":1,"is_tied":false,"score":"6-4 6-3","a_games":12,"b_games":7,"expected1":0.5048,"deltas":{"925":10.8826,"944":2.6387,"210":-1.7056,"940":6.5192},"mu_pre":{"925":25.0,"944":32.249,"210":32.05,"940":25.0},"sigma_pre":{"925":8.333,"944":7.427,"210":6.81,"940":8.333},"new_player":{"925":true,"944":true,"210":false,"940":true},"upset":false},{"match_id":12175,"date":"2018-09-08","tournament":"Wilson Autumn Team Tournament 2018","division":"Men A","team1":[210,940],"team2":[401,1088],"winner":0,"is_tied":true,"score":"7-5 4-6","a_games":11,"b_games":11,"expected1":0.4956,"deltas":{"210":0.3887,"940":0.6895,"401":0.4121,"1088":0.4254},"mu_pre":{"210":30.016,"940":30.906,"401":34.697,"1088":26.397},"sigma_pre":{"210":6.701,"940":8.129,"401":7.075,"1088":7.153},"new_player":{"210":false,"940":true,"401":true,"1088":true},"upset":false},{"match_id":12191,"date":"2018-09-15","tournament":"Wilson Autumn Team Tournament 2018","division":"Men A","team1":[953,719],"team2":[940,942],"winner":1,"is_tied":false,"score":"6-2 6-3","a_games":12,"b_games":5,"expected1":0.9027,"deltas":{"953":1.0709,"719":0.9001,"940":-0.5987,"942":-0.4791},"mu_pre":{"953":42.61,"719":32.073,"940":30.918,"942":23.555},"sigma_pre":{"953":6.721,"719":7.085,"940":7.903,"942":7.085},"new_player":{"953":false,"719":true,"940":true,"942":true},"upset":false},{"match_id":14656,"date":"2019-09-01","tournament":"Wilson Autumn Team Tournament 2019","division":"Men A","team1":[605,401],"team2":[939,940],"winner":1,"is_tied":false,"score":"6-2 6-3","a_games":12,"b_games":5,"expected1":0.8782,"deltas":{"605":1.2458,"401":1.1049,"939":7.1157,"940":-0.8684},"mu_pre":{"605":37.32,"401":36.236,"939":25.0,"940":29.922},"sigma_pre":{"605":7.323,"401":6.097,"939":8.333,"940":7.771},"new_player":{"605":true,"401":false,"939":true,"940":true},"upset":false},{"match_id":14692,"date":"2019-09-15","tournament":"Wilson Autumn Team Tournament 2019","division":"Men A","team1":[939,940],"team2":[967,242],"winner":2,"is_tied":true,"score":"3-6 6-4","a_games":9,"b_games":10,"expected1":0.4184,"deltas":{"939":-1.4756,"940":-1.2794,"967":1.367,"242":1.6695},"mu_pre":{"939":32.915,"940":28.631,"967":27.8,"242":36.899},"sigma_pre":{"939":7.969,"940":7.63,"967":6.464,"242":6.005},"new_player":{"939":true,"940":true,"967":false,"242":false},"upset":false},{"match_id":14739,"date":"2019-09-29","tournament":"Wilson Autumn Team Tournament 2019","division":"Men A","team1":[963,954],"team2":[732,940],"winner":2,"is_tied":false,"score":"3-6 0-6","a_games":3,"b_games":12,"expected1":0.6449,"deltas":{"963":-1.4355,"954":-2.4564,"732":3.356,"940":2.6348},"mu_pre":{"963":28.153,"954":40.025,"732":35.477,"940":26.782},"sigma_pre":{"963":7.808,"954":6.755,"732":7.541,"940":7.44},"new_player":{"963":true,"954":false,"732":true,"940":true},"upset":true}],"series":{"940":[{"date":"2018-08-31","score":0.0},{"date":"2018-09-01","score":6.5192},{"date":"2018-09-08","score":7.2086},{"date":"2018-09-15","score":6.61},{"date":"2019-09-01","score":5.7416},{"date":"2019-09-15","score":4.4622},{"date":"2019-09-29","score":7.097}],"210":[{"date":"2018-08-31","score":11.619},{"date":"2018-09-01","score":9.9134},{"date":"2018-09-08","score":10.3021},{"date":"2019-09-29","score":10.3021}],"401":[{"date":"2018-08-31","score":10.0015},{"date":"2018-09-08","score":13.8848},{"date":"2019-09-01","score":19.0515},{"date":"2019-09-29","score":19.0515}],"939":[{"date":"2018-08-31","score":0.0},{"date":"2019-09-01","score":7.1157},{"date":"2019-09-15","score":7.5311},{"date":"2019-09-29","score":7.5311}],"925":[{"date":"2018-08-31","score":0.0},{"date":"2018-09-01","score":10.8826},{"date":"2019-09-29","score":10.8826}],"944":[{"date":"2018-08-31","score":9.9695},{"date":"2018-09-01","score":12.6082},{"date":"2019-09-29","score":12.6082}],"1088":[{"date":"2018-08-31","score":4.937},{"date":"2018-09-08","score":5.3623},{"date":"2019-09-29","score":5.3623}],"953":[{"date":"2018-08-31","score":23.2731},{"date":"2018-09-15","score":23.5164},{"date":"2019-09-29","score":23.5164}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

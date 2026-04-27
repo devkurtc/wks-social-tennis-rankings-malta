@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Karolina Papiernik(Dem.)Alida Borg — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-F">Karolina Papiernik(Dem.)Alida Borg</div>
+      <div class="meta">
+        Ladies &middot;
+        Player ID #850
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">21.70</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">8.21</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">-2.92</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">1</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">0</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">100%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">6-3</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">1W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">0</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">238</td><td class="cls"></td><td><a class="player-link" href="857.html">Sabrina Xuereb(Dem.)Alida Borg</a></td><td class="num">21.79</td><td class="num">8.12</td><td class="num"><strong>-2.57</strong></td><td class="num"><span class="loss">+0.35</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">239</td><td class="cls"></td><td><a class="player-link" href="2.html">Szalkowska Ania</a></td><td class="num">17.59</td><td class="num">6.74</td><td class="num"><strong>-2.64</strong></td><td class="num"><span class="loss">+0.28</span></td><td class="num">10</td><td class="num"><span class="win">2</span>-<span class="loss">8</span></td><td class="num">20%</td></tr><tr><td class="num">240</td><td class="cls"></td><td><a class="player-link" href="1166.html">Rose Ann Portellin(Pro Mary Ciantar)</a></td><td class="num">21.98</td><td class="num">8.23</td><td class="num"><strong>-2.70</strong></td><td class="num"><span class="loss">+0.22</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr style="background:#22304a"><td class="num">241</td><td class="cls"></td><td><strong>Karolina Papiernik(Dem.)Alida Borg</strong></td><td class="num">21.70</td><td class="num">8.21</td><td class="num"><strong>-2.92</strong></td><td class="num"><span class="muted">—</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">242</td><td class="cls"></td><td><a class="player-link" href="1013.html">Carmen Cuschieri</a></td><td class="num">19.60</td><td class="num">7.51</td><td class="num"><strong>-2.94</strong></td><td class="num"><span class="win">-0.02</span></td><td class="num">5</td><td class="num"><span class="win">0</span>-<span class="loss">5</span></td><td class="num">0%</td></tr><tr><td class="num">243</td><td class="cls">C3</td><td><a class="player-link" href="829.html">Kim Bonello</a></td><td class="num">19.30</td><td class="num">7.41</td><td class="num"><strong>-2.94</strong></td><td class="num"><span class="win">-0.02</span></td><td class="num">6</td><td class="num"><span class="win">2</span>-<span class="loss">4</span></td><td class="num">33%</td></tr><tr><td class="num">244</td><td class="cls"></td><td><a class="player-link" href="1080.html">Marcon Gusman</a></td><td class="num">20.54</td><td class="num">7.94</td><td class="num"><strong>-3.27</strong></td><td class="num"><span class="win">-0.35</span></td><td class="num">3</td><td class="num"><span class="win">0</span>-<span class="loss">3</span></td><td class="num">0%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  <p class="muted">Not enough rated matches to draw a trajectory.</p>
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2026</strong></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td><td class="num">6-3</td><td class="num">21.70 → 21.70</td><td class="num"><span class="muted">+0.00</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Karolina Papiernik(Dem.)Alida Borg</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  
+
+  <h2 id="match-log" class="section-title">Match log (1)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="15422"><td class="expand-trigger" data-mid="15422">▶</td><td>2026-03-21</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad C day 9</td><td><a class="player-link" href="215.html">Christabelle Chetcuti</a></td><td><a class="player-link" href="216.html">Christine Scerri</a> / <a class="player-link" href="213.html">Josette Cassar</a></td><td class="score">6-3</td><td class="num"><span class="win">W</span> 6-3</td><td class="num muted" data-sort="-1">—</td><td class="num">21.70<span class="rank-tag">#241</span></td><td class="num"></td><td class="num">8.21</td><td class="num"></td></tr><tr class="impact-row" data-mid="15422" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="216.html">Christine Scerri</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#118 <span class="delta-dn">-1</span> = #119</span></div><div class="metric"><span class="k">Score</span><span>7.8 <span class="delta-dn">-0.23</span> = 7.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="371.html">Stephanie Farrugia</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="213.html">Josette Cassar</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#166 <span class="delta-dn">-3</span> = #169</span></div><div class="metric"><span class="k">Score</span><span>3.9 <span class="delta-dn">-0.20</span> = 3.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1056.html">Alexia Gauci</a>, <a class="player-link" href="1212.html">Doriana Zammit Portelli</a>, <a class="player-link" href="1220.html">Rebecca Ellul</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="850.html">Karolina Papiernik(Dem.)Alida Borg</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #241</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -2.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="215.html">Christabelle Chetcuti</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#184 <span class="delta-up">+12</span> = #172</span></div><div class="metric"><span class="k">Score</span><span>2.8 <span class="delta-up">+0.70</span> = 3.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1059.html">Lyndsey Napier</a>, <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="1104.html">Mary Ciantar (pro) Helga Azzopardi</a>, <a class="player-link" href="965.html">Sarah Vella</a>, <a class="player-link" href="1164.html">Annabel Abela</a> + 7 more</div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":850,"focal_name":"Karolina Papiernik(Dem.)Alida Borg","window_start":"2026-03-20","window_end":"2026-03-21","chart_pids":[850,216,213,215],"players":{"216":{"name":"Christine Scerri","short":"Christine"},"850":{"name":"Karolina Papiernik(Dem.)Alida Borg","short":"Karolina"},"213":{"name":"Josette Cassar","short":"Josette"},"215":{"name":"Christabelle Chetcuti","short":"Christabelle"}},"events":[{"match_id":15422,"date":"2026-03-21","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad C","team1":[216,213],"team2":[850,215],"winner":2,"is_tied":false,"score":"3-6","a_games":3,"b_games":6,"expected1":0.316,"deltas":{"216":-0.2318,"213":-0.2037,"850":-2.9198,"215":0.699},"mu_pre":{"216":18.527,"213":18.609,"850":25.0,"215":18.335},"sigma_pre":{"216":3.567,"213":4.893,"850":8.333,"215":5.168},"new_player":{"216":false,"213":false,"850":true,"215":false},"upset":false}],"series":{"850":[{"date":"2026-03-20","score":0.0},{"date":"2026-03-21","score":-2.9198}],"216":[{"date":"2026-03-20","score":8.1604},{"date":"2026-03-21","score":7.5946}],"213":[{"date":"2026-03-20","score":4.2072},{"date":"2026-03-21","score":3.7274}],"215":[{"date":"2026-03-20","score":0.8998},{"date":"2026-03-21","score":3.531}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

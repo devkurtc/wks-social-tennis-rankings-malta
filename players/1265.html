@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Luana Abela — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-F">Luana Abela</div>
+      <div class="meta">
+        Ladies &middot;
+        Player ID #1265
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">16.03</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.61</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">-6.79</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">5</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">4</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">20%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">26-48</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">1W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">4</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">269</td><td class="cls"></td><td><a class="player-link" href="765.html">Angele Pule&#x27; (dem.) Josette Cassar</a></td><td class="num">19.13</td><td class="num">8.17</td><td class="num"><strong>-5.39</strong></td><td class="num"><span class="loss">+1.40</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">270</td><td class="cls"></td><td><a class="player-link" href="1125.html">Rosabel Azzopardi</a></td><td class="num">18.42</td><td class="num">8.05</td><td class="num"><strong>-5.73</strong></td><td class="num"><span class="loss">+1.06</span></td><td class="num">2</td><td class="num"><span class="win">0</span>-<span class="loss">2</span></td><td class="num">0%</td></tr><tr><td class="num">271</td><td class="cls">C1</td><td><a class="player-link" href="880.html">Antoinette Aquilina</a></td><td class="num">15.73</td><td class="num">7.17</td><td class="num"><strong>-5.79</strong></td><td class="num"><span class="loss">+1.00</span></td><td class="num">9</td><td class="num"><span class="win">1</span>-<span class="loss">8</span></td><td class="num">11%</td></tr><tr style="background:#22304a"><td class="num">272</td><td class="cls">C3</td><td><strong>Luana Abela</strong></td><td class="num">16.03</td><td class="num">7.61</td><td class="num"><strong>-6.79</strong></td><td class="num"><span class="muted">—</span></td><td class="num">5</td><td class="num"><span class="win">1</span>-<span class="loss">4</span></td><td class="num">20%</td></tr><tr><td class="num">273</td><td class="cls">C3</td><td><a class="player-link" href="839.html">Brenda Bugeja</a></td><td class="num">14.18</td><td class="num">7.03</td><td class="num"><strong>-6.91</strong></td><td class="num"><span class="win">-0.11</span></td><td class="num">7</td><td class="num"><span class="win">0</span>-<span class="loss">7</span></td><td class="num">0%</td></tr><tr><td class="num">274</td><td class="cls">B3</td><td><a class="player-link" href="1219.html">Caroline Massa</a></td><td class="num">8.62</td><td class="num">5.93</td><td class="num"><strong>-9.17</strong></td><td class="num"><span class="win">-2.37</span></td><td class="num">20</td><td class="num"><span class="win">2</span>-<span class="loss">18</span></td><td class="num">10%</td></tr><tr><td class="num">275</td><td class="cls">C3</td><td><a class="player-link" href="616.html">Jean Frendo</a></td><td class="num">11.80</td><td class="num">7.06</td><td class="num"><strong>-9.37</strong></td><td class="num"><span class="win">-2.58</span></td><td class="num">10</td><td class="num"><span class="win">0</span>-<span class="loss">10</span></td><td class="num">0%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="216.8" x2="904" y2="216.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="219.8" text-anchor="end" fill="#8b96a8" font-size="10">-5</text><line x1="50" y1="177.1" x2="904" y2="177.1" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="180.1" text-anchor="end" fill="#8b96a8" font-size="10">0</text><line x1="50" y1="137.5" x2="904" y2="137.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="140.5" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="97.8" x2="904" y2="97.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="100.8" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="58.2" x2="904" y2="58.2" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="61.2" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="18.5" x2="904" y2="18.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="21.5" text-anchor="end" fill="#8b96a8" font-size="10">20</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2025</text>
+  <polyline points="50.0,223.1 263.5,228.1 477.0,230.7 690.5,242.1 904.0,231.0" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,91.8 263.5,112.0 477.0,128.1 690.5,154.5 904.0,172.2" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,29.9 263.5,37.9 477.0,43.0 690.5,58.4 904.0,50.0" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">7.1</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.9</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.6</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2025</strong></td><td class="num">5</td><td class="num"><span class="win">1</span>-<span class="loss">4</span></td><td class="num">20%</td><td class="num">26-48</td><td class="num">18.57 → 16.03</td><td class="num"><span class="loss">-2.54</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2025-09-25</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025</td><td><a class="player-link" href="396.html">Francesca Mamo</a></td><td><a class="player-link" href="2.html">Szalkowska Ania</a> / <a class="player-link" href="1222.html">Desiree Bezzina</a></td><td class="score">6-0, 6-0</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+1.05</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2025-09-02</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025</td><td><a class="player-link" href="1220.html">Rebecca Ellul</a></td><td><a class="player-link" href="214.html">Roberta Grixti</a> / <a class="player-link" href="1068.html">Anna Fenech</a></td><td class="score">2-6, 1-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.94</span></td></tr><tr><td>2025-07-31</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025</td><td><a class="player-link" href="1220.html">Rebecca Ellul</a></td><td><a class="player-link" href="615.html">Lillian Baldacchino</a> / <a class="player-link" href="1058.html">Monica Cachia Markham</a></td><td class="score">2-6, 2-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.01</span></td></tr><tr><td>2025-08-19</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025</td><td><a class="player-link" href="396.html">Francesca Mamo</a></td><td><a class="player-link" href="543.html">Marica Cassar</a> / <a class="player-link" href="1222.html">Desiree Bezzina</a></td><td class="score">3-6, 0-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-0.65</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Luana Abela</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2025</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025</td><td>Team A</td><td class="muted">ZAMMIT CIANTAR NAOMI</td><td class="cls">C3</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">60%</div><div class="muted" style="font-size:10px;">log-loss 0.734</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">60%</div><div class="muted" style="font-size:10px;">log-loss 0.638</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2025-09-02 vs PKF BENNY VIDAL TEAM TOURNAMENT 2025 — Vanilla PL said 74%, Decay said 57% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (5)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="12068"><td class="expand-trigger" data-mid="12068">▶</td><td>2025-09-25</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025 2025</td><td class="muted">Lad C day 10</td><td><a class="player-link" href="396.html">Francesca Mamo</a></td><td><a class="player-link" href="2.html">Szalkowska Ania</a> / <a class="player-link" href="1222.html">Desiree Bezzina</a></td><td class="score">6-0, 6-0</td><td class="num"><span class="win">W</span> 12-0</td><td class="num" data-sort="0.3920" title="Decay-365 said 39% chance of winning. Vanilla PL said 36%."><span class="muted">39%</span></td><td class="num">16.03<span class="rank-tag">#261</span></td><td class="num"><span class="win">+1.05</span></td><td class="num">7.61</td><td class="num"><span class="muted">-0.11</span></td></tr><tr class="impact-row" data-mid="12068" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1265.html">Luana Abela</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#262 <span class="delta-up">+1</span> = #261</span></div><div class="metric"><span class="k">Score</span><span>-8.2 <span class="delta-up">+1.39</span> = -6.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="880.html">Antoinette Aquilina</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="396.html">Francesca Mamo</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#160 <span class="delta-up">+16</span> = #144</span></div><div class="metric"><span class="k">Score</span><span>3.9 <span class="delta-up">+1.59</span> = 5.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="956.html">Elaine Azzopardi</a>, <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="213.html">Josette Cassar</a>, <a class="player-link" href="1113.html">Baldacchino</a> + 11 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="2.html">Szalkowska Ania</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#221 <span class="delta-dn">-11</span> = #232</span></div><div class="metric"><span class="k">Score</span><span>-1.5 <span class="delta-dn">-1.17</span> = -2.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="1083.html">Yanica Gusman</a>, <a class="player-link" href="1121.html">Mary Cianter</a>, <a class="player-link" href="387.html">Anna Napier</a>, <a class="player-link" href="516.html">Diane Farrugia</a> + 6 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1222.html">Desiree Bezzina</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#234 <span class="delta-dn">-5</span> = #239</span></div><div class="metric"><span class="k">Score</span><span>-2.8 <span class="delta-dn">-1.16</span> = -4.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="1080.html">Marcon Gusman</a>, <a class="player-link" href="1172.html">Ben Fenech</a>, <a class="player-link" href="996.html">Marcelle Borg</a>, <a class="player-link" href="1013.html">Carmen Cuschieri</a></div></div></div></div></td></tr><tr class="match-row" data-mid="12013"><td class="expand-trigger" data-mid="12013">▶</td><td>2025-09-02</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025 2025</td><td class="muted">Lad C day 7</td><td><a class="player-link" href="1220.html">Rebecca Ellul</a></td><td><a class="player-link" href="214.html">Roberta Grixti</a> / <a class="player-link" href="1068.html">Anna Fenech</a></td><td class="score">2-6, 1-6</td><td class="num"><span class="loss">L</span> 3-12</td><td class="num" data-sort="0.5662" title="Decay-365 said 57% chance of winning. Vanilla PL said 74%."><span class="muted">57%</span></td><td class="num">14.97<span class="rank-tag">#252</span></td><td class="num"><span class="loss">-1.94</span></td><td class="num">7.72</td><td class="num"><span class="muted">-0.17</span></td></tr><tr class="impact-row" data-mid="12013" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1220.html">Rebecca Ellul</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#203 <span class="delta-dn">-23</span> = #226</span></div><div class="metric"><span class="k">Score</span><span>-0.5 <span class="delta-dn">-2.13</span> = -2.6</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="988.html">Grace Barbara</a>, <a class="player-link" href="1083.html">Yanica Gusman</a>, <a class="player-link" href="1148.html">Anna Ancilleri</a>, <a class="player-link" href="1124.html">Antonella Dalli</a> + 18 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1265.html">Luana Abela</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#251 <span class="delta-dn">-1</span> = #252</span></div><div class="metric"><span class="k">Score</span><span>-6.8 <span class="delta-dn">-1.43</span> = -8.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="880.html">Antoinette Aquilina</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="214.html">Roberta Grixti</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#250 <span class="delta-up">+1</span> = #249</span></div><div class="metric"><span class="k">Score</span><span>-6.3 <span class="delta-up">+0.76</span> = -5.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1125.html">Rosabel Azzopardi</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1068.html">Anna Fenech</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#155 <span class="delta-up">+19</span> = #136</span></div><div class="metric"><span class="k">Score</span><span>4.1 <span class="delta-up">+1.93</span> = 6.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="956.html">Elaine Azzopardi</a>, <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="216.html">Christine Scerri</a>, <a class="player-link" href="949.html">Natasha Hedley</a> + 14 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11984"><td class="expand-trigger" data-mid="11984">▶</td><td>2025-08-19</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025 2025</td><td class="muted">Lad C day 5</td><td><a class="player-link" href="396.html">Francesca Mamo</a></td><td><a class="player-link" href="543.html">Marica Cassar</a> / <a class="player-link" href="1222.html">Desiree Bezzina</a></td><td class="score">3-6, 0-6</td><td class="num"><span class="loss">L</span> 3-12</td><td class="num" data-sort="0.3215" title="Decay-365 said 32% chance of winning. Vanilla PL said 18%."><span class="win">32%</span></td><td class="num">16.91<span class="rank-tag">#250</span></td><td class="num"><span class="loss">-0.65</span></td><td class="num">7.89</td><td class="num"><span class="muted">-0.10</span></td></tr><tr class="impact-row" data-mid="11984" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1265.html">Luana Abela</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#250 <span class="delta-z">±0</span> = #250</span></div><div class="metric"><span class="k">Score</span><span>-6.4 <span class="delta-dn">-0.34</span> = -6.8</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="396.html">Francesca Mamo</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#214 <span class="delta-dn">-5</span> = #219</span></div><div class="metric"><span class="k">Score</span><span>-1.3 <span class="delta-dn">-0.49</span> = -1.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="387.html">Anna Napier</a>, <a class="player-link" href="516.html">Diane Farrugia</a>, <a class="player-link" href="693.html">Mirhea Spiteri</a>, <a class="player-link" href="1228.html">Nicole Sapiano</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="543.html">Marica Cassar</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#54 <span class="delta-up">+3</span> = #51</span></div><div class="metric"><span class="k">Score</span><span>13.6 <span class="delta-up">+0.60</span> = 14.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="968.html">Yvonne Borg Cardona</a>, <a class="player-link" href="933.html">Sharon Mizzi</a>, <a class="player-link" href="598.html">Alexia Gouder</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="1222.html">Desiree Bezzina</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#231 <span class="delta-up">+3</span> = #228</span></div><div class="metric"><span class="k">Score</span><span>-3.5 <span class="delta-up">+0.71</span> = -2.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1072.html">Leah Meekers</a>, <a class="player-link" href="1080.html">Marcon Gusman</a>, <a class="player-link" href="1013.html">Carmen Cuschieri</a></div></div></div></div></td></tr><tr class="match-row" data-mid="11956"><td class="expand-trigger" data-mid="11956">▶</td><td>2025-07-31</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025 2025</td><td class="muted">Lad C day 3</td><td><a class="player-link" href="1220.html">Rebecca Ellul</a></td><td><a class="player-link" href="615.html">Lillian Baldacchino</a> / <a class="player-link" href="1058.html">Monica Cachia Markham</a></td><td class="score">2-6, 2-6</td><td class="num"><span class="loss">L</span> 4-12</td><td class="num" data-sort="0.3264" title="Decay-365 said 33% chance of winning. Vanilla PL said 33%."><span class="win">33%</span></td><td class="num">17.56<span class="rank-tag">#249</span></td><td class="num"><span class="loss">-1.01</span></td><td class="num">7.99</td><td class="num"><span class="muted">-0.13</span></td></tr><tr class="impact-row" data-mid="11956" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="1220.html">Rebecca Ellul</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#218 <span class="delta-dn">-7</span> = #225</span></div><div class="metric"><span class="k">Score</span><span>-2.0 <span class="delta-dn">-0.84</span> = -2.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1083.html">Yanica Gusman</a>, <a class="player-link" href="1166.html">Rose Ann Portellin(Pro Mary Ciantar)</a>, <a class="player-link" href="1121.html">Mary Cianter</a>, <a class="player-link" href="504.html">Sharleen Sciberras</a>, <a class="player-link" href="396.html">Francesca Mamo</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1265.html">Luana Abela</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#249 <span class="delta-z">±0</span> = #249</span></div><div class="metric"><span class="k">Score</span><span>-5.8 <span class="delta-dn">-0.63</span> = -6.4</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="615.html">Lillian Baldacchino</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#136 <span class="delta-up">+8</span> = #128</span></div><div class="metric"><span class="k">Score</span><span>5.5 <span class="delta-up">+0.88</span> = 6.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="271.html">Mary Borg</a>, <a class="player-link" href="948.html">Carmen Difesa</a>, <a class="player-link" href="1076.html">Josanne Cassar</a>, <a class="player-link" href="949.html">Natasha Hedley</a>, <a class="player-link" href="522.html">Monique Attard</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1058.html">Monica Cachia Markham</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#149 <span class="delta-up">+9</span> = #140</span></div><div class="metric"><span class="k">Score</span><span>4.6 <span class="delta-up">+0.74</span> = 5.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="956.html">Elaine Azzopardi</a>, <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="1069.html">Paula Difesa</a>, <a class="player-link" href="213.html">Josette Cassar</a>, <a class="player-link" href="1113.html">Baldacchino</a> + 4 more</div></div></div></div></td></tr><tr class="match-row" data-mid="11910"><td class="expand-trigger" data-mid="11910">▶</td><td>2025-07-15</td><td><span class="tag">tck</span> PKF BENNY VIDAL TEAM TOURNAMENT 2025 2025</td><td class="muted">Lad C day 1</td><td><a class="player-link" href="396.html">Francesca Mamo</a></td><td><a class="player-link" href="521.html">Tiziana Spiteri</a> / <a class="player-link" href="1219.html">Caroline Massa</a></td><td class="score">1-6, 3-6</td><td class="num"><span class="loss">L</span> 4-12</td><td class="num" data-sort="0.4709" title="Decay-365 said 47% chance of winning. Vanilla PL said 48%."><span class="muted">47%</span></td><td class="num">18.57<span class="rank-tag">#243</span></td><td class="num"></td><td class="num">8.12</td><td class="num"></td></tr><tr class="impact-row" data-mid="11910" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="396.html">Francesca Mamo</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#211 <span class="delta-dn">-13</span> = #224</span></div><div class="metric"><span class="k">Score</span><span>-1.5 <span class="delta-dn">-1.81</span> = -3.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1073.html">Michela Di Giorgio</a>, <a class="player-link" href="1080.html">Marcon Gusman</a>, <a class="player-link" href="1083.html">Yanica Gusman</a>, <a class="player-link" href="1166.html">Rose Ann Portellin(Pro Mary Ciantar)</a>, <a class="player-link" href="1121.html">Mary Cianter</a> + 8 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1265.html">Luana Abela</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #243</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at -5.8</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="521.html">Tiziana Spiteri</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#164 <span class="delta-up">+17</span> = #147</span></div><div class="metric"><span class="k">Score</span><span>3.0 <span class="delta-up">+1.41</span> = 4.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="1059.html">Lyndsey Napier</a>, <a class="player-link" href="213.html">Josette Cassar</a>, <a class="player-link" href="244.html">Brenda Baldacchino</a>, <a class="player-link" href="1104.html">Mary Ciantar (pro) Helga Azzopardi</a> + 12 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="1219.html">Caroline Massa</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#241 <span class="delta-up">+13</span> = #228</span></div><div class="metric"><span class="k">Score</span><span>-5.4 <span class="delta-up">+1.51</span> = -3.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="952.html">Rose Anne Portelli</a>, <a class="player-link" href="1096.html">Rose Falzon</a>, <a class="player-link" href="951.html">Rosette Tufigno</a>, <a class="player-link" href="1008.html">Roseanne Portelli</a>, <a class="player-link" href="1025.html">Anna Casingena in lieu of Marcelle Borg</a> + 8 more</div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":1265,"focal_name":"Luana Abela","window_start":"2025-07-14","window_end":"2025-09-25","chart_pids":[1265,396,1220,1222,521,1219,615,1058],"players":{"1058":{"name":"Monica Cachia Markham","short":"Monica"},"1219":{"name":"Caroline Massa","short":"Caroline"},"1220":{"name":"Rebecca Ellul","short":"Rebecca"},"2":{"name":"Szalkowska Ania","short":"Szalkowska"},"1222":{"name":"Desiree Bezzina","short":"Desiree"},"615":{"name":"Lillian Baldacchino","short":"Lillian"},"521":{"name":"Tiziana Spiteri","short":"Tiziana"},"396":{"name":"Francesca Mamo","short":"Francesca"},"1068":{"name":"Anna Fenech","short":"Anna"},"1265":{"name":"Luana Abela","short":"Luana"},"214":{"name":"Roberta Grixti","short":"Roberta"},"543":{"name":"Marica Cassar","short":"Marica"}},"events":[{"match_id":11910,"date":"2025-07-15","tournament":"PKF BENNY VIDAL TEAM TOURNAMENT 2025","division":"Lad C","team1":[396,1265],"team2":[521,1219],"winner":2,"is_tied":false,"score":"1-6 3-6","a_games":4,"b_games":12,"expected1":0.8043,"deltas":{"396":-1.8148,"1265":-5.7962,"521":1.4096,"1219":1.5145},"mu_pre":{"396":18.422,"1265":25.0,"521":15.931,"1219":14.979},"sigma_pre":{"396":6.628,"1265":8.333,"521":4.326,"1219":6.801},"new_player":{"396":false,"1265":true,"521":false,"1219":false},"upset":true},{"match_id":11956,"date":"2025-07-31","tournament":"PKF BENNY VIDAL TEAM TOURNAMENT 2025","division":"Lad C","team1":[1220,1265],"team2":[615,1058],"winner":2,"is_tied":false,"score":"2-6 2-6","a_games":4,"b_games":12,"expected1":0.3338,"deltas":{"1220":-0.8361,"1265":-0.6255,"615":0.8756,"1058":0.7449},"mu_pre":{"1220":22.532,"1265":18.571,"615":25.427,"1058":22.422},"sigma_pre":{"1220":8.161,"1265":8.123,"615":6.634,"1058":5.94},"new_player":{"1220":true,"1265":true,"615":false,"1058":false},"upset":false},{"match_id":11984,"date":"2025-08-19","tournament":"PKF BENNY VIDAL TEAM TOURNAMENT 2025","division":"Lad C","team1":[1265,396],"team2":[543,1222],"winner":2,"is_tied":false,"score":"3-6 0-6","a_games":3,"b_games":12,"expected1":0.2142,"deltas":{"1265":-0.3353,"396":-0.4891,"543":0.6019,"1222":0.7066},"mu_pre":{"1265":17.557,"396":17.113,"543":26.08,"1222":20.244},"sigma_pre":{"1265":7.993,"396":6.152,"543":4.152,"1222":7.926},"new_player":{"1265":true,"396":false,"543":false,"1222":true},"upset":false},{"match_id":12013,"date":"2025-09-02","tournament":"PKF BENNY VIDAL TEAM TOURNAMENT 2025","division":"Lad C","team1":[1220,1265],"team2":[214,1068],"winner":2,"is_tied":false,"score":"2-6 1-6","a_games":3,"b_games":12,"expected1":0.7041,"deltas":{"1220":-2.1328,"1265":-1.4299,"214":0.7582,"1068":1.9338},"mu_pre":{"1220":22.864,"1265":16.911,"214":8.772,"1068":23.005},"sigma_pre":{"1220":7.781,"1265":7.889,"214":5.011,"1068":6.316},"new_player":{"1220":true,"1265":true,"214":false,"1068":false},"upset":true},{"match_id":12068,"date":"2025-09-25","tournament":"PKF BENNY VIDAL TEAM TOURNAMENT 2025","division":"Lad C","team1":[1265,396],"team2":[2,1222],"winner":1,"is_tied":false,"score":"6-0 6-0","a_games":12,"b_games":0,"expected1":0.3987,"deltas":{"1265":1.3943,"396":1.5939,"2":-1.1691,"1222":-1.1629},"mu_pre":{"1265":14.974,"396":20.793,"2":19.01,"1222":20.683},"sigma_pre":{"1265":7.72,"396":5.637,"2":6.826,"1222":7.837},"new_player":{"1265":true,"396":false,"2":false,"1222":true},"upset":true}],"series":{"1265":[{"date":"2025-07-14","score":0.0},{"date":"2025-07-15","score":-5.7962},{"date":"2025-07-31","score":-6.4216},{"date":"2025-08-19","score":-6.7569},{"date":"2025-09-02","score":-8.1869},{"date":"2025-09-25","score":-6.7925}],"396":[{"date":"2025-07-14","score":-1.4607},{"date":"2025-07-15","score":-3.2755},{"date":"2025-08-19","score":-1.832},{"date":"2025-09-25","score":5.4764}],"1220":[{"date":"2025-07-14","score":0.0},{"date":"2025-07-31","score":-2.7873},{"date":"2025-09-02","score":-2.6106},{"date":"2025-09-25","score":-2.6106}],"1222":[{"date":"2025-07-14","score":0.0},{"date":"2025-08-19","score":-2.827},{"date":"2025-09-25","score":-3.9899}],"521":[{"date":"2025-07-14","score":2.9521},{"date":"2025-07-15","score":4.3617},{"date":"2025-09-25","score":4.3617}],"1219":[{"date":"2025-07-14","score":-5.4224},{"date":"2025-07-15","score":-3.9079},{"date":"2025-09-25","score":-3.9079}],"615":[{"date":"2025-07-14","score":4.4513},{"date":"2025-07-31","score":6.4006},{"date":"2025-09-25","score":6.4006}],"1058":[{"date":"2025-07-14","score":3.7026},{"date":"2025-07-31","score":5.347},{"date":"2025-09-25","score":5.347}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

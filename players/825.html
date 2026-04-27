@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Sue Stevenson — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-F">Sue Stevenson</div>
+      <div class="meta">
+        Ladies &middot;
+        Player ID #825
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">25.04</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">7.17</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">3.52</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">6</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">5</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">17%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">36-54</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="loss">3L</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">3</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span><span class="b w">W</span><span class="b l">L*</span><span class="b l">L*</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">170</td><td class="cls"></td><td><a class="player-link" href="112.html">ROCA JENIFFER</a></td><td class="num">25.05</td><td class="num">7.15</td><td class="num"><strong>3.59</strong></td><td class="num"><span class="loss">+0.06</span></td><td class="num">7</td><td class="num"><span class="win">3</span>-<span class="loss">4</span></td><td class="num">43%</td></tr><tr><td class="num">171</td><td class="cls"></td><td><a class="player-link" href="987.html">Ansbelle Abela</a></td><td class="num">27.85</td><td class="num">8.11</td><td class="num"><strong>3.53</strong></td><td class="num"><span class="loss">+0.01</span></td><td class="num">1</td><td class="num"><span class="win">1</span>-<span class="loss">0</span></td><td class="num">100%</td></tr><tr><td class="num">172</td><td class="cls">C3</td><td><a class="player-link" href="215.html">Christabelle Chetcuti</a></td><td class="num">18.94</td><td class="num">5.14</td><td class="num"><strong>3.53</strong></td><td class="num"><span class="loss">+0.01</span></td><td class="num">34</td><td class="num"><span class="win">12</span>-<span class="loss">22</span></td><td class="num">35%</td></tr><tr style="background:#22304a"><td class="num">173</td><td class="cls">B2</td><td><strong>Sue Stevenson</strong></td><td class="num">25.04</td><td class="num">7.17</td><td class="num"><strong>3.52</strong></td><td class="num"><span class="muted">—</span></td><td class="num">6</td><td class="num"><span class="win">1</span>-<span class="loss">5</span></td><td class="num">17%</td></tr><tr><td class="num">174</td><td class="cls">B2</td><td><a class="player-link" href="1164.html">Annabel Abela</a></td><td class="num">27.43</td><td class="num">7.98</td><td class="num"><strong>3.47</strong></td><td class="num"><span class="win">-0.05</span></td><td class="num">2</td><td class="num"><span class="win">0</span>-<span class="loss">2</span></td><td class="num">0%</td></tr><tr><td class="num">175</td><td class="cls"></td><td><a class="player-link" href="983.html">Michela Demanuela</a></td><td class="num">27.47</td><td class="num">8.05</td><td class="num"><strong>3.31</strong></td><td class="num"><span class="win">-0.22</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">176</td><td class="cls"></td><td><a class="player-link" href="1059.html">Lyndsey Napier</a></td><td class="num">22.44</td><td class="num">6.38</td><td class="num"><strong>3.30</strong></td><td class="num"><span class="win">-0.23</span></td><td class="num">19</td><td class="num"><span class="win">7</span>-<span class="loss">12</span></td><td class="num">37%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="245.7" x2="904" y2="245.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="248.7" text-anchor="end" fill="#8b96a8" font-size="10">0</text><line x1="50" y1="205.6" x2="904" y2="205.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="208.6" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="165.6" x2="904" y2="165.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="168.6" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="125.6" x2="904" y2="125.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="128.6" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="85.5" x2="904" y2="85.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="88.5" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="45.5" x2="904" y2="45.5" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="48.5" text-anchor="end" fill="#8b96a8" font-size="10">25</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2026</text>
+  <polyline points="50.0,238.2 220.8,242.0 391.6,211.8 562.4,213.5 733.2,216.4 904.0,217.5" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,72.7 220.8,98.2 391.6,144.5 562.4,160.0 733.2,178.5 904.0,191.3" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,41.7 220.8,50.7 391.6,30.0 562.4,34.9 733.2,41.5 904.0,45.2" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">6.7</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.7</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.7</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2026</strong></td><td class="num">6</td><td class="num"><span class="win">1</span>-<span class="loss">5</span></td><td class="num">17%</td><td class="num">36-54</td><td class="num">25.47 → 25.04</td><td class="num"><span class="loss">-0.43</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2026-02-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="488.html">Sarah Axiaq</a></td><td><a class="player-link" href="277.html">Ann Marie Attard</a> / <a class="player-link" href="201.html">Romina Gauci</a></td><td class="score">6-2, 7-5 <span class='muted'>(TB)</span></td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+2.59</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="488.html">Sarah Axiaq</a></td><td><a class="player-link" href="509.html">Giada Sciberras</a> / <a class="player-link" href="481.html">Sabrina Xuereb</a></td><td class="score">6-3, 2-6</td><td class="num"><span class="loss">L (g)</span></td><td class="num"><span class="loss">-1.12</span></td></tr><tr><td>2026-03-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="523.html">Anabel Borg</a></td><td><a class="player-link" href="477.html">Andrea Magaldi</a> / <a class="player-link" href="481.html">Sabrina Xuereb</a></td><td class="score">2-6, 2-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-0.82</span></td></tr><tr><td>2026-03-13</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td><a class="player-link" href="523.html">Anabel Borg</a></td><td><a class="player-link" href="276.html">Kristina Briffa</a> / <a class="player-link" href="204.html">Jade Sammut</a></td><td class="score">4-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-0.61</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>Sue Stevenson</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td>2026</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td>Team D</td><td class="muted">Juan Sammut</td><td class="cls">B2</td></tr><tr><td>2026</td><td><span class="tag">vltc</span> San Michel Results 2026 (live gsheet 2026-04-26)</td><td>Team D</td><td class="muted">Juan Sammut</td><td class="cls">B2</td></tr><tr><td>2026</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026</td><td>Team D</td><td class="muted">Juan Sammut</td><td class="cls">B2</td></tr></tbody>
+  </table>
+  </div>
+
+  
+
+  <h2 id="match-log" class="section-title">Match log (6)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="15409"><td class="expand-trigger" data-mid="15409">▶</td><td>2026-03-21</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad B day 9</td><td><a class="player-link" href="523.html">Anabel Borg</a></td><td><a class="player-link" href="372.html">Maria Angela Gambin</a> / <a class="player-link" href="201.html">Romina Gauci</a></td><td class="score">1-6, 0-6</td><td class="num"><span class="loss">L</span> 1-12</td><td class="num muted" data-sort="-1">—</td><td class="num">25.04<span class="rank-tag">#172</span></td><td class="num"><span class="loss">-0.46</span></td><td class="num">7.17</td><td class="num"><span class="muted">-0.11</span></td></tr><tr class="impact-row" data-mid="15409" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="523.html">Anabel Borg</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#147 <span class="delta-dn">-5</span> = #152</span></div><div class="metric"><span class="k">Score</span><span>5.4 <span class="delta-dn">-0.27</span> = 5.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1140.html">Mary Borg (pro) Jennifer Mifsud</a>, <a class="player-link" href="980.html">Lonia Carabott (pro) Kirsty Mercieca</a>, <a class="player-link" href="279.html">Heidi Tabone</a>, <a class="player-link" href="746.html">Doriana Portelli (Pro Luisa Andreozzi)</a>, <a class="player-link" href="1228.html">Nicole Sapiano</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="825.html">Sue Stevenson</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#170 <span class="delta-dn">-2</span> = #172</span></div><div class="metric"><span class="k">Score</span><span>3.7 <span class="delta-dn">-0.14</span> = 3.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="987.html">Ansbelle Abela</a>, <a class="player-link" href="112.html">ROCA JENIFFER</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="372.html">Maria Angela Gambin</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#23 <span class="delta-z">±0</span> = #23</span></div><div class="metric"><span class="k">Score</span><span>19.7 <span class="delta-up">+0.20</span> = 19.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="201.html">Romina Gauci</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#44 <span class="delta-up">+3</span> = #41</span></div><div class="metric"><span class="k">Score</span><span>16.2 <span class="delta-up">+0.17</span> = 16.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="930.html">Marthese Camoin</a>, <a class="player-link" href="540.html">Yana Cachia</a>, <a class="player-link" href="838.html">Louise Qi</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15392"><td class="expand-trigger" data-mid="15392">▶</td><td>2026-03-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad B day 8</td><td><a class="player-link" href="523.html">Anabel Borg</a></td><td><a class="player-link" href="477.html">Andrea Magaldi</a> / <a class="player-link" href="481.html">Sabrina Xuereb</a></td><td class="score">2-6, 2-6</td><td class="num"><span class="loss">L</span> 4-12</td><td class="num muted" data-sort="-1">—</td><td class="num">25.50<span class="rank-tag">#170</span></td><td class="num"><span class="loss">-0.82</span></td><td class="num">7.28</td><td class="num"><span class="muted">-0.16</span></td></tr><tr class="impact-row" data-mid="15392" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="523.html">Anabel Borg</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#140 <span class="delta-dn">-7</span> = #147</span></div><div class="metric"><span class="k">Score</span><span>5.9 <span class="delta-dn">-0.49</span> = 5.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="522.html">Monique Attard</a>, <a class="player-link" href="366.html">Janice Galea</a>, <a class="player-link" href="674.html">Christine Manduca</a>, <a class="player-link" href="410.html">Jin Attard (Pro Alexia Spiteri)</a>, <a class="player-link" href="757.html">Lucienne Meli Bezzina</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="825.html">Sue Stevenson</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#167 <span class="delta-dn">-3</span> = #170</span></div><div class="metric"><span class="k">Score</span><span>4.0 <span class="delta-dn">-0.35</span> = 3.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1056.html">Alexia Gauci</a>, <a class="player-link" href="1212.html">Doriana Zammit Portelli</a>, <a class="player-link" href="1220.html">Rebecca Ellul</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="477.html">Andrea Magaldi</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#68 <span class="delta-up">+7</span> = #61</span></div><div class="metric"><span class="k">Score</span><span>12.8 <span class="delta-up">+0.48</span> = 13.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="467.html">Doriana Portelli</a>, <a class="player-link" href="933.html">Sharon Mizzi</a>, <a class="player-link" href="246.html">Annabelle Abela</a>, <a class="player-link" href="973.html">Michelle Braddick-Southgate</a>, <a class="player-link" href="512.html">Dawn Azzopardi</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="481.html">Sabrina Xuereb</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#56 <span class="delta-up">+4</span> = #52</span></div><div class="metric"><span class="k">Score</span><span>13.9 <span class="delta-up">+0.58</span> = 14.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="617.html">Tanya Cassar</a>, <a class="player-link" href="399.html">Deborah Farrugia</a>, <a class="player-link" href="597.html">Marcette Sciriha</a>, <a class="player-link" href="598.html">Alexia Gouder</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15382"><td class="expand-trigger" data-mid="15382">▶</td><td>2026-03-13</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad B day 7</td><td><a class="player-link" href="523.html">Anabel Borg</a></td><td><a class="player-link" href="276.html">Kristina Briffa</a> / <a class="player-link" href="204.html">Jade Sammut</a></td><td class="score">4-6</td><td class="num"><span class="loss">L</span> 4-6</td><td class="num muted" data-sort="-1">—</td><td class="num">26.32<span class="rank-tag">#165</span></td><td class="num"><span class="loss">-0.61</span></td><td class="num">7.44</td><td class="num"><span class="muted">-0.13</span></td></tr><tr class="impact-row" data-mid="15382" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="276.html">Kristina Briffa</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#26 <span class="delta-up">+1</span> = #25</span></div><div class="metric"><span class="k">Score</span><span>19.3 <span class="delta-up">+0.27</span> = 19.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="514.html">Dorianne Buhagiar</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="204.html">Jade Sammut</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#67 <span class="delta-up">+6</span> = #61</span></div><div class="metric"><span class="k">Score</span><span>12.9 <span class="delta-up">+0.26</span> = 13.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="467.html">Doriana Portelli</a>, <a class="player-link" href="933.html">Sharon Mizzi</a>, <a class="player-link" href="246.html">Annabelle Abela</a>, <a class="player-link" href="973.html">Michelle Braddick-Southgate</a>, <a class="player-link" href="512.html">Dawn Azzopardi</a> + 1 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="523.html">Anabel Borg</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#135 <span class="delta-dn">-6</span> = #141</span></div><div class="metric"><span class="k">Score</span><span>6.2 <span class="delta-dn">-0.36</span> = 5.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1076.html">Josanne Cassar</a>, <a class="player-link" href="949.html">Natasha Hedley</a>, <a class="player-link" href="395.html">Anthea Gauci</a>, <a class="player-link" href="225.html">Daphne Vella</a>, <a class="player-link" href="552.html">CASSAR MARIKA</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="825.html">Sue Stevenson</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#160 <span class="delta-dn">-5</span> = #165</span></div><div class="metric"><span class="k">Score</span><span>4.2 <span class="delta-dn">-0.21</span> = 4.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="213.html">Josette Cassar</a>, <a class="player-link" href="781.html">Becky Hayes</a>, <a class="player-link" href="783.html">Tanya Cassar (Pro Anthea Gauci)</a>, <a class="player-link" href="674.html">Christine Manduca</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15302"><td class="expand-trigger" data-mid="15302">▶</td><td>2026-02-20</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad B day 4</td><td><a class="player-link" href="488.html">Sarah Axiaq</a></td><td><a class="player-link" href="277.html">Ann Marie Attard</a> / <a class="player-link" href="201.html">Romina Gauci</a></td><td class="score">6-2, 7-5 <span class='muted'>(TB)</span></td><td class="num"><span class="win">W</span> 13-7</td><td class="num muted" data-sort="-1">—</td><td class="num">26.93<span class="rank-tag">#160</span></td><td class="num"><span class="win">+2.59</span></td><td class="num">7.57</td><td class="num"><span class="muted">-0.39</span></td></tr><tr class="impact-row" data-mid="15302" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="825.html">Sue Stevenson</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#201 <span class="delta-up">+41</span> = #160</span></div><div class="metric"><span class="k">Score</span><span>0.5 <span class="delta-up">+3.77</span> = 4.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1058.html">Monica Cachia Markham</a>, <a class="player-link" href="909.html">Mary Ciantar</a>, <a class="player-link" href="1059.html">Lyndsey Napier</a>, <a class="player-link" href="1068.html">Anna Fenech</a>, <a class="player-link" href="1104.html">Mary Ciantar (pro) Helga Azzopardi</a> + 36 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="488.html">Sarah Axiaq</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#56 <span class="delta-up">+17</span> = #39</span></div><div class="metric"><span class="k">Score</span><span>14.0 <span class="delta-up">+2.82</span> = 16.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="201.html">Romina Gauci</a>, <a class="player-link" href="930.html">Marthese Camoin</a>, <a class="player-link" href="617.html">Tanya Cassar</a>, <a class="player-link" href="399.html">Deborah Farrugia</a>, <a class="player-link" href="388.html">Bernardette Fenech</a> + 12 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="277.html">Ann Marie Attard</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#39 <span class="delta-dn">-5</span> = #44</span></div><div class="metric"><span class="k">Score</span><span>16.8 <span class="delta-dn">-0.98</span> = 15.8</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="930.html">Marthese Camoin</a>, <a class="player-link" href="540.html">Yana Cachia</a>, <a class="player-link" href="699.html">Mary Muscat</a>, <a class="player-link" href="488.html">Sarah Axiaq</a>, <a class="player-link" href="267.html">Diane Fenech</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="201.html">Romina Gauci</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#44 <span class="delta-dn">-4</span> = #48</span></div><div class="metric"><span class="k">Score</span><span>15.9 <span class="delta-dn">-0.93</span> = 15.0</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="388.html">Bernardette Fenech</a>, <a class="player-link" href="664.html">Anna Fava</a>, <a class="player-link" href="488.html">Sarah Axiaq</a>, <a class="player-link" href="581.html">MIFSUD REBECCA</a></div></div></div></div></td></tr><tr class="match-row" data-mid="15292"><td class="expand-trigger" data-mid="15292">▶</td><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad B day 3</td><td><a class="player-link" href="488.html">Sarah Axiaq</a></td><td><a class="player-link" href="509.html">Giada Sciberras</a> / <a class="player-link" href="481.html">Sabrina Xuereb</a></td><td class="score">6-3, 2-6</td><td class="num"><span class="loss">L (g)</span> 8-9</td><td class="num muted" data-sort="-1">—</td><td class="num">24.35<span class="rank-tag">#200</span></td><td class="num"><span class="loss">-1.12</span></td><td class="num">7.96</td><td class="num"><span class="muted">-0.22</span></td></tr><tr class="impact-row" data-mid="15292" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="825.html">Sue Stevenson</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#194 <span class="delta-dn">-6</span> = #200</span></div><div class="metric"><span class="k">Score</span><span>0.9 <span class="delta-dn">-0.47</span> = 0.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="950.html">Anna Casingena</a>, <a class="player-link" href="919.html">Geraldine Zammit</a>, <a class="player-link" href="498.html">Maria Ellul</a>, <a class="player-link" href="778.html">Janice Galea (Pro Deborah Farrugia)</a>, <a class="player-link" href="1220.html">Rebecca Ellul</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="488.html">Sarah Axiaq</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#58 <span class="delta-dn">-7</span> = #65</span></div><div class="metric"><span class="k">Score</span><span>13.4 <span class="delta-dn">-1.04</span> = 12.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="467.html">Doriana Portelli</a>, <a class="player-link" href="933.html">Sharon Mizzi</a>, <a class="player-link" href="246.html">Annabelle Abela</a>, <a class="player-link" href="389.html">Lucienne Meli</a>, <a class="player-link" href="1163.html">Lucienne Meli Bellizzi</a> + 2 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="509.html">Giada Sciberras</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#92 <span class="delta-up">+8</span> = #84</span></div><div class="metric"><span class="k">Score</span><span>10.1 <span class="delta-up">+1.14</span> = 11.3</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="955.html">Martina Demanuele</a>, <a class="player-link" href="1040.html">Yasmine Hefny</a>, <a class="player-link" href="391.html">Jennifer Roca</a>, <a class="player-link" href="543.html">Marica Cassar</a>, <a class="player-link" href="8.html">Brigniano Charmaine</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="481.html">Sabrina Xuereb</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#90 <span class="delta-up">+12</span> = #78</span></div><div class="metric"><span class="k">Score</span><span>10.5 <span class="delta-up">+1.07</span> = 11.5</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="377.html">Silvana Portelli</a>, <a class="player-link" href="955.html">Martina Demanuele</a>, <a class="player-link" href="1009.html">Charmaine Brignano</a>, <a class="player-link" href="1040.html">Yasmine Hefny</a>, <a class="player-link" href="391.html">Jennifer Roca</a> + 7 more</div></div></div></div></td></tr><tr class="match-row" data-mid="15245"><td class="expand-trigger" data-mid="15245">▶</td><td>2026-01-30</td><td><span class="tag">vltc</span> SAN MICHEL TEAM TOURNAMENT 2026 2026</td><td class="muted">Lad B day 1</td><td><a class="player-link" href="523.html">Anabel Borg</a></td><td><a class="player-link" href="514.html">Dorianne Buhagiar</a> / <a class="player-link" href="519.html">Nancy Wong</a></td><td class="score">0-6, 6-2</td><td class="num"><span class="loss">L (g)</span> 6-8</td><td class="num muted" data-sort="-1">—</td><td class="num">25.47<span class="rank-tag">#192</span></td><td class="num"></td><td class="num">8.18</td><td class="num"></td></tr><tr class="impact-row" data-mid="15245" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="523.html">Anabel Borg</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span>#161 <span class="delta-z">±0</span> = #161</span></div><div class="metric"><span class="k">Score</span><span>4.1 <span class="delta-dn">-0.29</span> = 3.9</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="825.html">Sue Stevenson</a><span class="side-tag loss">A · L (g)</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #192</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 0.9</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="514.html">Dorianne Buhagiar</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#21 <span class="delta-up">+1</span> = #20</span></div><div class="metric"><span class="k">Score</span><span>20.7 <span class="delta-up">+0.20</span> = 20.9</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="691.html">Rebecca Pace</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="519.html">Nancy Wong</a><span class="side-tag win">B · W (g)</span></div><div class="metric"><span class="k">Rank</span><span>#15 <span class="delta-z">±0</span> = #15</span></div><div class="metric"><span class="k">Score</span><span>22.4 <span class="delta-up">+0.16</span> = 22.5</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":825,"focal_name":"Sue Stevenson","window_start":"2026-01-29","window_end":"2026-03-21","chart_pids":[825,523,488,481,201,514,519,509],"players":{"477":{"name":"Andrea Magaldi","short":"Andrea"},"481":{"name":"Sabrina Xuereb","short":"Sabrina"},"514":{"name":"Dorianne Buhagiar","short":"Dorianne"},"519":{"name":"Nancy Wong","short":"Nancy"},"488":{"name":"Sarah Axiaq","short":"Sarah"},"201":{"name":"Romina Gauci","short":"Romina"},"523":{"name":"Anabel Borg","short":"Anabel"},"204":{"name":"Jade Sammut","short":"Jade"},"276":{"name":"Kristina Briffa","short":"Kristina"},"277":{"name":"Ann Marie Attard","short":"Ann"},"372":{"name":"Maria Angela Gambin","short":"Maria"},"825":{"name":"Sue Stevenson","short":"Sue"},"509":{"name":"Giada Sciberras","short":"Giada"}},"events":[{"match_id":15245,"date":"2026-01-30","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad B","team1":[523,825],"team2":[514,519],"winner":2,"is_tied":true,"score":"0-6 6-2","a_games":6,"b_games":8,"expected1":0.0258,"deltas":{"523":-0.2926,"825":0.9299,"514":0.1963,"519":0.1637},"mu_pre":{"523":17.203,"825":25.0,"514":34.205,"519":32.17},"sigma_pre":{"523":4.353,"825":8.333,"514":4.515,"519":3.269},"new_player":{"523":false,"825":true,"514":false,"519":false},"upset":false},{"match_id":15292,"date":"2026-01-30","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad B","team1":[825,488],"team2":[509,481],"winner":2,"is_tied":true,"score":"6-3 2-6","a_games":8,"b_games":9,"expected1":0.3636,"deltas":{"825":-0.4695,"488":-1.0376,"509":1.1395,"481":1.0731},"mu_pre":{"825":25.469,"488":25.12,"509":28.206,"481":27.112},"sigma_pre":{"825":8.18,"488":3.899,"509":6.027,"481":5.547},"new_player":{"825":true,"488":false,"509":false,"481":false},"upset":false},{"match_id":15302,"date":"2026-02-20","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad B","team1":[825,488],"team2":[277,201],"winner":1,"is_tied":false,"score":"6-2 7-5","a_games":13,"b_games":7,"expected1":0.2926,"deltas":{"825":3.7668,"488":2.8192,"277":-0.9811,"201":-0.9347},"mu_pre":{"825":24.349,"488":25.38,"277":29.058,"201":27.206},"sigma_pre":{"825":7.963,"488":3.806,"277":4.08,"201":3.753},"new_player":{"825":true,"488":false,"277":false,"201":false},"upset":true},{"match_id":15382,"date":"2026-03-13","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad B","team1":[276,204],"team2":[523,825],"winner":1,"is_tied":false,"score":"6-4","a_games":6,"b_games":4,"expected1":0.8177,"deltas":{"276":0.2701,"204":0.2589,"523":-0.3601,"825":-0.2141},"mu_pre":{"276":30.253,"204":26.11,"523":18.636,"825":26.935},"sigma_pre":{"276":3.642,"204":4.389,"523":4.139,"825":7.569},"new_player":{"276":false,"204":false,"523":false,"825":true},"upset":false},{"match_id":15392,"date":"2026-03-20","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad B","team1":[523,825],"team2":[477,481],"winner":2,"is_tied":false,"score":"2-6 2-6","a_games":4,"b_games":12,"expected1":0.1957,"deltas":{"523":-0.4913,"825":-0.3511,"477":0.4774,"481":0.5828},"mu_pre":{"523":18.213,"825":26.323,"477":25.784,"481":29.325},"sigma_pre":{"523":4.118,"825":7.437,"477":4.328,"481":5.139},"new_player":{"523":false,"825":true,"477":false,"481":false},"upset":false},{"match_id":15409,"date":"2026-03-21","tournament":"SAN MICHEL TEAM TOURNAMENT 2026","division":"Lad B","team1":[523,825],"team2":[372,201],"winner":2,"is_tied":false,"score":"1-6 0-6","a_games":1,"b_games":12,"expected1":0.0913,"deltas":{"523":-0.2651,"825":-0.1376,"372":0.2022,"201":0.1748},"mu_pre":{"523":17.644,"825":25.501,"372":31.306,"201":27.217},"sigma_pre":{"523":4.093,"825":7.28,"372":3.883,"201":3.675},"new_player":{"523":false,"825":true,"372":false,"201":false},"upset":false}],"series":{"825":[{"date":"2026-01-29","score":0.0},{"date":"2026-01-30","score":0.9299},{"date":"2026-01-30","score":0.4604},{"date":"2026-02-20","score":4.2272},{"date":"2026-03-13","score":4.0132},{"date":"2026-03-20","score":3.6621},{"date":"2026-03-21","score":3.5245}],"523":[{"date":"2026-01-29","score":4.145},{"date":"2026-01-30","score":3.8524},{"date":"2026-03-13","score":5.8573},{"date":"2026-03-20","score":5.3661},{"date":"2026-03-21","score":5.1009}],"488":[{"date":"2026-01-29","score":13.4231},{"date":"2026-01-30","score":12.3855},{"date":"2026-02-20","score":16.7815},{"date":"2026-03-21","score":16.7815}],"481":[{"date":"2026-01-29","score":9.2764},{"date":"2026-01-30","score":11.5452},{"date":"2026-03-20","score":14.4918},{"date":"2026-03-21","score":14.4918}],"201":[{"date":"2026-01-29","score":14.1742},{"date":"2026-02-20","score":15.0136},{"date":"2026-03-21","score":16.3652}],"514":[{"date":"2026-01-29","score":20.661},{"date":"2026-01-30","score":20.8573},{"date":"2026-03-21","score":20.8573}],"519":[{"date":"2026-01-29","score":21.7948},{"date":"2026-01-30","score":22.526},{"date":"2026-03-21","score":22.526}],"509":[{"date":"2026-01-29","score":10.1257},{"date":"2026-01-30","score":11.2652},{"date":"2026-03-21","score":11.2652}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>

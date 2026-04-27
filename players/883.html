@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>MAGRI DARYL — RallyRank</title>
+<link rel="stylesheet" href="../styles.css?v=0349a8454e">
+<link rel="stylesheet" href="../rating-journey.css?v=ce0cb60003">
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">Leaderboard</a><span class="sep">·</span><a href="../matches.html">All matches</a><span class="sep">·</span><a href="../disagreements.html" title="Matches where vanilla PL and Decay-365 models predicted different outcomes — where captain knowledge matters most.">Model gaps</a><span class="sep">·</span><a href="../tournaments/antes-tt-2026.html">Antes TT 2026 (roster)</a><span class="sep">·</span><a href="../aliases.html">Mapping</a><span class="sep">·</span><a href="../changelog.html">What’s new</a><span class="sep">·</span><a href="../how-it-works.html">How it works</a></nav>
+<main>
+  <div class="profile-head">
+    <div>
+      <div class="name gender-M">MAGRI DARYL</div>
+      <div class="meta">
+        Men &middot;
+        Player ID #883
+      </div>
+    </div>
+  </div>
+
+  
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+
+
+  
+<div class="stat-grid">
+  <div class="stat"><div class="label">μ skill</div><div class="value">27.24</div></div>
+  <div class="stat"><div class="label">σ uncertainty</div><div class="value">6.84</div></div>
+  <div class="stat"><div class="label">μ-3σ rank</div><div class="value">6.72</div></div>
+  <div class="stat"><div class="label">matches</div><div class="value">6</div></div>
+  <div class="stat"><div class="label">W-L</div>
+    <div class="value"><span class="win">1</span>-<span class="loss">5</span></div></div>
+  <div class="stat"><div class="label">win %</div><div class="value">17%</div></div>
+  <div class="stat"><div class="label">games W-L</div><div class="value">40-57</div></div>
+  <div class="stat"><div class="label">current streak</div><div class="value"><span class="win">1W</span></div></div>
+  <div class="stat"><div class="label">longest W</div><div class="value win">1</div></div>
+  <div class="stat"><div class="label">longest L</div><div class="value loss">5</div></div>
+</div>
+<div style="margin-bottom: 16px;">
+  <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Form (last 10, newest first)</div>
+  <span class="form"><span class="b w">W</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span><span class="b l">L</span></span>
+</div>
+
+
+  
+  <h2 class="section-title">Peers (3 above &middot; 3 below)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="num">#</th><th>Class</th><th>Player</th>
+      <th class="num">μ</th><th class="num">σ</th><th class="num">μ-3σ</th>
+      <th class="num">Δ vs me</th>
+      <th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+    </tr></thead>
+    <tbody><tr><td class="num">149</td><td class="cls"></td><td><a class="player-link" href="1012.html">John Azzopardi (pro) Adrian Chetcuti</a></td><td class="num">31.08</td><td class="num">8.10</td><td class="num"><strong>6.77</strong></td><td class="num"><span class="loss">+0.05</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr><td class="num">150</td><td class="cls">B4</td><td><a class="player-link" href="1267.html">Isaac Claude Camilleri</a></td><td class="num">24.66</td><td class="num">5.97</td><td class="num"><strong>6.75</strong></td><td class="num"><span class="loss">+0.03</span></td><td class="num">19</td><td class="num"><span class="win">8</span>-<span class="loss">11</span></td><td class="num">42%</td></tr><tr><td class="num">151</td><td class="cls">A2</td><td><a class="player-link" href="685.html">Stephen Lughermo</a></td><td class="num">30.76</td><td class="num">8.01</td><td class="num"><strong>6.73</strong></td><td class="num"><span class="loss">+0.01</span></td><td class="num">1</td><td class="num"><span class="win">0</span>-<span class="loss">1</span></td><td class="num">0%</td></tr><tr style="background:#22304a"><td class="num">152</td><td class="cls"></td><td><strong>MAGRI DARYL</strong></td><td class="num">27.24</td><td class="num">6.84</td><td class="num"><strong>6.72</strong></td><td class="num"><span class="muted">—</span></td><td class="num">6</td><td class="num"><span class="win">1</span>-<span class="loss">5</span></td><td class="num">17%</td></tr><tr><td class="num">153</td><td class="cls">D3</td><td><a class="player-link" href="252.html">Robert Attard</a></td><td class="num">18.51</td><td class="num">3.94</td><td class="num"><strong>6.70</strong></td><td class="num"><span class="win">-0.02</span></td><td class="num">91</td><td class="num"><span class="win">30</span>-<span class="loss">61</span></td><td class="num">33%</td></tr><tr><td class="num">154</td><td class="cls">C3</td><td><a class="player-link" href="1207.html">Jan Micallef</a></td><td class="num">27.05</td><td class="num">6.83</td><td class="num"><strong>6.54</strong></td><td class="num"><span class="win">-0.18</span></td><td class="num">10</td><td class="num"><span class="win">3</span>-<span class="loss">7</span></td><td class="num">30%</td></tr><tr><td class="num">155</td><td class="cls">D1</td><td><a class="player-link" href="253.html">Matthias Cremona</a></td><td class="num">23.25</td><td class="num">5.60</td><td class="num"><strong>6.45</strong></td><td class="num"><span class="win">-0.28</span></td><td class="num">33</td><td class="num"><span class="win">16</span>-<span class="loss">17</span></td><td class="num">48%</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Rating trajectory</h2>
+  
+<div class="chart">
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rating trajectory">
+  <rect x="0" y="0" width="920" height="280" fill="#1a1f2a"/>
+  <line x1="50" y1="228.1" x2="904" y2="228.1" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="231.1" text-anchor="end" fill="#8b96a8" font-size="10">5</text><line x1="50" y1="189.0" x2="904" y2="189.0" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="192.0" text-anchor="end" fill="#8b96a8" font-size="10">10</text><line x1="50" y1="149.9" x2="904" y2="149.9" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="152.9" text-anchor="end" fill="#8b96a8" font-size="10">15</text><line x1="50" y1="110.8" x2="904" y2="110.8" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="113.8" text-anchor="end" fill="#8b96a8" font-size="10">20</text><line x1="50" y1="71.7" x2="904" y2="71.7" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="74.7" text-anchor="end" fill="#8b96a8" font-size="10">25</text><line x1="50" y1="32.6" x2="904" y2="32.6" stroke="#2a3242" stroke-width="0.5"/><text x="44" y="35.6" text-anchor="end" fill="#8b96a8" font-size="10">30</text>
+  <line x1="50.0" y1="14" x2="50.0" y2="250" stroke="#2a3242" stroke-width="0.5" stroke-dasharray="2,2"/><text x="50.0" y="270" text-anchor="middle" fill="#8b96a8" font-size="10">2024</text>
+  <polyline points="50.0,216.7 220.8,224.7 391.6,232.1 562.4,241.2 733.2,242.2 904.0,214.6" fill="none" stroke="#8b96a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polyline points="50.0,69.3 220.8,89.6 391.6,123.1 562.4,147.5 733.2,165.7 904.0,194.7" fill="none" stroke="#e07a7a" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <polyline points="50.0,29.6 220.8,41.9 391.6,56.4 562.4,70.7 733.2,75.5 904.0,54.1" fill="none" stroke="#4ea1ff" stroke-width="2"/>
+  <text x="908" y="253.0" text-anchor="start" fill="#e07a7a" font-size="9">6.3</text><text x="908" y="135.0" text-anchor="start" fill="#e07a7a" font-size="9">7.4</text><text x="908" y="17.0" text-anchor="start" fill="#e07a7a" font-size="9">8.5</text>
+  <text x="904" y="24" text-anchor="end" fill="#4ea1ff" font-size="11">μ (skill, left axis)</text>
+  <text x="904" y="38" text-anchor="end" fill="#8b96a8" font-size="11">μ-3σ (conservative)</text>
+  <text x="904" y="52" text-anchor="end" fill="#e07a7a" font-size="11">σ (uncertainty, right axis)</text>
+</svg>
+</div>
+
+
+  
+  <h2 class="section-title">Per-year breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Year</th><th class="num">n</th><th class="num">W-L</th><th class="num">win%</th>
+      <th class="num">games</th><th class="num">μ start → end</th><th class="num">Δμ</th>
+    </tr></thead>
+    <tbody><tr><td><strong>2024</strong></td><td class="num">6</td><td class="num"><span class="win">1</span>-<span class="loss">5</span></td><td class="num">17%</td><td class="num">40-57</td><td class="num">30.37 → 27.24</td><td class="num"><span class="loss">-3.13</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Biggest Δμ swings</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Largest single-match rating jumps (signal: upset wins / surprise losses).
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#1f3a2a; color: var(--win)">Top wins</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2024-09-15</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024</td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="49.html">Borg Reuben</a> / <a class="player-link" href="220.html">Jonathan Martinelli</a></td><td class="score">6-1, 6-4</td><td class="num"><span class="win">W</span></td><td class="num"><span class="win">+2.74</span></td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th colspan="7" style="background:#3a1f1f; color: var(--loss)">Worst losses</th></tr>
+    <tr><th>Date</th><th>Tournament</th><th>Partner</th><th>Opponents</th><th>Score</th><th class="num">Result</th><th class="num">Δμ</th></tr>
+    </thead>
+    <tbody><tr><td>2024-08-18</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024</td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="999.html">Clint Cassar</a> / <a class="player-link" href="127.html">MIFSUD MATTHEW JOHN</a></td><td class="score">2-6, 7-5 <span class='muted'>(TB)</span>, 9-11 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.86</span></td></tr><tr><td>2024-08-25</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024</td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="710.html">Nikolai Micallef</a> / <a class="player-link" href="884.html">BORG MATTEW</a></td><td class="score">3-6, 6-4, 5-10 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.82</span></td></tr><tr><td>2024-07-21</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024</td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="222.html">David Schembri</a> / <a class="player-link" href="567.html">ATTARD JEAN PIERRE</a></td><td class="score">0-6</td><td class="num"><span class="loss">L</span></td><td class="num"><span class="loss">-1.57</span></td></tr></tbody>
+  </table>
+  </div>
+
+
+  
+  <h2 class="section-title">Identity &amp; merge history</h2>
+  <p class="muted" style="font-size:12px; margin-top:-4px;">
+    Every raw name spelling seen in source data, and every other record that
+    was merged into this player. See <a href="../aliases.html">all merges
+    site-wide ↗</a> for the full mapping log.
+  </p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Name as recorded</th>
+      <th>First seen</th>
+      <th>Source file</th>
+    </tr></thead>
+    <tbody><tr><td>MAGRI DARYL</td><td class="muted">—</td><td class="muted">(canonical)</td></tr></tbody>
+  </table>
+  </div>
+  <div class="table-wrap" style="margin-top:8px;">
+  <table>
+    <thead><tr>
+      <th>Merged-in record</th>
+      <th>Merged on</th>
+      <th>Reason</th>
+      <th></th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="muted">No merges — this is a single original record.</td></tr></tbody>
+  </table>
+  </div>
+
+
+  <h2 class="section-title">Captain class assignments</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Year</th><th>Tournament</th><th>Team</th><th>Captain</th><th>Class</th></tr></thead>
+    <tbody><tr><td colspan="5" class="muted">No team-tournament class assignments.</td></tr></tbody>
+  </table>
+  </div>
+
+  <h2 class="section-title">Prediction quality on this player's matches</h2><p class="muted" style="font-size:12px;margin-top:-4px;">Held-out prediction accuracy (model never saw a match before predicting it). Lower log-loss is better; perfect = 0, random = 0.693. See <a href="https://github.com/devkurtc/wks-social-tennis-rankings-malta/blob/main/_ANALYSIS_/model_evaluation/SUMMARY.md">SUMMARY.md</a> for methodology.</p><div class="stat-grid"><div class="stat"><div class="label">Vanilla PL</div><div class="value">50%</div><div class="muted" style="font-size:10px;">log-loss 0.713</div></div><div class="stat"><div class="label">Decay-365</div><div class="value">50%</div><div class="muted" style="font-size:10px;">log-loss 0.752</div></div></div><p class="muted" style="font-size:12px;margin-top:8px;"><strong>Biggest model disagreement</strong> on this player's matches: 2024-09-08 vs TCK CHOSEN TOURNAMENT 2024 — Vanilla PL said 13%, Decay said 56% (LOSS actually). The bigger this gap, the more useful captain knowledge could be.</p>
+
+  <h2 id="match-log" class="section-title">Match log (6)</h2>
+  <p class="muted" style="font-size: 12px; margin-top: -4px;">
+    Number next to "μ after" is this player's rank in their gender bucket
+    immediately AFTER the match. The "Pred" column is the Decay-365 model's
+    predicted P(this player's side wins), computed at the time of the match
+    — i.e., a true held-out prediction. Click ▶ to see every player's rank/
+    score impact for that match.
+  </p>
+  <div class="table-wrap">
+  <table id="player-match-log">
+    <thead><tr>
+      <th></th>
+      <th>Date</th><th>Tournament</th><th>Round</th>
+      <th>Partner</th><th>Opponents</th><th>Score</th>
+      <th class="num">Result</th>
+      <th class="num" title="Decay-365 model's predicted probability that this player's side would win, computed using ratings as of just before the match. Hover any cell for the vanilla PL prediction too. Colour: green = called correctly with &gt;15% confidence; red = called wrong with &gt;15% confidence; muted = uncertain.">Pred</th>
+      <th class="num">μ after</th><th class="num">Δμ</th>
+      <th class="num">σ after</th><th class="num">Δσ</th>
+    </tr></thead>
+    <tbody><tr class="match-row" data-mid="13556"><td class="expand-trigger" data-mid="13556">▶</td><td>2024-09-15</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024 2024</td><td class="muted">Men Division 1 </td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="49.html">Borg Reuben</a> / <a class="player-link" href="220.html">Jonathan Martinelli</a></td><td class="score">6-1, 6-4</td><td class="num"><span class="win">W</span> 12-5</td><td class="num" data-sort="0.5992" title="Decay-365 said 60% chance of winning. Vanilla PL said 34%."><span class="muted">60%</span></td><td class="num">27.24<span class="rank-tag">#118</span></td><td class="num"><span class="win">+2.74</span></td><td class="num">6.84</td><td class="num"><span class="muted">-0.26</span></td></tr><tr class="impact-row" data-mid="13556" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#34 <span class="delta-up">+16</span> = #18</span></div><div class="metric"><span class="k">Score</span><span>16.5 <span class="delta-up">+3.73</span> = 20.2</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="944.html">Dave Elden</a> + 11 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="883.html">MAGRI DARYL</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#161 <span class="delta-up">+43</span> = #118</span></div><div class="metric"><span class="k">Score</span><span>3.2 <span class="delta-up">+3.52</span> = 6.7</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="974.html">Marco Borg</a>, <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="1074.html">Antoine Muscat</a> + 38 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="49.html">Borg Reuben</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#15 <span class="delta-dn">-6</span> = #21</span></div><div class="metric"><span class="k">Score</span><span>20.7 <span class="delta-dn">-1.46</span> = 19.2</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="465.html">Matthew Borg</a>, <a class="player-link" href="711.html">Gareth Magri</a>, <a class="player-link" href="256.html">Keith Micallef</a>, <a class="player-link" href="127.html">MIFSUD MATTHEW JOHN</a> + 1 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="220.html">Jonathan Martinelli</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#20 <span class="delta-dn">-8</span> = #28</span></div><div class="metric"><span class="k">Score</span><span>19.7 <span class="delta-dn">-1.41</span> = 18.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="378.html">Ivan Cachia</a>, <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="228.html">Nikolai Belli</a>, <a class="player-link" href="711.html">Gareth Magri</a> + 3 more</div></div></div></div></td></tr><tr class="match-row" data-mid="13553"><td class="expand-trigger" data-mid="13553">▶</td><td>2024-09-08</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024 2024</td><td class="muted">Men Division 1 </td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="242.html">Trevor Rutter</a> / <a class="player-link" href="402.html">Jean Carl Azzopardi</a></td><td class="score">3-6, 1-6</td><td class="num"><span class="loss">L</span> 4-12</td><td class="num" data-sort="0.5622" title="Decay-365 said 56% chance of winning. Vanilla PL said 13%."><span class="muted">56%</span></td><td class="num">24.51<span class="rank-tag">#162</span></td><td class="num"><span class="loss">-0.62</span></td><td class="num">7.10</td><td class="num"><span class="muted">-0.16</span></td></tr><tr class="impact-row" data-mid="13553" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="242.html">Trevor Rutter</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#5 <span class="delta-z">±0</span> = #5</span></div><div class="metric"><span class="k">Score</span><span>25.6 <span class="delta-up">+0.38</span> = 26.0</span></div></div><div class="impact-player"><div class="who"><a class="player-link" href="402.html">Jean Carl Azzopardi</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#13 <span class="delta-z">±0</span> = #13</span></div><div class="metric"><span class="k">Score</span><span>22.5 <span class="delta-up">+0.41</span> = 22.9</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#28 <span class="delta-dn">-4</span> = #32</span></div><div class="metric"><span class="k">Score</span><span>17.7 <span class="delta-dn">-0.65</span> = 17.1</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="954.html">Eugene Debono</a>, <a class="player-link" href="222.html">David Schembri</a>, <a class="player-link" href="116.html">FARRUGIA JAMES-2</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="883.html">MAGRI DARYL</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#162 <span class="delta-z">±0</span> = #162</span></div><div class="metric"><span class="k">Score</span><span>3.3 <span class="delta-dn">-0.13</span> = 3.2</span></div></div></div></div></td></tr><tr class="match-row" data-mid="13551"><td class="expand-trigger" data-mid="13551">▶</td><td>2024-08-25</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024 2024</td><td class="muted">Men Division 1 </td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="710.html">Nikolai Micallef</a> / <a class="player-link" href="884.html">BORG MATTEW</a></td><td class="score">3-6, 6-4, 5-10 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span> 9-10</td><td class="num" data-sort="0.5023" title="Decay-365 said 50% chance of winning. Vanilla PL said 59%."><span class="muted">50%</span></td><td class="num">25.13<span class="rank-tag">#159</span></td><td class="num"><span class="loss">-1.82</span></td><td class="num">7.27</td><td class="num"><span class="muted">-0.22</span></td></tr><tr class="impact-row" data-mid="13551" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#18 <span class="delta-dn">-9</span> = #27</span></div><div class="metric"><span class="k">Score</span><span>19.9 <span class="delta-dn">-2.17</span> = 17.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="465.html">Matthew Borg</a> + 4 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="883.html">MAGRI DARYL</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#149 <span class="delta-dn">-10</span> = #159</span></div><div class="metric"><span class="k">Score</span><span>4.5 <span class="delta-dn">-1.16</span> = 3.3</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="974.html">Marco Borg</a>, <a class="player-link" href="998.html">Shawn Sciberras</a>, <a class="player-link" href="609.html">Kevin Formosa</a>, <a class="player-link" href="1175.html">Adam Briffa</a>, <a class="player-link" href="1007.html">Silvan Gauci</a> + 5 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="710.html">Nikolai Micallef</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#65 <span class="delta-up">+7</span> = #58</span></div><div class="metric"><span class="k">Score</span><span>10.8 <span class="delta-up">+1.63</span> = 12.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="231.html">Clint Agius</a>, <a class="player-link" href="978.html">Clive Borg</a>, <a class="player-link" href="941.html">Paul Gatt</a>, <a class="player-link" href="223.html">Kristen Cachia</a>, <a class="player-link" href="397.html">Simone Re</a> + 2 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="884.html">BORG MATTEW</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#57 <span class="delta-up">+15</span> = #42</span></div><div class="metric"><span class="k">Score</span><span>12.1 <span class="delta-up">+2.70</span> = 14.8</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="1091.html">Suniel Balani</a>, <a class="player-link" href="967.html">Norbert Coleiro</a>, <a class="player-link" href="966.html">Joe Carabott</a>, <a class="player-link" href="240.html">Kurt Carabott</a>, <a class="player-link" href="380.html">Andrew Spiteri Willets</a> + 10 more</div></div></div></div></td></tr><tr class="match-row" data-mid="13549"><td class="expand-trigger" data-mid="13549">▶</td><td>2024-08-18</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024 2024</td><td class="muted">Men Division 1 </td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="999.html">Clint Cassar</a> / <a class="player-link" href="127.html">MIFSUD MATTHEW JOHN</a></td><td class="score">2-6, 7-5 <span class='muted'>(TB)</span>, 9-11 <span class='muted'>(TB)</span></td><td class="num"><span class="loss">L</span> 9-11</td><td class="num" data-sort="0.4845" title="Decay-365 said 48% chance of winning. Vanilla PL said 44%."><span class="muted">48%</span></td><td class="num">26.95<span class="rank-tag">#149</span></td><td class="num"><span class="loss">-1.86</span></td><td class="num">7.49</td><td class="num"><span class="muted">-0.30</span></td></tr><tr class="impact-row" data-mid="13549" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#13 <span class="delta-dn">-5</span> = #18</span></div><div class="metric"><span class="k">Score</span><span>22.1 <span class="delta-dn">-2.17</span> = 19.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="663.html">David Mifsud</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="535.html">Andrew Pule&#x27;</a>, <a class="player-link" href="256.html">Keith Micallef</a>, <a class="player-link" href="567.html">ATTARD JEAN PIERRE</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="883.html">MAGRI DARYL</a><span class="side-tag loss">A · L</span></div><div class="metric"><span class="k">Rank</span><span>#131 <span class="delta-dn">-18</span> = #149</span></div><div class="metric"><span class="k">Score</span><span>5.4 <span class="delta-dn">-0.95</span> = 4.5</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="751.html">Franco Montesin</a>, <a class="player-link" href="1074.html">Antoine Muscat</a>, <a class="player-link" href="199.html">Ray Ciantar</a>, <a class="player-link" href="934.html">Eric Micallef</a>, <a class="player-link" href="1077.html">Etienne Micallef</a> + 13 more</div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="999.html">Clint Cassar</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#24 <span class="delta-up">+3</span> = #21</span></div><div class="metric"><span class="k">Score</span><span>18.1 <span class="delta-up">+1.33</span> = 19.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="49.html">Borg Reuben</a>, <a class="player-link" href="473.html">Cristian Andreozzi</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="127.html">MIFSUD MATTHEW JOHN</a><span class="side-tag win">B · W</span></div><div class="metric"><span class="k">Rank</span><span>#29 <span class="delta-up">+5</span> = #24</span></div><div class="metric"><span class="k">Score</span><span>17.2 <span class="delta-up">+1.42</span> = 18.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="953.html">Marcelo Villanueva</a>, <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="954.html">Eugene Debono</a>, <a class="player-link" href="220.html">Jonathan Martinelli</a>, <a class="player-link" href="116.html">FARRUGIA JAMES-2</a></div></div></div></div></td></tr><tr class="match-row" data-mid="13542"><td class="expand-trigger" data-mid="13542">▶</td><td>2024-07-21</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024 2024</td><td class="muted">Men Division 1 </td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="222.html">David Schembri</a> / <a class="player-link" href="567.html">ATTARD JEAN PIERRE</a></td><td class="score">0-6 <span class="tag">W/O</span></td><td class="num"><span class="loss">L</span> 0-6</td><td class="num" data-sort="0.6900" title="Decay-365 said 69% chance of winning. Vanilla PL said 65%."><span class="loss">69%</span></td><td class="num">28.81<span class="rank-tag">#125</span></td><td class="num"><span class="loss">-1.57</span></td><td class="num">7.79</td><td class="num"><span class="muted">-0.18</span></td></tr><tr class="impact-row" data-mid="13542" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="222.html">David Schembri</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#52 <span class="delta-up">+5</span> = #47</span></div><div class="metric"><span class="k">Score</span><span>12.0 <span class="delta-up">+1.07</span> = 13.0</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="967.html">Norbert Coleiro</a>, <a class="player-link" href="250.html">Neville Sciriha</a>, <a class="player-link" href="248.html">Max Anastasi</a>, <a class="player-link" href="710.html">Nikolai Micallef</a>, <a class="player-link" href="397.html">Simone Re</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="567.html">ATTARD JEAN PIERRE</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#27 <span class="delta-up">+4</span> = #23</span></div><div class="metric"><span class="k">Score</span><span>17.0 <span class="delta-up">+1.34</span> = 18.4</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="999.html">Clint Cassar</a>, <a class="player-link" href="605.html">Claude Mifsud Wismayer</a>, <a class="player-link" href="954.html">Eugene Debono</a>, <a class="player-link" href="116.html">FARRUGIA JAMES-2</a></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#12 <span class="delta-dn">-4</span> = #16</span></div><div class="metric"><span class="k">Score</span><span>21.7 <span class="delta-dn">-1.79</span> = 19.9</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="273.html">John Azzopardi</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="272.html">Matthew Mifsud</a>, <a class="player-link" href="257.html">Cyril Lastimosa</a></div></div><div class="impact-player"><div class="who"><a class="player-link" href="883.html">MAGRI DARYL</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#108 <span class="delta-dn">-17</span> = #125</span></div><div class="metric"><span class="k">Score</span><span>6.5 <span class="delta-dn">-1.02</span> = 5.4</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="413.html">Andrew Spiteri</a>, <a class="player-link" href="959.html">Paul Micallef</a>, <a class="player-link" href="719.html">Richard Curmi</a>, <a class="player-link" href="934.html">Eric Micallef</a>, <a class="player-link" href="1112.html">Claude M. Wismayer</a> + 12 more</div></div></div></div></td></tr><tr class="match-row" data-mid="13537"><td class="expand-trigger" data-mid="13537">▶</td><td>2024-06-30</td><td><span class="tag">tck</span> TCK CHOSEN TOURNAMENT 2024 2024</td><td class="muted">Men Division 1 </td><td><a class="player-link" href="711.html">Gareth Magri</a></td><td><a class="player-link" href="534.html">Adrian Manduca</a> / <a class="player-link" href="274.html">Melchior Farrugia</a></td><td class="score">5-7 <span class='muted'>(TB)</span>, 1-6</td><td class="num"><span class="loss">L</span> 6-13</td><td class="num" data-sort="0.4738" title="Decay-365 said 47% chance of winning. Vanilla PL said 43%."><span class="muted">47%</span></td><td class="num">30.37<span class="rank-tag">#107</span></td><td class="num"></td><td class="num">7.97</td><td class="num"></td></tr><tr class="impact-row" data-mid="13537" hidden><td colspan="13"><div class="impact-box"><div class="impact-side side-A"><div class="impact-player"><div class="who"><a class="player-link" href="534.html">Adrian Manduca</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#86 <span class="delta-up">+16</span> = #70</span></div><div class="metric"><span class="k">Score</span><span>7.8 <span class="delta-up">+1.85</span> = 9.6</span></div><div class="commentary"><span class="pass-up">↑ bypassed</span> <a class="player-link" href="942.html">Mark Azzopardi</a>, <a class="player-link" href="1070.html">Ray Cardona</a>, <a class="player-link" href="728.html">Manuel Gatt</a>, <a class="player-link" href="241.html">Karl Debattista</a>, <a class="player-link" href="1087.html">Alfred Vella</a> + 11 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="274.html">Melchior Farrugia</a><span class="side-tag win">A · W</span></div><div class="metric"><span class="k">Rank</span><span>#3 <span class="delta-z">±0</span> = #3</span></div><div class="metric"><span class="k">Score</span><span>29.6 <span class="delta-up">+2.25</span> = 31.8</span></div></div></div><div class="impact-vs">VS</div><div class="impact-side side-B"><div class="impact-player"><div class="who"><a class="player-link" href="711.html">Gareth Magri</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span>#5 <span class="delta-dn">-8</span> = #13</span></div><div class="metric"><span class="k">Score</span><span>24.7 <span class="delta-dn">-3.02</span> = 21.7</span></div><div class="commentary"><span class="pass-dn">↓ passed by</span> <a class="player-link" href="210.html">Jesmond Pule&#x27;</a>, <a class="player-link" href="945.html">Richard Byrne</a>, <a class="player-link" href="401.html">Clyde Grech</a>, <a class="player-link" href="402.html">Jean Carl Azzopardi</a>, <a class="player-link" href="535.html">Andrew Pule&#x27;</a> + 3 more</div></div><div class="impact-player"><div class="who"><a class="player-link" href="883.html">MAGRI DARYL</a><span class="side-tag loss">B · L</span></div><div class="metric"><span class="k">Rank</span><span class="new-entry">new entry → #107</span></div><div class="metric"><span class="k">Score</span><span class="new-entry">starts at 6.5</span></div></div></div></div></td></tr></tbody>
+  </table>
+  </div>
+</main>
+<footer>
+  μ after / σ after are the OpenSkill PL values <em>after</em> this match was processed.
+  Δμ / Δσ are differences from the prior match (blank for the very first rated match).
+</footer>
+<script>
+(function() {
+  const table = document.getElementById('player-match-log');
+  if (!table) return;
+  table.addEventListener('click', function(ev) {
+    const cell = ev.target.closest('.expand-trigger');
+    if (!cell) return;
+    const mid = cell.dataset.mid;
+    const row = cell.closest('tr.match-row');
+    const ir = table.querySelector('tr.impact-row[data-mid="' + mid + '"]');
+    if (!ir) return;
+    ir.hidden = !ir.hidden;
+    row.classList.toggle('open', !ir.hidden);
+  });
+})();
+</script>
+<script>window.RATING_DATA = {"focal_id":883,"focal_name":"Magri Daryl","window_start":"2024-06-29","window_end":"2024-09-15","chart_pids":[883,711,534,274,222,567,999,127],"players":{"710":{"name":"Nikolai Micallef","short":"Nikolai"},"711":{"name":"Gareth Magri","short":"Gareth"},"999":{"name":"Clint Cassar","short":"Clint"},"49":{"name":"Borg Reuben","short":"Borg R."},"274":{"name":"Melchior Farrugia","short":"Melchior"},"883":{"name":"Magri Daryl","short":"Magri"},"884":{"name":"Borg Mattew","short":"Borg M."},"242":{"name":"Trevor Rutter","short":"Trevor"},"534":{"name":"Adrian Manduca","short":"Adrian"},"567":{"name":"Attard Jean Pierre","short":"Attard"},"402":{"name":"Jean Carl Azzopardi","short":"Jean"},"220":{"name":"Jonathan Martinelli","short":"Jonathan"},"222":{"name":"David Schembri","short":"David"},"127":{"name":"Mifsud Matthew John","short":"Mifsud"}},"events":[{"match_id":13537,"date":"2024-06-30","tournament":"TCK CHOSEN TOURNAMENT 2024","division":"Men Division 1","team1":[534,274],"team2":[711,883],"winner":1,"is_tied":false,"score":"7-5 6-1","a_games":13,"b_games":6,"expected1":0.5835,"deltas":{"534":1.8482,"274":2.2485,"711":-3.0218,"883":6.4561},"mu_pre":{"534":27.728,"274":41.846,"711":41.614,"883":25.0},"sigma_pre":{"534":6.652,"274":4.098,"711":5.634,"883":8.333},"new_player":{"534":false,"274":false,"711":false,"883":true},"upset":false},{"match_id":13542,"date":"2024-07-21","tournament":"TCK CHOSEN TOURNAMENT 2024","division":"Men Division 1","team1":[222,567],"team2":[711,883],"winner":1,"is_tied":false,"score":"6-0","a_games":6,"b_games":0,"expected1":0.2883,"deltas":{"222":1.0696,"567":1.3361,"711":-1.7924,"883":-1.0167},"mu_pre":{"222":27.255,"567":33.8,"711":38.3,"883":30.372},"sigma_pre":{"222":5.098,"567":5.593,"711":5.536,"883":7.972},"new_player":{"222":false,"567":false,"711":false,"883":true},"upset":true},{"match_id":13549,"date":"2024-08-18","tournament":"TCK CHOSEN TOURNAMENT 2024","division":"Men Division 1","team1":[711,883],"team2":[999,127],"winner":2,"is_tied":false,"score":"2-6 7-5 9-11","a_games":9,"b_games":11,"expected1":0.544,"deltas":{"711":-2.165,"883":-0.9511,"999":1.3285,"127":1.4162},"mu_pre":{"711":37.593,"883":28.807,"999":32.093,"127":32.862},"sigma_pre":{"711":5.18,"883":7.789,"999":4.661,"127":5.223},"new_player":{"711":false,"883":true,"999":false,"127":false},"upset":false},{"match_id":13551,"date":"2024-08-25","tournament":"TCK CHOSEN TOURNAMENT 2024","division":"Men Division 1","team1":[711,883],"team2":[710,884],"winner":2,"is_tied":false,"score":"3-6 6-4 5-10","a_games":9,"b_games":10,"expected1":0.6242,"deltas":{"711":-2.1722,"883":-1.1615,"710":1.6339,"884":2.705},"mu_pre":{"711":35.165,"883":26.946,"710":23.898,"884":33.872},"sigma_pre":{"711":5.093,"883":7.486,"710":4.365,"884":7.244},"new_player":{"711":false,"883":true,"710":false,"884":true},"upset":true},{"match_id":13553,"date":"2024-09-08","tournament":"TCK CHOSEN TOURNAMENT 2024","division":"Men Division 1","team1":[242,402],"team2":[711,883],"winner":1,"is_tied":false,"score":"6-3 6-1","a_games":12,"b_games":4,"expected1":0.8985,"deltas":{"242":0.3759,"402":0.4111,"711":-0.6488,"883":-0.1269},"mu_pre":{"242":36.98,"402":36.455,"711":32.788,"883":25.125},"sigma_pre":{"242":3.794,"402":4.639,"711":5.024,"883":7.266},"new_player":{"242":false,"402":false,"711":false,"883":true},"upset":false},{"match_id":13556,"date":"2024-09-15","tournament":"TCK CHOSEN TOURNAMENT 2024","division":"Men Division 1","team1":[711,883],"team2":[49,220],"winner":1,"is_tied":false,"score":"6-1 6-4","a_games":12,"b_games":5,"expected1":0.1902,"deltas":{"711":3.7288,"883":3.5227,"49":-1.4576,"220":-1.4131},"mu_pre":{"711":31.129,"883":24.505,"49":33.529,"220":32.714},"sigma_pre":{"711":4.887,"883":7.102,"49":4.277,"220":4.349},"new_player":{"711":false,"883":true,"49":false,"220":false},"upset":true}],"series":{"883":[{"date":"2024-06-29","score":0.0},{"date":"2024-06-30","score":6.4561},{"date":"2024-07-21","score":5.4395},{"date":"2024-08-18","score":4.4883},{"date":"2024-08-25","score":3.3269},{"date":"2024-09-08","score":3.1999},{"date":"2024-09-15","score":6.7227}],"711":[{"date":"2024-06-29","score":24.7128},{"date":"2024-06-30","score":21.691},{"date":"2024-07-21","score":19.8986},{"date":"2024-08-18","score":19.8869},{"date":"2024-08-25","score":17.7148},{"date":"2024-09-08","score":17.0659},{"date":"2024-09-15","score":20.1957}],"534":[{"date":"2024-06-29","score":7.7717},{"date":"2024-06-30","score":9.6199},{"date":"2024-09-15","score":9.6199}],"274":[{"date":"2024-06-29","score":29.5524},{"date":"2024-06-30","score":31.801},{"date":"2024-09-15","score":31.801}],"222":[{"date":"2024-06-29","score":11.1601},{"date":"2024-07-21","score":13.032},{"date":"2024-09-15","score":13.032}],"567":[{"date":"2024-06-29","score":15.4024},{"date":"2024-07-21","score":18.3578},{"date":"2024-09-15","score":18.3578}],"999":[{"date":"2024-06-29","score":19.4477},{"date":"2024-08-18","score":19.4385},{"date":"2024-09-15","score":19.4385}],"127":[{"date":"2024-06-29","score":16.0431},{"date":"2024-08-18","score":18.6095},{"date":"2024-09-15","score":18.6095}]}};</script>
+<script src="../rating-journey.js?v=a93e31e768" defer></script>
+</body>
+</html>
