@@ -16,6 +16,12 @@ Orientation file for Claude Code sessions on this repo. Skim on every session st
 
 This file (CLAUDE.md) is just orientation. It never overrides `PLAN.md` or `TASKS.md`. If they disagree, fix CLAUDE.md.
 
+**For human contributors** (or when explaining the project to one), point at:
+
+- `README.md` — project pitch, live link, quickstart.
+- `CONTRIBUTING.md` — clone → setup → tests → PR; the hard rules restated for non-Claude users.
+- `LICENSE` — AGPL-3.0. Free for community use and self-hosting; modified network services must publish source.
+
 **Workflow when picking up work:**
 0. **Reconcile `TASKS.md` with reality first.** Run `git log --since=<last-update-of-TASKS.md>` (or scan since the most recent task was marked `done`). If commits exist that aren't reflected in TASKS.md — i.e. real shipped work isn't recorded — reconcile before picking new work. Either mark existing tasks `done` if they describe what shipped, or add a new section recording the work as done tasks. Never start new work on top of a stale tracker.
 1. Read `TASKS.md` "Current focus" section to find what's next.
@@ -99,6 +105,7 @@ Invoked with `/<name>` from the slash-command menu:
 | `/log-progress <task-id> <note>` | Append a timestamped progress note. Use after every commit, snag, direction change, or hand-off. |
 | `/complete-task <task-id> [<sha>]` | Verify every acceptance criterion against actual repo state; mark `done` only if all pass. Refuses on unmet criteria. |
 | `/inspect-xlsx <file>` | Quick structural dump of a tournament Excel file — sheets, dimensions, first ~25 rows. Use before writing or debugging a parser. |
+| `/add-rating-model` | Walk a contributor through adding a new rating-engine variant (sibling of `rating.py`) without breaking the OpenSkill PL champion. Schema is already model-agnostic; this skill enforces the additive-only contract. See PLAN.md §5.7. |
 
 ## Project-local agents
 
