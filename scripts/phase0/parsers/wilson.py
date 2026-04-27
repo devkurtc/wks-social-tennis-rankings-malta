@@ -623,12 +623,21 @@ def parse(xlsx_path: str, db_conn: sqlite3.Connection) -> int:
     with db_conn:
         club_id = _ensure_default_club(db_conn)
 
-        # source_files row — reuse if exact (filename, sha) match.
+        # source_files row — reuse if exact (filename, sha) match; fall back to
+        # sha256 alone so a scraper-renamed-but-identical file dedups correctly
+        # (otherwise two source_files rows → two tournaments rows → duplicate
+        # active matches; tournament-duplication bug, fixed Apr 2026).
         existing = db_conn.execute(
             "SELECT id FROM source_files WHERE original_filename = ? AND sha256 = ? "
             "ORDER BY id DESC LIMIT 1",
             (filename, sha256),
         ).fetchone()
+        if existing is None:
+            existing = db_conn.execute(
+                "SELECT id FROM source_files WHERE sha256 = ? "
+                "ORDER BY id DESC LIMIT 1",
+                (sha256,),
+            ).fetchone()
         if existing is not None:
             source_file_id = existing[0]
         else:
@@ -652,12 +661,23 @@ def parse(xlsx_path: str, db_conn: sqlite3.Connection) -> int:
                 (prior_run_id, ingestion_run_id),
             )
 
-        cur = db_conn.execute(
-            "INSERT INTO tournaments (club_id, name, year, format, source_file_id) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (club_id, tournament_name, year, TOURNAMENT_FORMAT, source_file_id),
-        )
-        tournament_id = cur.lastrowid
+        # Get-or-create on (club_id, name, year) — prevents two scraper
+        # ingests of the same physical tournament under different filenames
+        # producing two tournament rows with overlapping active matches.
+        existing_t = db_conn.execute(
+            "SELECT id FROM tournaments WHERE club_id = ? AND name = ? AND year = ? "
+            "ORDER BY id LIMIT 1",
+            (club_id, tournament_name, year),
+        ).fetchone()
+        if existing_t is not None:
+            tournament_id = existing_t[0]
+        else:
+            cur = db_conn.execute(
+                "INSERT INTO tournaments (club_id, name, year, format, source_file_id) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (club_id, tournament_name, year, TOURNAMENT_FORMAT, source_file_id),
+            )
+            tournament_id = cur.lastrowid
 
         wb = _Workbook(xlsx_path)
         try:

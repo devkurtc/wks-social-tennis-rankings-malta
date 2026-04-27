@@ -62,7 +62,8 @@ def get_or_create_player(
     canonical = normalize_name(raw_name)
 
     row = conn.execute(
-        "SELECT id FROM players WHERE canonical_name = ?", (canonical,)
+        "SELECT id, merged_into_id FROM players WHERE canonical_name = ?",
+        (canonical,),
     ).fetchone()
 
     if row is None:
@@ -71,7 +72,25 @@ def get_or_create_player(
         )
         player_id = cur.lastrowid
     else:
-        player_id = row[0]
+        player_id, merged_into = row
+        # If this player record was previously merged into another, follow the
+        # chain to the surviving canonical id. Returning the merged-out id here
+        # was the cause of T-P0.5-025 — re-ingestion would attach new
+        # match_sides to a "ghost" player whose ratings get recomputed
+        # independently of the canonical record. The merge chain may be
+        # multi-hop (A → B → C), so walk it; `seen` defends against any
+        # accidental cycle in the data.
+        if merged_into is not None:
+            seen: set[int] = {player_id}
+            while merged_into is not None and merged_into not in seen:
+                seen.add(merged_into)
+                nxt = conn.execute(
+                    "SELECT id, merged_into_id FROM players WHERE id = ?",
+                    (merged_into,),
+                ).fetchone()
+                if nxt is None:
+                    break
+                player_id, merged_into = nxt
 
     # UNIQUE(player_id, raw_name) means the same alias inserted twice would
     # fail; INSERT OR IGNORE makes the call idempotent.

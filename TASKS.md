@@ -112,14 +112,14 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | **T-P0.5-020 (data-integrity P0: match/tournament dedup — 13% of all matches duplicated, contaminating every rating; fix in flight 2026-04-27)**; **T-P0.5-022 (tied-match display labels across 12+ sites — surfaced same day)** |
-| `up next — bugs surfaced 2026-04-27` | T-P0.5-021 (KURT CARABOTT P341 → Kurt Carabott P240 case-only merge — blocked on T-P0.5-020) |
+| `in-progress` | T-P0.5-021 (KURT CARABOTT P341 → Kurt Carabott P240 case-only merge — Bug #2 unblocked it; in flight 2026-04-27) |
+| `up next — sub-bugs surfaced by T-P0.5-020 fix` | **T-P0.5-023** (cross-club same-name attribution — 188 matches, same physical tournament parsed under VLTC AND TCK clubs); **T-P0.5-024** (Elektra Mixed Doubles 2023 intra-tournament dups — 9 matches, parser walks upper-triangle weirdly) |
 | `decision pending` | T-P0.5-011 (promote `openskill_pl_decay365` to `CHAMPION_MODEL` or keep vanilla — backtest data already in hand) |
 | `up next — site / data hygiene` | T-P0.5-012 (μ-Nσ display-metric tuning); T-P0.5-013 (gh-pages orphan-player-file cleanup); T-P0.5-019 (auto-reprocess daemon, deferred until pair volume justifies it); T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
 | `up next — pre-launch gates` | T-P1-019 (draft trust + legality ADRs 002-006); T-P1-020 (public-launch checklist — privacy notice, takedown channel, robots.txt) |
 | `up next — Phase 1 platform` | T-P1-001 (Postgres port); T-P1-008 (fuzzy-match merge CLI); T-P1-009 (Modified Glicko-2 challenger — **harness now ready**, see T-P0.5-010); T-P1-002 (migration tooling) |
 | `blocked` | T-P1-020 (public-launch checklist) — depends on T-P1-019 ADR decisions |
-| `recently done` | **T-P0.5-017 identity-eval harness** (2026-04-27) — `eval_identity.py` scores the fuzzy `_confidence` function against `manual_aliases.json` (positives) + `known_distinct.json` (negatives) with per-threshold recall/FP-rate/precision; `cli.py eval-identity` exposes it; 15 tests; reveals 91% recall at production T=0.78 with 5 misses (all surname-change cases the algorithm legitimately can't catch from name similarity alone). **T-P0.5-016 site test harness** (2026-04-27) — 222 tests, 80% line coverage across `generate_site.py`/`players.py`/`cli.py`/`eval_identity.py`/`db.py` (was 37% before); end-to-end `gs.main()` test against the real DB exercises ~700 lines in one shot. **T-P0.5-015 per-match impact UI** (2026-04-26 deploy 2026-04-27 record) — `compute_match_impacts(conn)` replays rating_history chronologically to produce per-(match, player) rank/score deltas + bypassed/passed-by lists; All Matches page + per-player match log gain a 2-vs-2 expansion (Side A pair / VS / Side B pair) with proper set scores and rank-at-the-time tags next to every name. **T-P0.5-014 identity-resolution overhaul** (2026-04-26) — typo auto-merger, captain-class confidence dampener, auto-merge on load, mapping-transparency UI at `/aliases.html` with per-merge deeplinks, `cli.py review` (terminal) + `cli.py review-server` (local web UI) + `known_distinct.json` filter; closes T-P1-015 + T-P1-017, substantially advances T-P1-008. Net: 200 → 56 pending fuzzy candidates, 12 → 585 audit-log merges, 837 → 732 active players. **Phase 0.5 prior:** multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed, **model-evaluation suite (T-P0.5-010): backtest harness + time-decay challenger + per-player calibration + Model gaps page**. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
+| `recently done` | **T-P0.5-020 match/tournament dedup** (2026-04-27) — 417 matches superseded; 7 parsers gained get-or-create on tournaments + sha256-only fallback in source_files; new `dedupe_tournaments.py` repair script with --apply mode; `cli.py rate` re-ran cleanly producing 47,976 rating_history rows (down from 49,596). Backup at `phase0.sqlite.bak-before-tournament-dedup`. The remaining 200 excess matches decompose into 3 sub-bugs (188 cross-club, 9 Elektra parser, 3 SE 2025 year-hardcoding) tracked separately as T-P0.5-023, T-P0.5-024, and existing T-P1-013. **T-P0.5-022 tied-match display labels** (2026-04-27) — `match_result()` helper added; 1,252 tied matches in DB now display "W (g)" / "L (g)" across player pages, matches page, disagreements page, form badges, streaks, yearly summaries, CLI history; `actual_a` ground-truth verdict in disagreements page also fixed (model-accuracy numbers will shift after deploy because prior numbers were measured against a wrong ground truth). **T-P0.5-017 identity-eval harness** (2026-04-27) — `eval_identity.py` scores the fuzzy `_confidence` function against `manual_aliases.json` (positives) + `known_distinct.json` (negatives) with per-threshold recall/FP-rate/precision; `cli.py eval-identity` exposes it; 15 tests; reveals 91% recall at production T=0.78 with 5 misses (all surname-change cases the algorithm legitimately can't catch from name similarity alone). **T-P0.5-016 site test harness** (2026-04-27) — 222 tests, 80% line coverage across `generate_site.py`/`players.py`/`cli.py`/`eval_identity.py`/`db.py` (was 37% before); end-to-end `gs.main()` test against the real DB exercises ~700 lines in one shot. **T-P0.5-015 per-match impact UI** (2026-04-26 deploy 2026-04-27 record) — `compute_match_impacts(conn)` replays rating_history chronologically to produce per-(match, player) rank/score deltas + bypassed/passed-by lists; All Matches page + per-player match log gain a 2-vs-2 expansion (Side A pair / VS / Side B pair) with proper set scores and rank-at-the-time tags next to every name. **T-P0.5-014 identity-resolution overhaul** (2026-04-26) — typo auto-merger, captain-class confidence dampener, auto-merge on load, mapping-transparency UI at `/aliases.html` with per-merge deeplinks, `cli.py review` (terminal) + `cli.py review-server` (local web UI) + `known_distinct.json` filter; closes T-P1-015 + T-P1-017, substantially advances T-P1-008. Net: 200 → 56 pending fuzzy candidates, 12 → 585 audit-log merges, 837 → 732 active players. **Phase 0.5 prior:** multi-club (TCK), v2 rating (caps removed + captain-class sort + partner weighting), team-selection ingestion, static site generator, Cloudflare-tunnel deployment, design dossier + 5 ADRs proposed, **model-evaluation suite (T-P0.5-010): backtest harness + time-decay challenger + per-player calibration + Model gaps page**. See Phase 0.5 section. **✅ Phase 0** closed 2026-04-26 — see PLAN.md §10.1 |
 
 ## ✅ Phase 0 — COMPLETE (2026-04-26)
 
@@ -862,7 +862,7 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
 
 ### T-P0.5-022 — Tied-match display labels across site + CLI
 
-- **Status:** `in-progress` (2026-04-27)
+- **Status:** `done` (2026-04-27)
 - **Phase:** 0.5
 - **Goal:** Stop misrepresenting team-tournament rubbers that split sets 1-1 and resolve on games-tiebreak as Side-A losses across every UI surface.
 - **Surfaced by:** rating-journey mockup data extraction (2026-04-27). 5 of Kurt Carabott's last 17 matches (29%) had `match_sides.won = 0` for both sides — sets split, games-won fraction broke the tie. The rating engine handles this correctly (`universal_score(games)` at `rating.py:333`); display layer falls into the `else` branch and treats Side B as winner regardless. System-wide: hundreds of matches affected (exact count: `SELECT COUNT(*) FROM matches m JOIN match_sides sa ON sa.match_id=m.id AND sa.side='A' JOIN match_sides sb ON sb.match_id=m.id AND sb.side='B' WHERE m.superseded_by_run_id IS NULL AND sa.won=0 AND sb.won=0;`).
@@ -896,6 +896,72 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
   - [ ] Site regenerated; no visual regressions on a sample of non-tied matches
 - **Out of scope:** changing the `match_sides.won` schema (current 0/0 representation is fine, the bug is purely in the display layer); deciding what "W (g)" looks like visually beyond the parenthetical (could add a tooltip explaining the games-tiebreak — a polish PR).
 - **References:** survey report 2026-04-27 (in conversation); PLAN.md §5.2 (rating model — confirms ties are mathematically valid; no display convention had been established); `scripts/phase0/rating.py:333` `universal_score()` (canonical ground truth for how the engine treats ties).
+
+### T-P0.5-023 — Cross-club same-name tournament attribution (188 matches)
+
+- **Status:** `done` (2026-04-27)
+- **Completed:** 354 matches superseded across 4 cross-club groups (SAN MICHEL TT 2023 / 2025, PKF TT 2024, TENNIS TRADE TT 2023 — last was no-op since TCK side already superseded). New `scripts/phase0/dedupe_cross_club_tournaments.py` (sibling to `dedupe_tournaments.py`, dry-run + --apply). Backup at `phase0.sqlite.bak-before-cross-club-dedup`. Active matches 4,481 → 4,127; distinct signatures 4,114; excess 367 → 13 (residual = Elektra + SE 2025). The "188" original prediction was off because the in-between T-P0.5-025 ghost-refs fix consolidated previously-distinct signatures, raising the visible cross-club delta to 354.
+- **Why sha256 fallback didn't catch this:** files are byte-different despite content-identical sheets — embedded club logos (`xl/media/image*.png`) differ across VLTC vs TCK exports. A Phase-1 content-fingerprint over `xl/worksheets/*` + sharedStrings would catch it.
+- **Original status note:** ~~`todo`~~
+- **Phase:** 0.5
+- **Goal:** Same physical tournament being parsed under both `VLTC` and `TCK` clubs — e.g. `SAN MICHEL TEAM TOURNAMENT 2025.xlsx` exists in `_DATA_/2025/VLTC/...` AND `_DATA_/2025/TCK/...`, producing two `tournaments` rows (one per club) and double-counting matches.
+- **Surfaced by:** T-P0.5-020 fix on 2026-04-27 — 188 of the 200 remaining excess matches after the primary dedup pass come from this pattern.
+- **Sample:** `SAN MICHEL TEAM TOURNAMENT 2023` exists at `tournament_id=129` (club_id=1, VLTC) AND `tournament_id=133` (club_id=2, TCK). Identical match content, different club attribution.
+- **Likely root cause:** the file path `_DATA_/<year>/<club>/<slug>/...` is the only signal of club ownership, and many tournaments are inter-club (a single tournament hosted by club A but with players from club B). Whoever populated the data put the same Excel under both clubs' folders.
+- **Proposed fix paths (not decided):**
+  1. Designate ONE canonical club per tournament-name (lookup table or convention) and skip ingestion when the same `(name, year)` is encountered under a second club.
+  2. Or recognize "this is the same physical file" via sha256 across club paths and merge into a single tournament with `host_club_id` + `participant_clubs` semantics (would require schema change).
+  3. Or just dedup at SQL after-the-fact like T-P0.5-020 did, keeping the lowest-id club's tournament.
+- **Acceptance criteria:**
+  - [ ] Decision recorded: which approach (1 / 2 / 3) plus rationale
+  - [ ] 188 surplus active matches removed (active count drops from 4,481 → ~4,293, distinct signatures stay ~4,281)
+  - [ ] Re-ingestion smoke test: ingest a file from VLTC path, then from TCK path under same name — confirm the second is rejected or merged
+  - [ ] No regressions in `pytest scripts/phase0/`
+- **References:** T-P0.5-020 fix report 2026-04-27 (in conversation); `dedupe_tournaments.py` (the cleanup tool used for the primary dedup); per-club paths in `_DATA_/`.
+
+### T-P0.5-024 — Elektra Mixed Doubles 2023 intra-tournament parser dups (9 matches)
+
+- **Status:** `done` — NOT-A-BUG (closed 2026-04-27)
+- **Investigation finding:** The "duplicates" are 6 (not 9) real distinct matches in the source: Division 6 has labelled sub-blocks "Round 1" (11 matches) and "Round 2" (6 matches); same teams play twice with **different scores each time** (e.g. Kevin/Giada vs Sammy/Martina is 14-10/2-0 in R1, 12-4/2-0 in R2). Source file uses `mixed_doubles.py` parser, not `elektra_2022.py` as the brief said.
+- **Root cause of the "excess matches" metric across the residual 13 system-wide:** the dedup signature `(played_on, side_a_pids, side_b_pids)` is too coarse for multi-round formats. Parsers that don't have per-match dates (notably `mixed_doubles.py`) emit placeholder `2023-01-01` for every match, so multi-round same-team rematches collide on signature even though they're real distinct events. **Treat "active matches > distinct signatures" as a soft positive, not a hard bug.** The 13 residual is spread across 7 multi-round tournaments and is correct.
+- **No SQL repair applied** — would have destroyed real rating data.
+- **Future polish (separate ticket if pursued):** parsers that have round labels in their source data should emit a per-round date or a synthetic date offset, so the signature can distinguish R1 from R2. Or extend the metric to include `games_won` in the signature (small risk of false negatives on identical-score-same-pair matches).
+- **Phase:** 0.5
+- **Goal:** `tournament_id=130` (Elektra Mixed Doubles 2023) contains 9 internal duplicate matches — same teams, same date, same scores, same tournament. The parser walks the cross-table in a way that emits each match twice for a 9-match subset.
+- **Surfaced by:** T-P0.5-020 fix on 2026-04-27.
+- **Investigation steps:**
+  1. Read `scripts/phase0/parsers/elektra_2022.py` (the parser file).
+  2. Identify the loop that emits matches — likely walks an upper-triangle matrix and accidentally walks a partial lower-triangle for some sub-section (round-robin pair vs. knockout cross?).
+  3. Fix the iteration to emit each pairing exactly once.
+  4. Add a test: parse the actual 2023 Elektra file, assert exactly the expected match count (whatever the source file truly has).
+- **Acceptance criteria:**
+  - [ ] Parser fix in `elektra_2022.py` (or wherever the bug is)
+  - [ ] Unit test against the actual 2023 file asserts no internal duplicates
+  - [ ] Re-ingestion produces correct match count for tournament 130
+  - [ ] `pytest scripts/phase0/parsers/test_elektra_2022.py` passes
+- **References:** T-P0.5-020 fix report 2026-04-27.
+
+### T-P0.5-025 — P0 — `get_or_create_player` doesn't follow merge chains; 464 ghost-references
+
+- **Status:** `done` (2026-04-27)
+- **Completed:** 4,809 match_sides redirected to canonical IDs (one audit_log entry each); distinct rated players dropped 1,160 → 696 (= exactly 464 ghosts consolidated). `get_or_create_player` now follows merge chains in-place (cycle-guarded). Multi-hop chains found in real data (max depth 3, ~90 chains of depth ≥ 2). 2,675 of 4,809 stale rows had BOTH players as ghosts. New repair script `scripts/phase0/repair_ghost_match_sides.py` (idempotent, --dry-run mode). Backup at `phase0.sqlite.bak-before-ghost-repair`. Tests `test_merged_player_resolves_to_canonical_id` + `test_multi_hop_merge_chain_resolves_to_terminal_id` added — 40/40 in `test_players.py` pass.
+- **Original status note:** ~~`todo` (P0 — blocks deploy of clean ratings)~~
+- **Phase:** 0.5
+- **Goal:** Eliminate 464 merged-out players that are still referenced in active `match_sides`, and prevent re-creation on next ingestion.
+- **Surfaced by:** T-P0.5-021 fix on 2026-04-27. While merging P341 → P240, the agent found 4,809 `match_sides` rows reference at least one player whose `merged_into_id IS NOT NULL` (i.e. a "ghost" — a record that was supposed to be merged-out but new rows kept attaching to it).
+- **Root cause** (`scripts/phase0/players.py:get_or_create_player` lines 48-83): the function looks up by `canonical_name` and returns the matched id without consulting `merged_into_id`. So when re-ingestion fires, raw names like `KURT CARABOTT` find `players.id=341` (still alive in the table with `merged_into_id=240`) and attach new `match_sides` rows to the merged-out player. Every subsequent `cli.py rate` then computes a fresh rating for the ghost ID.
+- **Why this matters:** every rating in the system right now is computed against ghost identities for at least 464 players. Player rating histories are split across canonical + ghost IDs. The leaderboard shows under-counted match counts for veteran players whose name normalisation evolved across tournament files. **Fix this before deploying anything new.**
+- **Fix plan (2 components):**
+  1. **Code hardening.** In `players.py:get_or_create_player`, after looking up by `canonical_name`, follow the merge chain via `_resolve_player_id` (already exists per the agent report) before returning. Or add a CHECK constraint that refuses `match_sides` inserts referencing a player with `merged_into_id IS NOT NULL` — but that's a runtime hard-fail, riskier; prefer the lookup-time follow-chain.
+  2. **One-time SQL repair.** Walk `merged_into_id` chains and redirect all stale `match_sides.player1_id` / `match_sides.player2_id` to the canonical (terminal) ID. Audit-log every redirect with `before_jsonb` snapshots so it's reversible. Then re-run `cli.py rate`.
+- **Acceptance criteria:**
+  - [ ] Diagnostic SQL count of ghost-referenced match_sides is **0** after fix (currently 4,809)
+  - [ ] Distinct merged-out players still in match_sides drops to **0** (currently 464)
+  - [ ] `get_or_create_player` follows merge chains (verified by unit test that creates A, merges A→B, calls `get_or_create_player(name_of_A)`, asserts returns B's id)
+  - [ ] Audit log records every redirect with `action='match_sides.ghost_redirect'`
+  - [ ] `cli.py rate` runs cleanly post-fix; rating-history row count drops by ~ghost-player rating-history entries
+  - [ ] Backup taken before SQL repair (e.g., `phase0.sqlite.bak-before-ghost-repair`)
+- **References:** T-P0.5-021 fix report 2026-04-27 (in conversation); `scripts/phase0/players.py:48-83` (the bug); `_resolve_player_id` helper (already exists, just unused at this call site).
 
 Tasks below are intentionally sketchy until Phase 0 lands and we know what concrete shape Phase 1 takes. Don't expand to acceptance-criteria detail before Phase 0's retrospective informs them.
 

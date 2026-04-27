@@ -31,6 +31,41 @@ DB_PATH = str(PROJECT_ROOT / "phase0.sqlite")
 OUT_DIR = PROJECT_ROOT / "site"
 MODEL = "openskill_pl"
 
+
+def match_result(
+    my_won: int, opp_won: int, my_games: int, opp_games: int
+) -> tuple[str, str, str]:
+    """Returns (cls, label, label_long) for one player's view of a match.
+
+    Most matches resolve cleanly on sets: one side has won=1, the other won=0.
+    But team-tournament rubbers split 1-1 on sets are stored with won=0 on
+    BOTH sides; the rating engine breaks the tie via games-won (see
+    rating.universal_score, PLAN.md §5.2). This helper mirrors that
+    convention for the display layer so the UI stops calling the
+    games-winner a "loss".
+
+    Returns:
+        cls: 'win' or 'loss' — preserves binary CSS classes (sort/streak
+            logic stays untouched).
+        label: 'W', 'L', 'W (g)', or 'L (g)' — the (g) suffix flags
+            "won/lost on games tiebreak" so it's clear in the UI.
+        label_long: 'Won', 'Lost', 'Won (games)', 'Lost (games)'.
+
+    True 0/0 ties (equal sets AND equal games) are treated as 'L (g)' for
+    both sides — extremely rare and the rating engine treats them as a
+    draw anyway.
+    """
+    if my_won and not opp_won:
+        return ("win", "W", "Won")
+    if opp_won and not my_won:
+        return ("loss", "L", "Lost")
+    # Tied on sets — games-won tiebreak (matches the rating engine).
+    my_g = my_games or 0
+    opp_g = opp_games or 0
+    if my_g > opp_g:
+        return ("win", "W (g)", "Won (games)")
+    return ("loss", "L (g)", "Lost (games)")
+
 # Tournament roster pages. Each entry produces site/tournaments/<slug>.html
 # from the named .xlsx (sheets `Men` and `Ladies`, two name-columns each).
 # Add a new dict to publish another roster page.
@@ -1029,7 +1064,8 @@ SELECT
     ms.games_won AS my_games, ms.sets_won AS my_sets, ms.won AS my_won,
     opp.player1_id AS opp_p1, opp.player2_id AS opp_p2,
     opp.games_won AS opp_games, opp.sets_won AS opp_sets,
-    rh.mu_after, rh.sigma_after
+    rh.mu_after, rh.sigma_after,
+    opp.won AS opp_won
 FROM match_sides ms
 JOIN matches m ON m.id = ms.match_id
 JOIN match_sides opp ON opp.match_id = m.id AND opp.side <> ms.side
@@ -1210,30 +1246,59 @@ def render_trajectory_svg(history: list[tuple[str, float, float]]) -> str:
 """
 
 
+def _row_won(m) -> bool:
+    """True iff this player effectively won — uses match_result so tied
+    rubbers (sets 1-1) are decided by games-won tiebreak, matching the
+    rating engine's convention."""
+    my_won = m[15] or 0
+    # opp_won was added at column 22 (see PLAYER_MATCHES_SQL). Older test
+    # tuples may not include it; fall back to 0 (forces the helper to
+    # consult games when my_won is also 0 — same as a true tie).
+    opp_won = m[22] if len(m) > 22 and m[22] is not None else 0
+    my_games = m[13] or 0
+    opp_games = m[18] or 0
+    cls, _label, _long = match_result(my_won, opp_won, my_games, opp_games)
+    return cls == "win"
+
+
 def compute_form(matches: list, last_n: int = 10) -> str:
-    """Return HTML for the last N results as W/L badges (newest first)."""
+    """Return HTML for the last N results as W/L badges (newest first).
+
+    Tied rubbers render as "W (g)" / "L (g)" — the games-tiebreak winner
+    gets the W badge to match how the rating engine scores the match.
+    """
     recent = list(reversed(matches[-last_n:]))
     if not recent:
         return '<span class="muted">no matches</span>'
     parts = []
     for m in recent:
-        won = m[15]
-        cls = "w" if won else "l"
-        ch = "W" if won else "L"
-        parts.append(f'<span class="b {cls}">{ch}</span>')
+        my_won = m[15] or 0
+        opp_won = m[22] if len(m) > 22 and m[22] is not None else 0
+        my_games = m[13] or 0
+        opp_games = m[18] or 0
+        cls, label, _ = match_result(my_won, opp_won, my_games, opp_games)
+        wl = "w" if cls == "win" else "l"
+        # Form badges are tight; collapse "W (g)" → "W*" so the badge stays
+        # one column wide. The full label still appears on the match row.
+        ch = "W*" if label == "W (g)" else ("L*" if label == "L (g)" else label)
+        parts.append(f'<span class="b {wl}">{ch}</span>')
     return f'<span class="form">{"".join(parts)}</span>'
 
 
 def compute_streaks(matches: list) -> tuple[int, int, int, str]:
     """Return (longest_win, longest_loss, current, current_kind).
-    current_kind is 'W' or 'L' depending on the latest match."""
+    current_kind is 'W' or 'L' depending on the latest match.
+
+    Tied rubbers count toward W/L based on the games-won tiebreak (see
+    match_result) so streak logic stays consistent with the rating engine.
+    """
     if not matches:
         return (0, 0, 0, "")
     longest_w = longest_l = cur = 0
     cur_kind = ""
     last = None
     for m in matches:
-        won = bool(m[15])
+        won = _row_won(m)
         if won == last:
             cur += 1
         else:
@@ -1260,7 +1325,9 @@ def compute_yearly_summary(matches: list) -> list[dict]:
             "mu_first": None, "mu_last": None, "sigma_last": None,
         })
         bucket["n"] += 1
-        if m[15]:
+        # Use match_result so tied rubbers go in the correct W/L bucket
+        # (games-tiebreak winner counts as a win — matches the rating engine).
+        if _row_won(m):
             bucket["wins"] += 1
         else:
             bucket["losses"] += 1
@@ -1424,11 +1491,14 @@ def compute_match_impacts(conn: sqlite3.Connection) -> dict:
     }
 
     # Active matches in chronological order, with both sides.
+    # games_won is needed to resolve tied rubbers (sets 1-1 → both won=0;
+    # the games-tiebreak winner is the "winner" for display purposes,
+    # matching the rating engine — see match_result()).
     matches = conn.execute(
         """
         SELECT m.id,
-               sa.player1_id, sa.player2_id, sa.won,
-               sb.player1_id, sb.player2_id, sb.won
+               sa.player1_id, sa.player2_id, sa.won, sa.games_won,
+               sb.player1_id, sb.player2_id, sb.won, sb.games_won
         FROM matches m
         JOIN match_sides sa ON sa.match_id = m.id AND sa.side = 'A'
         JOIN match_sides sb ON sb.match_id = m.id AND sb.side = 'B'
@@ -1443,9 +1513,17 @@ def compute_match_impacts(conn: sqlite3.Connection) -> dict:
     impacts: dict[tuple[int, int], dict] = {}
 
     for row in matches:
-        mid, a1, a2, awon, b1, b2, bwon = row
-        sides = [(a1, "A", bool(awon)), (a2, "A", bool(awon)),
-                 (b1, "B", bool(bwon)), (b2, "B", bool(bwon))]
+        mid, a1, a2, awon, agw, b1, b2, bwon, bgw = row
+        # Resolve "who won this match" via the same convention the rating
+        # engine uses: clean win on sets first, otherwise games-tiebreak.
+        # match_result returns ('win'|'loss', label, label_long) from one
+        # side's perspective; we only need the binary cls here.
+        a_cls, _a_label, _ = match_result(awon or 0, bwon or 0,
+                                          agw or 0, bgw or 0)
+        a_won_eff = (a_cls == "win")
+        b_won_eff = not a_won_eff
+        sides = [(a1, "A", a_won_eff), (a2, "A", a_won_eff),
+                 (b1, "B", b_won_eff), (b2, "B", b_won_eff)]
         participants = [(p, sd, w) for p, sd, w in sides if p is not None]
 
         # Collect new (mu, sigma) for every participant that has rating_history
@@ -1568,14 +1646,18 @@ def _rank_delta_span(rank_before: int | None, rank_after: int) -> str:
 
 def render_match_impact_block(
     mid: int,
-    participants: list[tuple[int, str | None, str, bool]],
+    participants: list[tuple],
     impacts: dict,
     name_lookup: dict,
     players_prefix: str = "players/",
 ) -> str:
     """Render the expanded per-player impact section for ONE match.
 
-    `participants` items: (pid, partner_pid_or_None, side ('A'|'B'), won (bool))
+    `participants` items are tuples whose first 4 elements are
+    (pid, partner_pid_or_None, side ('A'|'B'), won (bool)).
+    An optional 5th element is a result label override ('W', 'L',
+    'W (g)', or 'L (g)') — supply it for tied rubbers so the card shows
+    the games-tiebreak indicator. If omitted, falls back to plain W/L.
     The list is in display order: side A players first, then side B.
     `players_prefix` is the URL prefix for player pages — `players/` from a
     root-level page, or `` (empty) from /players/X.html.
@@ -1587,11 +1669,11 @@ def render_match_impact_block(
         cid, n = name_lookup.get(p, (p, f"#{p}"))
         return f'<a class="player-link" href="{players_prefix}{cid}.html">{esc(n)}</a>'
 
-    def _card(pid: int, side: str, won: bool) -> str:
+    def _card(pid: int, side: str, won: bool, label: str | None = None) -> str:
         imp = impacts.get((mid, pid))
         link = _link(pid)
         wl_cls = "win" if won else "loss"
-        wl_txt = "W" if won else "L"
+        wl_txt = label if label else ("W" if won else "L")
         if imp is None:
             return (
                 f'<div class="impact-player">'
@@ -1661,9 +1743,19 @@ def render_match_impact_block(
         )
 
     # Group cards by side, preserving partner order within each side. The
-    # 2-vs-2 layout reads as: [pair A] | VS | [pair B].
-    side_a_cards = [_card(pid, side, won) for pid, _p, side, won in participants if side == "A"]
-    side_b_cards = [_card(pid, side, won) for pid, _p, side, won in participants if side == "B"]
+    # 2-vs-2 layout reads as: [pair A] | VS | [pair B]. participants tuple
+    # is (pid, partner, side, won) with optional 5th label override.
+    def _label_of(p):
+        return p[4] if len(p) >= 5 else None
+
+    side_a_cards = [
+        _card(p[0], p[2], p[3], _label_of(p))
+        for p in participants if p[2] == "A"
+    ]
+    side_b_cards = [
+        _card(p[0], p[2], p[3], _label_of(p))
+        for p in participants if p[2] == "B"
+    ]
 
     return (
         f'<div class="impact-box">'
@@ -1705,9 +1797,11 @@ def build_player_page(
     #   5=tour_id 6=tour_name 7=year 8=club_name 9=club_slug
     #   10=side 11=my_p1 12=my_p2 13=my_games 14=my_sets 15=my_won
     #   16=opp_p1 17=opp_p2 18=opp_games 19=opp_sets
-    #   20=mu_after 21=sigma_after
+    #   20=mu_after 21=sigma_after 22=opp_won
     n = len(matches)
-    wins = sum(1 for m in matches if m[15])
+    # Tied rubbers (sets 1-1, both won=0) count as a win for the
+    # games-tiebreak winner — same convention as the rating engine.
+    wins = sum(1 for m in matches if _row_won(m))
     losses = n - wins
     games_won = sum((m[13] or 0) for m in matches)
     games_lost = sum((m[18] or 0) for m in matches)
@@ -1747,7 +1841,8 @@ def build_player_page(
     for m in matches:
         (mid, played, division, rnd, walkover, _tid, tname, tyear, club_name, club_slug,
          side, my_p1, my_p2, my_games, my_sets, my_won,
-         opp_p1, opp_p2, opp_games, opp_sets, mu_after, sigma_after) = m
+         opp_p1, opp_p2, opp_games, opp_sets, mu_after, sigma_after,
+         opp_won) = m
 
         # Predicted P(this player's side wins) under each model. The CSV
         # stores P(side A wins); flip if this player is on side B.
@@ -1760,8 +1855,13 @@ def build_player_page(
             p_a = entry["p_a"]
             p_me = p_a if side == "A" else 1.0 - p_a
             my_predictions[model_name] = p_me
-            # Update calibration stats for this model.
-            actual_me = 1 if my_won else 0
+            # Update calibration stats for this model. Tied rubbers count
+            # the games-tiebreak winner as the actual winner — same
+            # convention as the rating engine.
+            _my_cls_calib, _, _ = match_result(
+                my_won or 0, opp_won or 0, my_games or 0, opp_games or 0
+            )
+            actual_me = 1 if _my_cls_calib == "win" else 0
             stats = pred_stats[model_name]
             stats["n"] += 1
             stats["log_loss_sum"] += -(
@@ -1783,8 +1883,12 @@ def build_player_page(
         partner = render_partner(my_p1, my_p2, pid, name_lookup)
         opps = render_opponents(opp_p1, opp_p2, name_lookup)
         score = render_score(side, sets)
-        result_cls = "win" if my_won else "loss"
-        result_txt = "W" if my_won else "L"
+        # Tied rubbers (sets 1-1, both won=0) → the side with more games
+        # is the "winner" per the rating engine. match_result() returns
+        # 'W (g)' / 'L (g)' to flag the games-tiebreak in the UI.
+        result_cls, result_txt, _result_long = match_result(
+            my_won or 0, opp_won or 0, my_games or 0, opp_games or 0
+        )
         d_mu = ""
         delta_val = None
         d_sig = ""
@@ -1871,14 +1975,27 @@ def build_player_page(
         )
         impact_row = ""
         if has_impact:
-            my_won_bool = bool(my_won)
-            opp_won_bool = not my_won_bool
+            # Read both DB won-flags explicitly. The old code (`opp_won_bool
+            # = not my_won_bool`) was wrong even before tied-rubber support
+            # — it ignored the actual opp_won value. For tied rubbers (sets
+            # 1-1), match_result resolves the winner via games-tiebreak,
+            # matching the rating engine. The 5th tuple element is the
+            # display label ("W (g)" / "L (g)") so the impact card shows
+            # the tiebreak indicator.
+            my_cls, my_label, _ = match_result(
+                my_won or 0, opp_won or 0, my_games or 0, opp_games or 0
+            )
+            opp_cls, opp_label, _ = match_result(
+                opp_won or 0, my_won or 0, opp_games or 0, my_games or 0
+            )
+            my_won_bool = (my_cls == "win")
+            opp_won_bool = (opp_cls == "win")
             opp_side = "B" if side == "A" else "A"
             participants = [
-                (my_p1, my_p2, side, my_won_bool),
-                (my_p2, my_p1, side, my_won_bool),
-                (opp_p1, opp_p2, opp_side, opp_won_bool),
-                (opp_p2, opp_p1, opp_side, opp_won_bool),
+                (my_p1, my_p2, side, my_won_bool, my_label),
+                (my_p2, my_p1, side, my_won_bool, my_label),
+                (opp_p1, opp_p2, opp_side, opp_won_bool, opp_label),
+                (opp_p2, opp_p1, opp_side, opp_won_bool, opp_label),
             ]
             participants = [p for p in participants if p[0] is not None]
             impact_html = render_match_impact_block(
@@ -2716,10 +2833,15 @@ def build_matches_page(
         sets = set_scores_by_mid.get(mid, [])
         score_a = _render_set_score("A", sets)
         score_b = _render_set_score("B", sets)
+        # Resolve who won via match_result — handles tied rubbers (sets 1-1,
+        # both won=0) by deferring to the games-won tiebreak, same as the
+        # rating engine. a_won_eff is True iff side A is the effective winner.
+        a_cls_eff, _, _ = match_result(awon or 0, bwon or 0, agw or 0, bgw or 0)
+        a_won_eff = (a_cls_eff == "win")
         if score_a:
             score_cell = (
                 f'<span class="score">'
-                f'<strong class="{"win" if awon else "loss"}">{score_a}</strong>'
+                f'<strong class="{"win" if a_won_eff else "loss"}">{score_a}</strong>'
                 f' / <span class="muted">{score_b}</span>'
                 f'</span>'
             )
@@ -2733,7 +2855,7 @@ def build_matches_page(
         side_b_names = " / ".join(
             x for x in (_name_with_rank(b1, mid), _name_with_rank(b2, mid)) if x
         ) or "—"
-        if awon:
+        if a_won_eff:
             side_a_html = f'<strong class="win">{side_a_names}</strong>'
             side_b_html = f'<span class="muted">{side_b_names}</span>'
         else:
@@ -2763,11 +2885,22 @@ def build_matches_page(
         )
 
         if has_impact:
+            # Pass label overrides so tied rubbers display "W (g)" / "L (g)"
+            # in the per-player impact card. Resolution mirrors the rating
+            # engine (see match_result).
+            a_cls, a_label, _ = match_result(
+                awon or 0, bwon or 0, agw or 0, bgw or 0
+            )
+            b_cls, b_label, _ = match_result(
+                bwon or 0, awon or 0, bgw or 0, agw or 0
+            )
+            a_won_b = (a_cls == "win")
+            b_won_b = (b_cls == "win")
             participants = [
-                (a1, a2, "A", bool(awon)),
-                (a2, a1, "A", bool(awon)),
-                (b1, b2, "B", bool(bwon)),
-                (b2, b1, "B", bool(bwon)),
+                (a1, a2, "A", a_won_b, a_label),
+                (a2, a1, "A", a_won_b, a_label),
+                (b1, b2, "B", b_won_b, b_label),
+                (b2, b1, "B", b_won_b, b_label),
             ]
             participants = [p for p in participants if p[0] is not None]
             impact_html = render_match_impact_block(
@@ -2965,7 +3098,15 @@ def build_disagreements_page(
         clubs.add(club_slug)
         d_p = decay[mid]["p_a"]
         v_p = pl[mid]["p_a"]
-        actual_a = 1 if awon else 0
+        # Ground-truth verdict for model calibration. Tied rubbers (sets 1-1,
+        # both won=0) are decided by the games-won tiebreak — same convention
+        # as the rating engine. Without this, every tied match was scored as
+        # "Side B won" because awon=0, which silently broke the model-gap
+        # accuracy measurement.
+        a_cls_dis, _, _ = match_result(
+            awon or 0, bwon or 0, agw or 0, bgw or 0
+        )
+        actual_a = 1 if a_cls_dis == "win" else 0
         d_correct = (d_p > 0.5) == bool(actual_a)
         v_correct = (v_p > 0.5) == bool(actual_a)
         if d_correct and v_correct:
@@ -2984,10 +3125,12 @@ def build_disagreements_page(
         sets = set_scores_by_mid.get(mid, [])
         score_a = _set_score("A", sets)
         score_b = _set_score("B", sets)
+        # actual_a (above) already reflects the games-tiebreak for tied
+        # rubbers; reuse it so the bolded side matches the verdict column.
         if score_a:
             score_cell = (
                 f'<span class="score">'
-                f'<strong class="{"win" if awon else "loss"}">{score_a}</strong>'
+                f'<strong class="{"win" if actual_a else "loss"}">{score_a}</strong>'
                 f' / <span class="muted">{score_b}</span>'
                 f'</span>'
             )

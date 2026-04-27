@@ -114,6 +114,31 @@ class TestGetOrCreatePlayer(unittest.TestCase):
         self.assertIsNotNone(pid)
         self.assertEqual(self._count("player_aliases"), 1)
 
+    def test_merged_player_resolves_to_canonical_id(self):
+        # Bug T-P0.5-025: re-ingesting a name whose canonical_name belongs to
+        # a merged-out player must return the surviving canonical id, NOT
+        # the ghost. Otherwise the rating engine splits the player's history.
+        pid_a = players.get_or_create_player(self.conn, "Alice Aaaaaaaa", 1)
+        pid_b = players.get_or_create_player(self.conn, "Beatrice Bbbbbbbb", 1)
+        self.assertNotEqual(pid_a, pid_b)
+        players.merge_player_into(self.conn, loser_id=pid_a, winner_id=pid_b)
+        # Now the canonical_name "Alice Aaaaaaaa" belongs to a merged-out row.
+        # A re-ingest should resolve the merge chain and return pid_b.
+        resolved = players.get_or_create_player(self.conn, "Alice Aaaaaaaa", 1)
+        self.assertEqual(resolved, pid_b)
+        # And it must not have created a new players row to hide the bug.
+        self.assertEqual(self._count("players"), 2)
+
+    def test_multi_hop_merge_chain_resolves_to_terminal_id(self):
+        # A → B → C: re-ingesting A's name must return C, not B.
+        pid_a = players.get_or_create_player(self.conn, "Alpha Aaaaaa", 1)
+        pid_b = players.get_or_create_player(self.conn, "Bravo Bbbbbb", 1)
+        pid_c = players.get_or_create_player(self.conn, "Charlie Cccccc", 1)
+        players.merge_player_into(self.conn, loser_id=pid_a, winner_id=pid_b)
+        players.merge_player_into(self.conn, loser_id=pid_b, winner_id=pid_c)
+        resolved = players.get_or_create_player(self.conn, "Alpha Aaaaaa", 1)
+        self.assertEqual(resolved, pid_c)
+
     def _count(self, table: str) -> int:
         return self.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
 

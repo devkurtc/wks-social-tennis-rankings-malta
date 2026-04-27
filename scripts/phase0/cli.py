@@ -286,7 +286,8 @@ def cmd_history(args: argparse.Namespace) -> int:
                 m.id, m.played_on, t.name AS tournament, m.division,
                 ms.side, ms.player1_id, ms.player2_id, ms.games_won, ms.won,
                 opp.player1_id, opp.player2_id, opp.games_won,
-                rh.mu_after, rh.sigma_after
+                rh.mu_after, rh.sigma_after,
+                opp.won AS opp_won
             FROM rating_history rh
             JOIN matches m ON m.id = rh.match_id
             JOIN tournaments t ON t.id = m.tournament_id
@@ -355,7 +356,7 @@ def cmd_history(args: argparse.Namespace) -> int:
         (match_id, date, tournament, division,
          side, p1, p2, my_games, my_won,
          opp1, opp2, opp_games,
-         mu_after, sigma_after) = r
+         mu_after, sigma_after, opp_won) = r
 
         partner_id = p2 if p1 == player_id else p1
         partner = short(name_map.get(partner_id), 18)
@@ -363,7 +364,17 @@ def cmd_history(args: argparse.Namespace) -> int:
         opp2_n = short(name_map.get(opp2), 14)
         opponents = f"{opp1_n} + {opp2_n}"
         score = f"{my_games}-{opp_games}"
-        result = "W" if my_won else "L"
+        # Tied rubbers (both won=0) are decided by games-tiebreak — same
+        # convention as the rating engine. Display as "W (g)" / "L (g)" so
+        # the user can see which result was a tiebreak.
+        if my_won and not opp_won:
+            result = "W    "
+        elif opp_won and not my_won:
+            result = "L    "
+        elif (my_games or 0) > (opp_games or 0):
+            result = "W (g)"
+        else:
+            result = "L (g)"
         delta_mu = mu_after - prev_mu
         delta_sigma = sigma_after - prev_sigma
 
@@ -1122,6 +1133,11 @@ def _print_rank_table(rows: list) -> None:
             source = ""
 
         cons = mu - 3 * sigma
+        # Note: tied rubbers (sets 1-1) are stored with won=0 on both sides
+        # and so count as losses in this W-L column. The rating math is
+        # already correct (rating.universal_score breaks the tie via games);
+        # only the count is a documented compromise. Per-match displays use
+        # the games-tiebreak — see generate_site.match_result().
         losses = n - wins
         win_pct = (wins / n * 100) if n > 0 else 0
         total_games = games_won + games_lost
@@ -1230,6 +1246,20 @@ def _best_pairing(names: list[str], strength_fn) -> tuple[list[tuple[str, str]],
         if total > best[1]:
             best = ([(first, partner)] + sub_pairing, total)
     return best
+
+
+def cmd_eval_identity(args: argparse.Namespace) -> int:
+    """Score the fuzzy suggester against the labelled identity sets."""
+    import db
+    import eval_identity
+
+    conn = db.init_db()
+    try:
+        report = eval_identity.evaluate(conn, args.aliases, args.distinct)
+        print(eval_identity.format_report(report))
+    finally:
+        conn.close()
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1524,6 +1554,27 @@ def build_parser() -> argparse.ArgumentParser:
         help='Comma-separated player names (even count, ≥4). Example: "Alice,Bob,Carol,Dan".',
     )
     p_pairs.set_defaults(func=cmd_recommend_pairs)
+
+    p_eval = sub.add_parser(
+        "eval-identity",
+        help=(
+            "Score the fuzzy suggester against the labelled identity sets — "
+            "manual_aliases.json (positives) and known_distinct.json "
+            "(negatives). Prints per-threshold recall, FP-rate, and the "
+            "miss list to find score-function regressions early."
+        ),
+    )
+    p_eval.add_argument(
+        "--aliases",
+        default="scripts/phase0/manual_aliases.json",
+        help="Path to manual_aliases.json (positive pairs).",
+    )
+    p_eval.add_argument(
+        "--distinct",
+        default="scripts/phase0/known_distinct.json",
+        help="Path to known_distinct.json (negative pairs).",
+    )
+    p_eval.set_defaults(func=cmd_eval_identity)
 
     return parser
 

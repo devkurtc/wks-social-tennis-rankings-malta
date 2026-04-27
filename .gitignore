@@ -55,11 +55,16 @@ yarn-error.log*
 *.sqlite3
 *.db
 # DB backup snapshots (created by hand before risky migrations / merges).
-# Pattern is `<dbname>.sqlite.bak.<timestamp_or_label>`; the trailing label
-# means the plain `*.sqlite` glob doesn't match.
+# Pattern is `<dbname>.sqlite.bak.<label>` or `<dbname>.sqlite.bak-<label>` —
+# the trailing label means the plain `*.sqlite` glob doesn't match.
 *.sqlite.bak.*
+*.sqlite.bak-*
 .coverage
 coverage/
 
 # Generated static site (published to gh-pages branch via scripts/deploy-site.sh)
 /site/
+
+# Local-only design exploration / scratch
+/mockups/
+.playwright-mcp/
