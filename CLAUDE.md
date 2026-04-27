@@ -100,6 +100,28 @@ Treat "the work is done" and "the work is live" as two distinct milestones. Don'
 
 **Exceptions** (don't auto-deploy): destructive changes (player merges that delete data, schema migrations), changes still under user review, anything explicitly marked WIP/draft. When in doubt, ask before pushing or deploying.
 
+### Who can push and deploy
+
+- **External contributors** (no write access on the repo): PR-based workflow via fork. Open a PR to `main`. A trusted collaborator reviews + merges + deploys. They cannot push direct or deploy.
+- **Trusted collaborators** (granted Write on the repo by the maintainer): may commit direct to `main` (no PR required) AND run `./scripts/deploy-site.sh`. The cadence rule (`git pull --rebase` first, small commits, push immediately) is mandatory, not optional. The current trusted collaborators are listed in the repo's GitHub Collaborators settings.
+
+### Deploy + DB coordination (read this before deploying)
+
+`scripts/deploy-site.sh` regenerates `site/` from **the local `phase0.sqlite` on the deployer's machine** and force-pushes to `gh-pages`. Two collaborators deploying from their own machines is how leaderboard numbers oscillate between deploys — not a bug, but each deployer's local DB has different ingestion + identity-resolution state.
+
+`phase0.sqlite` is gitignored (correctly). `manual_aliases.json` and `known_distinct.json` ARE committed, so re-ingesting from `_DATA_/` produces deterministic identity decisions. But any in-flight interactive identity-resolution work (the `cli.py review` flow) lives only in the DB until baked into `manual_aliases.json`.
+
+**Rule:** before deploying, run a clean re-ingest so your local DB matches what any other collaborator would produce:
+
+```bash
+rm phase0.sqlite
+python3 -m scripts.phase0.cli ingest
+python3 -m scripts.phase0.cli rate
+./scripts/deploy-site.sh
+```
+
+If you have interactive identity-resolution work in your DB that isn't yet in `manual_aliases.json`, commit it (or discard it) before re-ingesting. Don't deploy a DB state that nobody else can reproduce.
+
 ## Things NOT to do
 
 - **Don't modify files in `_DATA_/`.** They're authoritative source data; treat as read-only. Any cleanup belongs in the parser, not in the source files.

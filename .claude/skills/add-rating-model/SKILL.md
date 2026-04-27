@@ -77,18 +77,30 @@ If the user wants a UI tab toggle so viewers can switch between models on the le
 
 `prompt-for-df-agent.md` at repo root has a worked example of this UI step.
 
-### 7. PR checklist
+### 7. Pre-merge checklist
 
-Before the user opens a PR to `main`, confirm:
+The path differs depending on whether the contributor has direct push access (see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) "Trusted collaborators").
+
+**Universal — verify before every push or PR:**
 
 - [ ] `pytest scripts/phase0/` passes (existing 222 tests + the new ones).
-- [ ] **Coverage** ≥80% on the new module, and project-total coverage has not dropped. Paste `--cov-report=term` output into the PR.
-- [ ] `git diff` does NOT touch `_DATA_/`, `phase0.sqlite`, or anything tagged with `openskill_pl` in committed test fixtures.
+- [ ] **Coverage** ≥80% on the new module, and project-total coverage has not dropped. Capture `--cov-report=term` output for the commit body or PR description.
+- [ ] `git diff origin/main..HEAD -- _DATA_/ phase0.sqlite` is empty.
+- [ ] `git diff origin/main..HEAD -- scripts/phase0/rating.py` is empty (additive rule).
 - [ ] `python3 scripts/phase0/generate_site.py` succeeds (no Python errors, even if the UI toggle isn't added).
-- [ ] PR description references the model name, summarises the algorithm + how it differs from OpenSkill PL, and notes any new pinned deps.
-- [ ] User did NOT run `scripts/deploy-site.sh`. Deploy is the maintainer's job ([`CLAUDE.md`](../../../CLAUDE.md) hard rule).
-- [ ] Commits are small and individually mergeable; user pulled `--rebase` before pushing if the session was long. ([`CONTRIBUTING.md`](../../../CONTRIBUTING.md) commit + pull cadence.)
+- [ ] Commits are small and individually mergeable; user pulled `--rebase` before pushing.
 - [ ] User agrees the contribution is licensed under [AGPL-3.0](../../../LICENSE) (the project's license — applied automatically by submission).
+
+**External contributor (no Write access on the repo):**
+
+- [ ] Open a PR to `main` from a fork.
+- [ ] PR description references the model name, summarises the algorithm + how it differs from OpenSkill PL, includes the coverage report, and notes any new pinned deps.
+- [ ] Did NOT run `scripts/deploy-site.sh`. Deploy is the maintainer's job.
+
+**Trusted collaborator (Write access on the repo):**
+
+- [ ] Direct commit to `main` is allowed; no PR required. Commit message body should contain what would otherwise go in the PR description (algorithm summary, coverage report, deps, license consent).
+- [ ] If running `scripts/deploy-site.sh`: clean re-ingest first (`rm phase0.sqlite && python3 -m scripts.phase0.cli ingest && python3 -m scripts.phase0.cli rate && python3 -m scripts.phase0.cli recompute --model <new_model>`). See [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) "Deploy + DB coordination" — deploying from an interactively-edited DB publishes a state nobody else can reproduce.
 
 ## When NOT to use this skill
 

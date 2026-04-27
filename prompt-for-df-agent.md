@@ -101,31 +101,64 @@ Check:
 
 ---
 
-## Step 5 — open a PR
+## Step 5 — commit direct to `main` (no PR needed)
 
-Branch name: `df/add-version-toggle` (or similar).
+Kurt has granted DF Write access on the repo as a trusted collaborator. Commit directly to `main` — no PR required, no maintainer-review hoop. Deploy is also yours to run.
 
-**Commit + pull cadence (please follow):** small commits, one logical chunk each; push as soon as a commit is mergeable; `git pull --rebase origin main` before each work session and again before any push if the session has been long. See `CONTRIBUTING.md` for the full rule and the why. This matters specifically because multiple agents and humans are touching `TASKS.md` and the `.claude/` coordination files concurrently.
+**Cadence is mandatory, not optional.** Direct-commit privilege only stays safe if you:
 
-PR description should include:
+- `git pull --rebase origin main` at the start of every session.
+- Commit small logical chunks; never accumulate eight unrelated changes into a "wip" commit.
+- Push as soon as a commit is mergeable. Don't sit on local commits — they're invisible to other collaborators until pushed.
+- `git pull --rebase` again before pushing if the session has been long (>30 min).
+- Resolve conflicts properly. No blanket `--theirs/--ours`, no `--no-verify` past failing hooks.
 
-- One-paragraph summary of the algorithm DF used and how it differs from OpenSkill PL.
-- A screenshot of the toggle in both states.
-- Confirmation: "I did not modify `_DATA_/`, did not deploy to gh-pages, and ran the local verify steps in Step 4."
-- Coverage report: `pytest --cov=scripts.phase0 --cov-report=term scripts/phase0/` output, demonstrating ≥80% coverage on the new module and no regression on project total.
-- Any new pinned deps and why.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) "Commit + pull cadence" and "Trusted collaborators" sections for the full rule and the why.
 
-**License:** by submitting the PR you agree your contribution is licensed under [AGPL-3.0](LICENSE) — same as the rest of the repo. Your `rating_df.py` ships under that license.
+### Verification before each push
 
-Kurt will review, run `./scripts/deploy-site.sh` to ship it, and merge.
+Run these locally before `git push origin main`:
+
+```bash
+git pull --rebase origin main
+pytest scripts/phase0/                                                     # all green
+pytest --cov=scripts.phase0 --cov-report=term-missing scripts/phase0/      # ≥80% on rating_df.py, project total not lower
+git diff origin/main..HEAD -- _DATA_/ phase0.sqlite                         # MUST be empty
+git diff origin/main..HEAD -- scripts/phase0/rating.py                      # MUST be empty (additive rule)
+```
+
+### Deploying
+
+You can run `./scripts/deploy-site.sh` to publish to `gh-pages`. Before you do, **re-ingest from a clean DB** so your published state matches what any other collaborator would produce:
+
+```bash
+rm phase0.sqlite
+python3 -m scripts.phase0.cli ingest
+python3 -m scripts.phase0.cli rate
+python3 -m scripts.phase0.cli recompute --model df_glicko2_v1   # or whatever your model_name is
+./scripts/deploy-site.sh
+```
+
+If you have interactive identity-resolution work in your local DB (from `cli.py review` or `review-server`) that isn't yet committed to `manual_aliases.json`, commit it (or discard it) before re-ingesting. Don't deploy a DB state nobody else can reproduce — see [`CONTRIBUTING.md`](CONTRIBUTING.md) "Deploy + DB coordination".
+
+### What to write in the commit message
+
+Since there's no PR description, put the equivalent in the commit body:
+
+- One-paragraph summary of the algorithm and how it differs from OpenSkill PL.
+- Confirmation: "Did not modify `_DATA_/`. Verified `rating.py` and `openskill_pl` rows untouched."
+- Coverage line: paste the `--cov-report=term` summary for `scripts.phase0`.
+- Any new pinned deps and why (or "no new deps").
+
+**License:** by committing to this repo you agree your contribution is licensed under [AGPL-3.0](LICENSE). Your `rating_df.py` ships under that license.
 
 ---
 
 ## Things NOT to do
 
-- Don't touch the `gh-pages` branch. Don't run `deploy-site.sh`. Kurt deploys.
 - Don't introduce a second SQLite DB. Both models share `phase0.sqlite`.
 - Don't add a "default model" toggle to the CLI that changes what KC's existing scripts do. Your model is purely additive.
 - Don't rewrite `rating.py`. Add a sibling module.
 - Don't rename existing `model_name` strings in the DB; downstream queries depend on `openskill_pl` and `openskill_pl_decay365`.
-- Don't regenerate `phase0.sqlite` from scratch unless explicitly asked — it has manual identity-resolution decisions baked in (see `manual_aliases.json` and the `pending_changes` flow).
+- Don't deploy from a stale or interactively-edited DB — always clean re-ingest first (see "Deploying" above).
+- Don't push to `main` without `git pull --rebase` first. Direct-commit privilege only stays safe if everyone pulls before pushing.

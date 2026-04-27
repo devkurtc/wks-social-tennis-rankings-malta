@@ -76,7 +76,7 @@ These come from [`CLAUDE.md`](CLAUDE.md) and are restated here so contributors w
 
 1. **Never modify files inside `_DATA_/`.** They're the authoritative source. Cleanup belongs in the parser, not the source.
 2. **Never widen or rename the schema** without first proposing the change in [`PLAN.md`](PLAN.md) §6 and getting it agreed. Multi-model is already supported via the `model_name` discriminator on `ratings` / `rating_history` ([§5.7](PLAN.md)) — no schema change needed to add a new rating algorithm.
-3. **Never deploy directly to `gh-pages`.** Don't run `scripts/deploy-site.sh` in a contributor PR. Open a PR to `main`; the maintainer regenerates and ships.
+3. **Don't deploy directly to `gh-pages`** unless you're a trusted collaborator (see "Trusted collaborators" below). External contributors open a PR to `main`; a maintainer or trusted collaborator regenerates and ships.
 4. **Player names are normalised on insert** (NFKC, straight quotes, collapsed whitespace). Use the existing helpers in `scripts/phase0/players.py`. Don't roll your own.
 5. **Every mutation goes through the audit-log helper** in the same transaction. Look at how `players.merge_player` or `rating.recompute_all` writes to `audit_log` and match the pattern.
 6. **No secrets, no `.env*` files, no DB dumps, no `~$*.xlsx` Excel lock files** in commits. The `.gitignore` covers known cases; extend it before committing anything new and unfamiliar.
@@ -107,6 +107,34 @@ Several humans and AI agents work on this repo concurrently. The single biggest 
 - **Conflicts: resolve, don't bypass.** If a rebase produces a conflict, read both sides and reconcile. Don't blanket `--theirs` / `--ours` and don't `--no-verify` past a failing hook. The shortcut deletes someone else's work.
 
 **Why it matters here specifically:** `TASKS.md`, `PLAN.md`, and the `.claude/` coordination files are touched by every agent at session start. Two agents editing `TASKS.md` without pulling between them = lost progress-log entries. Frequent commit/push/pull collapses that risk to near-zero.
+
+## Trusted collaborators (direct-commit + deploy access)
+
+Some contributors are granted Write access on the repo by the maintainer. If you're one of them, the rules differ:
+
+- **Direct commits to `main` are allowed.** No PR required for your own work. Open a PR only if you want a second pair of eyes — never as a procedural hoop.
+- **You can run `./scripts/deploy-site.sh`** to publish to `gh-pages`. External contributors cannot.
+- **The cadence rule above (`git pull --rebase` first, small commits, push immediately) is mandatory, not optional.** Direct push without pulling is the fastest way to clobber another collaborator's work, especially on `TASKS.md` and the `.claude/` coordination files.
+- **Coordinate before deploying.** See "Deploy + DB coordination" below — `deploy-site.sh` publishes whatever's in your local `phase0.sqlite`, so two collaborators deploying from different DB states will publish different leaderboard numbers.
+
+The current trusted-collaborator set lives in the repo's GitHub Collaborators settings (Settings → Collaborators), not in this file — that's the source of truth and what GitHub actually enforces.
+
+### Deploy + DB coordination (trusted collaborators read this)
+
+`scripts/deploy-site.sh` regenerates `site/` from **the local `phase0.sqlite` on the deployer's machine** and force-pushes. So if two collaborators deploy from their own machines, the published leaderboard depends on whose DB was loaded last.
+
+`phase0.sqlite` itself is gitignored (it's a 14MB binary regenerated from `_DATA_/`). The committed identity-resolution sources (`scripts/phase0/manual_aliases.json`, `scripts/phase0/known_distinct.json`) make a fresh re-ingest deterministic. But any interactive identity-resolution work done via `cli.py review` lives only in your DB until you bake it into `manual_aliases.json`.
+
+**Before deploying, run a clean re-ingest** so your local DB matches what any other collaborator would produce:
+
+```bash
+rm phase0.sqlite
+python3 -m scripts.phase0.cli ingest
+python3 -m scripts.phase0.cli rate
+./scripts/deploy-site.sh
+```
+
+If you have interactive identity-resolution decisions in your DB that aren't yet in `manual_aliases.json`, commit them (or discard them) before re-ingesting. Don't deploy a DB state that nobody else can reproduce.
 
 ## Code style
 
