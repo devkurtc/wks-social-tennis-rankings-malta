@@ -478,12 +478,17 @@ class TestReprocessPipeline(unittest.TestCase):
         self.assertTrue(hasattr(reprocess, "_step_rate"))
         self.assertTrue(hasattr(reprocess, "_step_deploy"))
 
-    def test_apply_aliases_step_against_empty_db(self):
-        # Patch db.init_db to use an in-memory schema so the step doesn't
-        # touch the real phase0.sqlite.
-        import db, reprocess
+    def _patch_init_db(self):
+        """Wrap `db.init_db` to always operate on an in-memory copy. Returns
+        the restore-function so the test can clean up."""
+        import db
         original = db.init_db
         db.init_db = lambda path=":memory:", **kw: original(":memory:", **kw)
+        return lambda: setattr(db, "init_db", original)
+
+    def test_apply_aliases_step_against_empty_db(self):
+        import reprocess
+        restore = self._patch_init_db()
         try:
             with tempfile.NamedTemporaryFile(
                 suffix=".json", delete=False, mode="w", encoding="utf-8",
@@ -497,7 +502,138 @@ class TestReprocessPipeline(unittest.TestCase):
             finally:
                 Path(aliases_path).unlink()
         finally:
-            db.init_db = original
+            restore()
+
+    def test_apply_aliases_step_with_unknown_winner_warns(self):
+        # Real entry, but the winner doesn't exist in the synthetic DB —
+        # apply_manual_aliases adds a warning, doesn't raise.
+        import reprocess
+        restore = self._patch_init_db()
+        try:
+            with tempfile.NamedTemporaryFile(
+                suffix=".json", delete=False, mode="w", encoding="utf-8",
+            ) as f:
+                json.dump({"merges": [
+                    {"winner": "Ghost W", "losers": ["Ghost L"]},
+                ]}, f)
+                aliases_path = f.name
+            try:
+                result = reprocess._step_apply_aliases(aliases_path)
+                self.assertEqual(result["step"], "apply_aliases")
+                self.assertEqual(result["merges_applied"], 0)
+                self.assertTrue(any(
+                    "not found" in w.lower() for w in result["warnings"]
+                ))
+            finally:
+                Path(aliases_path).unlink()
+        finally:
+            restore()
+
+    def test_run_stops_at_first_failing_step(self):
+        # Force `_step_rate` to fail by pointing it at a non-existent CLI
+        # path. The pipeline should record the failure and stop without
+        # progressing to generate_site.
+        import reprocess
+        original_rate = reprocess._step_rate
+        original_gen = reprocess._step_generate_site
+        gen_called = []
+
+        def fake_rate():
+            return {"step": "rate", "rc": 7, "stderr": "synthetic failure"}
+
+        def fake_gen():
+            gen_called.append(True)
+            return {"step": "generate_site", "rc": 0}
+
+        reprocess._step_rate = fake_rate
+        reprocess._step_generate_site = fake_gen
+        restore = self._patch_init_db()
+        try:
+            with tempfile.NamedTemporaryFile(
+                suffix=".json", delete=False, mode="w", encoding="utf-8",
+            ) as f:
+                json.dump({"merges": []}, f)
+                aliases_path = f.name
+            try:
+                result = reprocess.run(aliases_path=aliases_path,
+                                       include_deploy=False)
+            finally:
+                Path(aliases_path).unlink()
+        finally:
+            reprocess._step_rate = original_rate
+            reprocess._step_generate_site = original_gen
+            restore()
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["stopped_at"], "rate")
+        # generate_site should NOT have run
+        self.assertEqual(len(gen_called), 0)
+        # First step (apply_aliases) should still appear in the results
+        steps = [r["step"] for r in result["steps"]]
+        self.assertEqual(steps, ["apply_aliases", "rate"])
+
+    def test_run_records_exception_as_rc_negative(self):
+        # If a step raises, run() catches it and records {step, rc:-1, error}.
+        import reprocess
+        original = reprocess._step_apply_aliases
+
+        def boom(_path):
+            raise RuntimeError("kaboom")
+
+        reprocess._step_apply_aliases = lambda p: boom(p)
+        try:
+            with tempfile.NamedTemporaryFile(
+                suffix=".json", delete=False, mode="w", encoding="utf-8",
+            ) as f:
+                json.dump({"merges": []}, f)
+                aliases_path = f.name
+            try:
+                result = reprocess.run(
+                    aliases_path=aliases_path, include_deploy=False,
+                )
+            finally:
+                Path(aliases_path).unlink()
+        finally:
+            reprocess._step_apply_aliases = original
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["stopped_at"], "apply_aliases")
+        self.assertEqual(result["steps"][0]["rc"], -1)
+        self.assertIn("kaboom", result["steps"][0]["error"])
+
+    def test_deploy_step_returns_negative_when_script_missing(self):
+        import reprocess
+        original = reprocess.DEPLOY_SCRIPT
+        reprocess.DEPLOY_SCRIPT = Path("/nonexistent/deploy.sh")
+        try:
+            result = reprocess._step_deploy()
+            self.assertEqual(result["step"], "deploy")
+            self.assertEqual(result["rc"], -1)
+            self.assertIn("not found", result["error"])
+        finally:
+            reprocess.DEPLOY_SCRIPT = original
+
+    def test_run_can_be_invoked_with_default_aliases_path(self):
+        # When aliases_path is omitted, it defaults to manual_aliases.json
+        # in scripts/phase0/. We patch _step_apply_aliases to capture the
+        # path it was called with — proves the default wiring.
+        import reprocess
+        captured = []
+        original = reprocess._step_apply_aliases
+        reprocess._step_apply_aliases = lambda p: (
+            captured.append(p) or {"step": "apply_aliases",
+                                   "merges_applied": 0, "warnings": []}
+        )
+        original_rate = reprocess._step_rate
+        reprocess._step_rate = lambda: {"step": "rate", "rc": 0, "stderr": ""}
+        original_gen = reprocess._step_generate_site
+        reprocess._step_generate_site = lambda: {"step": "generate_site", "rc": 0}
+        try:
+            reprocess.run(include_deploy=False)
+        finally:
+            reprocess._step_apply_aliases = original
+            reprocess._step_rate = original_rate
+            reprocess._step_generate_site = original_gen
+        self.assertEqual(len(captured), 1)
+        self.assertTrue(captured[0].endswith("manual_aliases.json"))
 
 
 # --- 6. review_server integration -------------------------------------------
@@ -683,6 +819,99 @@ class TestReviewServerEndpoints(unittest.TestCase):
         _, after = self._request("GET", "/api/pending_changes")
         self.assertEqual(after["count"], before_count + 1)
 
+    def test_queue_endpoint(self):
+        if not self.have_db:
+            self.skipTest("phase0.sqlite not present")
+        status, body = self._request("GET", "/api/queue")
+        self.assertEqual(status, 200)
+        self.assertIsInstance(body, list)
+        # Each entry has the expected shape
+        if body:
+            entry = body[0]
+            self.assertIn("score", entry)
+            self.assertIn("confidence", entry)
+            self.assertIn("a", entry)
+            self.assertIn("b", entry)
+
+    def test_player_mini_endpoint_for_known_id(self):
+        if not self.have_db:
+            self.skipTest("phase0.sqlite not present")
+        # Pick any unmerged player id from the live DB.
+        import sqlite3
+        conn = sqlite3.connect(str(self._review_mod.DB_PATH))
+        try:
+            row = conn.execute(
+                "SELECT id FROM players WHERE merged_into_id IS NULL "
+                "LIMIT 1"
+            ).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            self.skipTest("no players in DB")
+        pid = row[0]
+        status, body = self._request("GET", f"/api/player/{pid}")
+        self.assertEqual(status, 200)
+        self.assertEqual(body["id"], pid)
+        for key in ("name", "gender", "clubs", "aliases", "classes",
+                    "recent_matches"):
+            self.assertIn(key, body)
+
+    def test_player_mini_bad_id_returns_400(self):
+        status, _ = self._request("GET", "/api/player/notanint")
+        self.assertEqual(status, 400)
+
+    def test_player_redirect_to_site(self):
+        # /player/<id> redirects to /site/players/<id>.html. Disable redirect
+        # following to inspect the 302.
+        import urllib.request
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def http_error_302(self, req, fp, code, msg, headers):
+                return fp
+        opener = urllib.request.build_opener(NoRedirect)
+        url = f"http://127.0.0.1:{self.port}/player/42"
+        with opener.open(url, timeout=5) as resp:
+            self.assertIn(resp.status, (302, 200))
+            # Either 302 with Location, or 200 if site/ contains the file
+            loc = resp.headers.get("Location")
+            if loc:
+                self.assertIn("/site/players/", loc)
+
+    def test_static_site_file_traversal_blocked(self):
+        # Path traversal attempt — should return 403, not the file contents.
+        status, body = self._request("GET", "/site/../../../etc/passwd")
+        self.assertIn(status, (403, 404))
+
+    def test_static_site_missing_file_returns_404(self):
+        status, _ = self._request("GET", "/site/no_such_file.html")
+        self.assertEqual(status, 404)
+
+    def test_reprocess_endpoint_with_no_pending_runs_pipeline(self):
+        # With pending_changes empty, reprocess still runs the pipeline
+        # (not no-op). We patch the steps to no-ops so the test is fast and
+        # doesn't touch the real DB.
+        import reprocess
+        original_apply = reprocess._step_apply_aliases
+        original_rate = reprocess._step_rate
+        original_gen = reprocess._step_generate_site
+        reprocess._step_apply_aliases = lambda _p: {
+            "step": "apply_aliases", "merges_applied": 0, "warnings": [],
+        }
+        reprocess._step_rate = lambda: {"step": "rate", "rc": 0, "stderr": ""}
+        reprocess._step_generate_site = lambda: {
+            "step": "generate_site", "rc": 0,
+        }
+        try:
+            status, body = self._request("POST", "/api/reprocess", {
+                "include_deploy": False,
+            })
+        finally:
+            reprocess._step_apply_aliases = original_apply
+            reprocess._step_rate = original_rate
+            reprocess._step_generate_site = original_gen
+        self.assertEqual(status, 200)
+        self.assertTrue(body["ok"])
+        self.assertEqual(len(body["steps"]), 3)
+
 
 # --- 7. CLI subcommand smoke ------------------------------------------------
 
@@ -729,6 +958,203 @@ class TestCliEvalIdentitySubcommand(unittest.TestCase):
             db.init_db = original
             Path(aliases_path).unlink(missing_ok=True)
             Path(distinct_path).unlink(missing_ok=True)
+
+
+# --- 8. Unmerge via HTTP round-trip + ledger consistency --------------------
+
+
+class TestUnmergeViaHttp(unittest.TestCase):
+    """End-to-end: spin a server pointed at a populated synthetic DB, post
+    /api/unmerge, verify the DB and ledger files all updated atomically."""
+
+    @classmethod
+    def setUpClass(cls):
+        import importlib
+        import socket
+        import threading
+        from http.server import ThreadingHTTPServer
+
+        cls._tmpdir = tempfile.mkdtemp()
+        cls._aliases = Path(cls._tmpdir, "manual_aliases.json")
+        cls._aliases.write_text(json.dumps({"merges": []}))
+        cls._distinct = Path(cls._tmpdir, "known_distinct.json")
+        cls._distinct.write_text(json.dumps({"pairs": []}))
+        cls._defer = Path(cls._tmpdir, "defer.json")
+        cls._defer.write_text(json.dumps({"pairs": []}))
+        cls._pending = Path(cls._tmpdir, "pending_changes.jsonl")
+        cls._db_path = Path(cls._tmpdir, "test.sqlite")
+
+        cls._review_mod = importlib.import_module("review_server")
+        cls._review_mod.ALIASES_PATH = cls._aliases
+        cls._review_mod.DISTINCT_PATH = cls._distinct
+        cls._review_mod.DEFER_PATH = cls._defer
+        cls._review_mod.DB_PATH = cls._db_path
+        cls._pc_mod = importlib.import_module("pending_changes")
+        cls._pc_mod.PENDING_PATH = cls._pending
+
+        # Build a synthetic DB with one merged pair we can de-merge.
+        import db, players
+        conn = db.init_db(str(cls._db_path))
+        try:
+            club = conn.execute(
+                "INSERT INTO clubs (name, slug) VALUES ('Test', 'test')"
+            ).lastrowid
+            sf = conn.execute(
+                "INSERT INTO source_files (club_id, original_filename, sha256)"
+                " VALUES (?, 'synth.xlsx', 'abc')", (club,),
+            ).lastrowid
+            run = conn.execute(
+                "INSERT INTO ingestion_runs (source_file_id, status) "
+                "VALUES (?, 'completed')", (sf,),
+            ).lastrowid
+            tour = conn.execute(
+                "INSERT INTO tournaments "
+                "(club_id, name, year, format) "
+                "VALUES (?, 'T', 2026, 'doubles_division')", (club,),
+            ).lastrowid
+            cls.winner_id = conn.execute(
+                "INSERT INTO players (canonical_name, gender) "
+                "VALUES ('Winner', 'M')"
+            ).lastrowid
+            cls.loser_id = conn.execute(
+                "INSERT INTO players (canonical_name, gender) "
+                "VALUES ('Loser', 'M')"
+            ).lastrowid
+            opp = conn.execute(
+                "INSERT INTO players (canonical_name, gender) "
+                "VALUES ('Opp', 'M')"
+            ).lastrowid
+            cls.match_id = conn.execute(
+                "INSERT INTO matches (tournament_id, played_on, "
+                "ingestion_run_id) VALUES (?, ?, ?)",
+                (tour, "2026-01-01", run),
+            ).lastrowid
+            conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, won) "
+                "VALUES (?, 'A', ?, 1)", (cls.match_id, cls.loser_id),
+            )
+            conn.execute(
+                "INSERT INTO match_sides (match_id, side, player1_id, won) "
+                "VALUES (?, 'B', ?, 0)", (cls.match_id, opp),
+            )
+            conn.commit()
+            players.merge_player_into(
+                conn, loser_id=cls.loser_id, winner_id=cls.winner_id,
+                reason="bad merge",
+            )
+            conn.commit()
+            cls.audit_id = conn.execute(
+                "SELECT id FROM audit_log WHERE action = 'player.merged' "
+                "AND entity_id = ?", (cls.loser_id,),
+            ).fetchone()[0]
+        finally:
+            conn.close()
+
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", 0))
+            cls.port = s.getsockname()[1]
+        cls.server = ThreadingHTTPServer(
+            ("127.0.0.1", cls.port), cls._review_mod.ReviewHandler,
+        )
+        cls.thread = threading.Thread(
+            target=cls.server.serve_forever, daemon=True,
+        )
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+        cls.server.shutdown()
+        cls.thread.join(timeout=2)
+        cls.server.server_close()
+        shutil.rmtree(cls._tmpdir, ignore_errors=True)
+
+    def test_unmerge_via_post_restores_db_and_records_distinct(self):
+        import urllib.request
+        url = f"http://127.0.0.1:{self.port}/api/unmerge"
+        body = json.dumps({"audit_id": self.audit_id,
+                           "reason": "test undo"}).encode()
+        req = urllib.request.Request(
+            url, data=body, method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            self.assertEqual(resp.status, 200)
+            result = json.loads(resp.read().decode())
+        self.assertEqual(result["loser_id"], self.loser_id)
+        self.assertEqual(result["winner_id"], self.winner_id)
+        self.assertEqual(result["match_sides_redirected"], 1)
+        self.assertFalse(result["legacy"])
+
+        # DB: loser's merged_into_id is None and match_side restored.
+        import sqlite3
+        conn = sqlite3.connect(str(self._db_path))
+        try:
+            mi = conn.execute(
+                "SELECT merged_into_id FROM players WHERE id = ?",
+                (self.loser_id,),
+            ).fetchone()[0]
+            self.assertIsNone(mi)
+            row = conn.execute(
+                "SELECT player1_id FROM match_sides WHERE match_id = ? "
+                "AND side = 'A'", (self.match_id,),
+            ).fetchone()
+            self.assertEqual(row[0], self.loser_id)
+        finally:
+            conn.close()
+
+        # Distinct ledger now contains the pair.
+        with open(self._distinct) as f:
+            data = json.load(f)
+        self.assertTrue(any(
+            {p["a"], p["b"]} == {"Loser", "Winner"} for p in data["pairs"]
+        ))
+
+        # Pending-changes JSONL captured the unmerge.
+        with open(self._pending) as f:
+            lines = [json.loads(line) for line in f if line.strip()]
+        self.assertTrue(any(r["verdict"] == "unmerge" for r in lines))
+
+
+# --- 9. pending_changes.threshold_reached time edge case --------------------
+
+
+class TestThresholdEdgeCases(unittest.TestCase):
+    def test_threshold_with_malformed_first_change_ts_returns_false(self):
+        # Hand-craft a row with a bad timestamp — should be treated as
+        # "can't decide" (False) rather than crashing.
+        with tempfile.NamedTemporaryFile(
+            suffix=".jsonl", mode="w", delete=False, encoding="utf-8",
+        ) as f:
+            f.write(json.dumps({
+                "ts": "not-an-iso-timestamp",
+                "verdict": "merge", "a_name": "A", "b_name": "B",
+            }) + "\n")
+            path = f.name
+        try:
+            self.assertFalse(pc.threshold_reached(
+                max_count=100, max_minutes=1, path=path,
+            ))
+        finally:
+            Path(path).unlink()
+
+    def test_iter_rows_skips_corrupt_lines_silently(self):
+        with tempfile.NamedTemporaryFile(
+            suffix=".jsonl", mode="w", delete=False, encoding="utf-8",
+        ) as f:
+            f.write(json.dumps({"ts": "x", "verdict": "merge",
+                                "a_name": "A", "b_name": "B"}) + "\n")
+            f.write("this is not json\n")
+            f.write(json.dumps({"ts": "y", "verdict": "defer",
+                                "a_name": "C", "b_name": "D"}) + "\n")
+            path = f.name
+        try:
+            rows = pc.iter_rows(path)
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0]["verdict"], "merge")
+            self.assertEqual(rows[1]["verdict"], "defer")
+        finally:
+            Path(path).unlink()
 
 
 if __name__ == "__main__":
