@@ -103,7 +103,7 @@ Treat "the work is done" and "the work is live" as two distinct milestones. Don'
 ### Who can push and deploy
 
 - **External contributors** (no write access on the repo): PR-based workflow via fork. Open a PR to `main`. A trusted collaborator reviews + merges + deploys. They cannot push direct or deploy.
-- **Trusted collaborators** (granted Write on the repo by the maintainer): may commit direct to `main` (no PR required) AND run `./scripts/deploy-site.sh`. The cadence rule (`git pull --rebase` first, small commits, push immediately) is mandatory, not optional. The current trusted collaborators are listed in the repo's GitHub Collaborators settings.
+- **Trusted collaborators** (granted Write on the repo by the maintainer): may commit direct to `main` (no PR required) AND run `./scripts/deploy-site.sh`. The cadence rule (`git pull --rebase` first, small commits, push immediately) is mandatory, not optional. The current trusted collaborators are listed in the repo's GitHub Collaborators settings. **Granting access:** see CONTRIBUTING.md "How the maintainer grants trusted-collaborator access" — `push` (Write) is the correct role; don't grant `admin`. `maintain` is not a valid role on personal-account repos (the API silently 204s without changing anything). The deploy script is permission-aware and skips the admin-only Pages-config refresh call cleanly when the deployer is `write`-only, so non-admin deploys produce a clean log with no warnings.
 
 ### Deploy + DB coordination (read this before deploying)
 

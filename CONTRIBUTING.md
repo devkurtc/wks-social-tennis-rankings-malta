@@ -119,6 +119,18 @@ Some contributors are granted Write access on the repo by the maintainer. If you
 
 The current trusted-collaborator set lives in the repo's GitHub Collaborators settings (Settings → Collaborators), not in this file — that's the source of truth and what GitHub actually enforces.
 
+#### How the maintainer grants trusted-collaborator access
+
+```bash
+# Replace <USERNAME> with the collaborator's GitHub login
+gh api -X PUT "repos/devkurtc/wks-social-tennis-rankings-malta/collaborators/<USERNAME>" \
+    -F permission=push
+```
+
+`push` (Write) is the correct role and is sufficient for the full workflow: direct commits to `main`, force-pushes to `gh-pages`, running `scripts/deploy-site.sh`. **Do not grant `admin`** unless the person is a co-owner — admin includes settings, branch-protection, repo-deletion. **`maintain` is NOT a valid role on personal-account repos** (only on organization-owned repos); the API silently 204s on `permission=maintain` without changing anything, so don't waste time trying it. If you ever need a "trusted but not admin" tier richer than `write`, the workaround is to convert the repo to be owned by an org.
+
+The deploy script (`scripts/deploy-site.sh`) is permission-aware: it probes the caller's admin status and skips the Pages-config refresh call cleanly when the deployer isn't admin. So a `write`-only collaborator gets a clean deploy log with no warnings — Pages is already enabled and the config refresh is a no-op anyway.
+
 ### Deploy + DB coordination (trusted collaborators read this)
 
 `scripts/deploy-site.sh` regenerates `site/` from **the local `phase0.sqlite` on the deployer's machine** and force-pushes. So if two collaborators deploy from their own machines, the published leaderboard depends on whose DB was loaded last.
