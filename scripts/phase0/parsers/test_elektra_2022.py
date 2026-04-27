@@ -21,10 +21,11 @@ sys.path.insert(0, str(HERE.parent))     # for db / players
 
 import db  # noqa: E402
 import elektra_2022 as parser  # noqa: E402
+from _test_fixtures import locate as _locate  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-ELEKTRA_2022 = str(
-    REPO_ROOT / "_DATA_" / "VLTC" / "Draws and Results Elektra Mixed Doubles 2022.xlsx"
+ELEKTRA_2022 = (
+    _locate("Draws and Results Elektra Mixed Doubles 2022.xlsx") or ""
 )
 
 
@@ -88,6 +89,10 @@ class _LoadedDB:
     @classmethod
     def get(cls) -> sqlite3.Connection:
         if cls._conn is None:
+            if not ELEKTRA_2022:
+                raise unittest.SkipTest(
+                    "Elektra 2022 fixture not found in _DATA_/"
+                )
             conn = db.init_db(":memory:")
             parser.parse(ELEKTRA_2022, conn)
             cls._conn = conn

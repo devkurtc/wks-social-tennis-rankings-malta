@@ -27,7 +27,8 @@ import db  # noqa: E402
 import tck_chosen_2024 as parser  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-TCK_2024 = str(REPO_ROOT / "_DATA_" / "VLTC" / "TCK CHOSEN TOUNAMENT DIVISIONS 2024.xlsx")
+from _test_fixtures import locate as _locate  # noqa: E402
+TCK_2024 = _locate("TCK CHOSEN TOUNAMENT DIVISIONS 2024.xlsx") or ""
 
 
 def _player_name(conn: sqlite3.Connection, pid: int) -> str:

@@ -24,14 +24,15 @@ import db  # noqa: E402
 import team_tournament_legacy as parser  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-DATA_DIR = REPO_ROOT / "_DATA_" / "VLTC"
 
-PKF_2023 = str(DATA_DIR / "PKF  Team Tournament 2023.xlsx")
-PKF_2024 = str(DATA_DIR / " PKF  Team Tournament 2024.xlsx")
-TENNIS_TRADE_2023 = str(DATA_DIR / "TENNIS TRADE  Team Tournament 2023.xlsx")
-SAN_MICHEL_2023 = str(DATA_DIR / "SAN MICHEL TEAM TOURNAMENT 2023.xlsx")
-SAN_MICHEL_2025_LEGACY = str(DATA_DIR / "SAN MICHEL TEAM TOURNAMENT 2025.xlsx")
-SAN_MICHEL_2024_BARE = str(DATA_DIR / " Team Tournament 2024.xlsx")
+from _test_fixtures import locate as _locate  # noqa: E402
+
+PKF_2023 = _locate("PKF  Team Tournament 2023.xlsx") or ""
+PKF_2024 = _locate(" PKF  Team Tournament 2024.xlsx") or ""
+TENNIS_TRADE_2023 = _locate("TENNIS TRADE  Team Tournament 2023.xlsx") or ""
+SAN_MICHEL_2023 = _locate("SAN MICHEL TEAM TOURNAMENT 2023.xlsx") or ""
+SAN_MICHEL_2025_LEGACY = _locate("SAN MICHEL TEAM TOURNAMENT 2025.xlsx") or ""
+SAN_MICHEL_2024_BARE = _locate(" Team Tournament 2024.xlsx") or ""
 
 
 def _player_name(conn: sqlite3.Connection, pid: int | None) -> str | None:

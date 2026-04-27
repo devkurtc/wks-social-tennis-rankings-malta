@@ -24,12 +24,13 @@ import db  # noqa: E402
 import wilson as parser  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-DATA_DIR = REPO_ROOT / "_DATA_" / "VLTC"
 
-XLSX_2020 = str(DATA_DIR / "Wilson Autumn Results 2020.xlsx")
-XLSX_2019 = str(DATA_DIR / "Wilson Autumn Results 2019.xlsx")
-XLSX_2021 = str(DATA_DIR / "Wilson Autumn Results 2021.xlsx")
-XLS_2017 = str(DATA_DIR / "Wilson Autumn Results 2017.xls")
+from _test_fixtures import locate as _locate  # noqa: E402
+
+XLSX_2020 = _locate("Wilson Autumn Results 2020.xlsx") or ""
+XLSX_2019 = _locate("Wilson Autumn Results 2019.xlsx") or ""
+XLSX_2021 = _locate("Wilson Autumn Results 2021.xlsx") or ""
+XLS_2017 = _locate("Wilson Autumn Results 2017.xls") or ""
 
 
 def _player_name(conn: sqlite3.Connection, pid: int) -> str:

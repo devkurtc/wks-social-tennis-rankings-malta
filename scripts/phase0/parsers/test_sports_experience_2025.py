@@ -25,9 +25,8 @@ import db  # noqa: E402
 import sports_experience_2025 as parser  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-XLSX_PATH = str(
-    REPO_ROOT / "_DATA_" / "VLTC" / "Sports Experience Chosen Doubles 2025 result sheet.xlsx"
-)
+from _test_fixtures import locate as _locate  # noqa: E402
+XLSX_PATH = _locate("Sports Experience Chosen Doubles 2025 result sheet.xlsx") or ""
 
 
 def _player_name(conn: sqlite3.Connection, pid: int) -> str:

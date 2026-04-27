@@ -27,9 +27,10 @@ import db  # noqa: E402
 import mixed_doubles as parser  # noqa: E402
 
 REPO_ROOT = HERE.parent.parent.parent
-ESS_2025 = str(REPO_ROOT / "_DATA_" / "VLTC" / "ESS Mixed Tournament Div and Results 2025.xlsx")
-ESS_2024 = str(REPO_ROOT / "_DATA_" / "VLTC" / "ESS Mixed Tournament Div and Results 2024.xlsx")
-ELEKTRA_2023 = str(REPO_ROOT / "_DATA_" / "VLTC" / "Elektra Mixed Tournament Div and Results 2023.xlsx")
+from _test_fixtures import locate as _locate  # noqa: E402
+ESS_2025 = _locate("ESS Mixed Tournament Div and Results 2025.xlsx") or ""
+ESS_2024 = _locate("ESS Mixed Tournament Div and Results 2024.xlsx") or ""
+ELEKTRA_2023 = _locate("Elektra Mixed Tournament Div and Results 2023.xlsx") or ""
 
 
 def _player_name(conn: sqlite3.Connection, pid: int) -> str:
