@@ -364,6 +364,13 @@
 
   // ─── Main render ───────────────────────────────────────────────────────
   let lastEventIdxRendered = -2;
+  // Why: scrubbing fires render() on every pixel of slider movement. We
+  // want the match panel to follow the playhead (so the user sees what
+  // match they're hovering over), but we DON'T want to spawn animated
+  // delta-popups on every micro-move — that turns the chart into a flood
+  // of rising numbers. So `suppressPopups` is set to true only by the
+  // scrub handler; play/next/prev leave it false and get the popups.
+  let suppressPopups = false;
 
   function render(ms) {
     const x = xOf(ms);
@@ -433,7 +440,7 @@
 
     if (eventIdx !== lastEventIdxRendered) {
       renderMatchPanel(eventIdx);
-      if (eventIdx > lastEventIdxRendered && eventIdx >= 0 && ev) {
+      if (!suppressPopups && eventIdx > lastEventIdxRendered && eventIdx >= 0 && ev) {
         const evMs = dateMs(ev.date);
         for (const pid of CHART_PIDS) {
           const d = ev.deltas[pid];
@@ -458,18 +465,19 @@
   let currentMs = T0;
   let lastFrameTs = null;
 
-  function setMs(ms, suppressFlash = false) {
+  function setMs(ms) {
     currentMs = Math.max(T0, Math.min(T1, ms));
     const sliderVal = ((currentMs - T0) / (T1 - T0) * 1000).toFixed(0);
     scrub.value = sliderVal;
     scrub.setAttribute('value', sliderVal);
-    if (suppressFlash) lastEventIdxRendered = previousEventIndex(currentMs);
     render(currentMs);
   }
 
   scrub.addEventListener('input', () => {
     const frac = scrub.value / 1000;
-    setMs(T0 + frac * (T1 - T0), true);
+    suppressPopups = true;
+    setMs(T0 + frac * (T1 - T0));
+    suppressPopups = false;
   });
 
   playBtn.addEventListener('click', () => {
@@ -507,5 +515,5 @@
     requestAnimationFrame(tick);
   }
 
-  setMs(T0, true);
+  setMs(T0);
 })();
