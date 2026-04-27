@@ -76,6 +76,18 @@ To pick up work:
 
 If you're using Claude Code, the `/pickup-task`, `/log-progress`, and `/complete-task` skills automate steps 3, 4, and 6.
 
+### Commit + pull cadence — please follow this
+
+Several humans and AI agents work on this repo concurrently. The single biggest source of avoidable friction is **stale local checkouts** and **long-lived uncommitted work**. These aren't optional polish; following them keeps merges painless:
+
+- **Pull before you start.** First thing every session: `git pull --rebase origin main`. Five seconds. Saves you 20-minute conflicts on files someone touched while you were away.
+- **Commit small, commit often.** One logical chunk per commit (a parser fix → one commit; a test addition → another commit). Don't accumulate eight unrelated changes into a "wip" commit. Small commits review easily, revert cleanly, and rebase past concurrent work without drama.
+- **Push as soon as the commit is mergeable.** A local-only commit is invisible to everyone else. They can't rebase past it, can't see it in `git log`, and might duplicate the work. Push, then continue.
+- **Pull again before pushing if the session has been long.** More than ~30 min since your last pull? `git pull --rebase` first. Cheap insurance.
+- **Conflicts: resolve, don't bypass.** If a rebase produces a conflict, read both sides and reconcile. Don't blanket `--theirs` / `--ours` and don't `--no-verify` past a failing hook. The shortcut deletes someone else's work.
+
+**Why it matters here specifically:** `TASKS.md`, `PLAN.md`, and the `.claude/` coordination files are touched by every agent at session start. Two agents editing `TASKS.md` without pulling between them = lost progress-log entries. Frequent commit/push/pull collapses that risk to near-zero.
+
 ## Code style
 
 | Layer | Tool | Rule |

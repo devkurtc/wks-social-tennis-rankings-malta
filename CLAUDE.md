@@ -33,6 +33,18 @@ This file (CLAUDE.md) is just orientation. It never overrides `PLAN.md` or `TASK
 
 **Why step 0 exists:** TASKS.md is the multi-agent coordination point. A cold-pickup agent trusts it to be reality. Drift between TASKS.md and `git log` breaks that trust silently — agents pick up "next" tasks that have already shipped, or build on top of work assumed done that isn't. The cost of a 5-minute reconcile is tiny; the cost of a divergent tracker compounds fast.
 
+## Commit + pull cadence (multi-agent, multi-contributor hygiene)
+
+Several agents and humans work on this repo concurrently. The single biggest source of avoidable friction is **stale local checkouts** and **long-lived uncommitted work**. Treat these as defaults, not optional polish:
+
+- **Pull before you start.** First action of every session: `git pull --rebase origin main`. If it fails, stop and resolve before doing anything else. Cost: ~5 seconds. Saves: a 20-minute merge conflict on a file someone else just touched.
+- **Commit small, commit often.** Each logical chunk gets its own commit (one task progress note → one commit; a parser fix → a commit; a separate test addition → a commit). Don't accumulate 8 unrelated changes into a "wip" commit. Small commits are easier to review, easier to revert, and dramatically easier to rebase past someone else's work.
+- **Push as soon as the commit is mergeable.** Don't sit on local commits while you "finish the next thing". An unpushed commit is invisible to other agents — they can't rebase past it, can't see it in `git log`, and may duplicate the work. Push, then continue.
+- **Pull again before pushing if the session has been long.** If more than ~30 min has passed since your last `git pull`, re-pull (rebase) before pushing. Catches concurrent work cheaply.
+- **Conflicts: resolve, don't bypass.** If `git pull --rebase` produces a conflict, read both sides and reconcile. Never `git checkout --theirs` / `--ours` blanket-style or `--no-verify` past a hook failure unless you've understood why. The shortcut destroys someone else's work.
+
+**Why this matters here specifically:** TASKS.md, CLAUDE.md, PLAN.md, and the `.claude/skills/` directory are coordination surfaces every agent reads at session start. If two agents both edit TASKS.md without pulling between them, one set of progress-log entries gets lost in the merge. Frequent commit/push/pull collapses that risk to near-zero.
+
 ## Tech stack (locked — see PLAN.md §5 for rationale)
 
 | Layer | Choice |
