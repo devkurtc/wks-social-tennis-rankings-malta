@@ -87,26 +87,36 @@ git worktree add --detach "$TMP_WT" HEAD >/dev/null
 # whether Pages is already enabled or not in many cases); fall back to POST
 # only if PUT reports "page not found", and treat 409 (already enabled) as a
 # no-op success.
+#
+# Why the admin-permission probe: the Pages config API requires admin role on
+# the repo. Trusted collaborators with `write` can still deploy (the actual
+# force-push to gh-pages above is what makes the site update) but they would
+# otherwise see a noisy WARNING here. Skip the call cleanly when the caller
+# isn't admin — Pages is already enabled, so this is a no-op anyway.
 echo "==> Checking GitHub Pages configuration ..."
-PUT_OUT="$(gh api -X PUT "repos/${REPO_SLUG}/pages" \
-    -F "source[branch]=${DEPLOY_BRANCH}" \
-    -F "source[path]=/" 2>&1)" && PUT_OK=1 || PUT_OK=0
-
-if [ "$PUT_OK" = "1" ]; then
-  echo "    Pages source updated -> branch=${DEPLOY_BRANCH}, path=/."
-elif echo "$PUT_OUT" | grep -qi "not found\|404"; then
-  echo "    Pages not yet enabled. Enabling ..."
-  POST_OUT="$(gh api -X POST "repos/${REPO_SLUG}/pages" \
-      -F "source[branch]=${DEPLOY_BRANCH}" \
-      -F "source[path]=/" 2>&1)" && POST_OK=1 || POST_OK=0
-  if [ "$POST_OK" = "1" ] || echo "$POST_OUT" | grep -qi "already enabled\|409"; then
-    echo "    Pages enabled."
-  else
-    echo "    WARNING: failed to enable Pages: $POST_OUT"
-  fi
+VIEWER_PERM="$(gh api "repos/${REPO_SLUG}" --jq '.permissions.admin' 2>/dev/null || echo "false")"
+if [ "$VIEWER_PERM" != "true" ]; then
+  echo "    Skipped (caller isn't admin on this repo — Pages config already enabled, deploy succeeded above)."
 else
-  # Some other error (permissions, transient)
-  echo "    WARNING: failed to update Pages config: $PUT_OUT"
+  PUT_OUT="$(gh api -X PUT "repos/${REPO_SLUG}/pages" \
+      -F "source[branch]=${DEPLOY_BRANCH}" \
+      -F "source[path]=/" 2>&1)" && PUT_OK=1 || PUT_OK=0
+
+  if [ "$PUT_OK" = "1" ]; then
+    echo "    Pages source updated -> branch=${DEPLOY_BRANCH}, path=/."
+  elif echo "$PUT_OUT" | grep -qi "not found\|404"; then
+    echo "    Pages not yet enabled. Enabling ..."
+    POST_OUT="$(gh api -X POST "repos/${REPO_SLUG}/pages" \
+        -F "source[branch]=${DEPLOY_BRANCH}" \
+        -F "source[path]=/" 2>&1)" && POST_OK=1 || POST_OK=0
+    if [ "$POST_OK" = "1" ] || echo "$POST_OUT" | grep -qi "already enabled\|409"; then
+      echo "    Pages enabled."
+    else
+      echo "    WARNING: failed to enable Pages: $POST_OUT"
+    fi
+  else
+    echo "    WARNING: failed to update Pages config: $PUT_OUT"
+  fi
 fi
 
 # Print the live URL.
