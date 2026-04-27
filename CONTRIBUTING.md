@@ -43,12 +43,32 @@ The CLI has more subcommands — `python3 -m scripts.phase0.cli --help` lists th
 ## Running the tests
 
 ```bash
-pytest scripts/phase0/                    # full suite — ~222 tests, ~80% line coverage
+pytest scripts/phase0/                    # full suite — ~222 tests
 pytest scripts/phase0/test_rating.py      # one file
 pytest scripts/phase0/ -k "rating" -v     # filter by name
 ```
 
 There's no separate integration vs unit split; everything runs against an in-memory SQLite or a temp DB fixture. Tests should pass cleanly on a fresh checkout.
+
+### Coverage policy: ≥80% line coverage
+
+Project policy is **minimum 80% line coverage on `scripts/phase0/`** (the equivalent rule applies to the Phase 1+ app/worker modules when they land). The current baseline was locked in by T-P0.5-016: ~80% across `generate_site.py` / `players.py` / `cli.py` / `eval_identity.py` / `db.py`.
+
+PRs must:
+
+- Hit **≥80% line coverage on any new module** they introduce.
+- **Not lower** the project-total coverage. If a refactor makes existing lines unreachable, delete the dead code rather than letting it sit untested.
+- Include a coverage report in the PR description (paste the `--cov-report=term` output, or screenshot the HTML).
+
+Measure with:
+
+```bash
+pip install pytest-cov                                      # one-time
+pytest --cov=scripts.phase0 --cov-report=term-missing scripts/phase0/
+pytest --cov=scripts.phase0 --cov-report=html scripts/phase0/   # browse htmlcov/index.html
+```
+
+Lines that are genuinely untestable (entry-point glue like `if __name__ == "__main__":`, hard `sys.exit` after a fatal config error) can be excluded with `# pragma: no cover` and a `# Why:` comment explaining why. Don't pad coverage with trivial assertions, don't delete tests to make the number rise, and don't blanket-exclude real production code. The point is regression safety, not the metric.
 
 ## Hard rules — read before opening a PR
 

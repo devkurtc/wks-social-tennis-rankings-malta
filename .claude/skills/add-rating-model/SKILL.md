@@ -47,7 +47,7 @@ python3 -m scripts.phase0.cli recompute --model df_glicko2_v1
 
 The `recompute` handler should dispatch on `--model` and call the right module's `recompute_all`. Don't break the default-model behaviour (which still calls `rating.recompute_all` with `CHAMPION_MODEL`).
 
-### 5. Tests
+### 5. Tests + coverage
 
 Create `scripts/phase0/test_rating_<short>.py` modelled on `test_rating.py`. Cover at minimum:
 
@@ -56,6 +56,14 @@ Create `scripts/phase0/test_rating_<short>.py` modelled on `test_rating.py`. Cov
 - A rate-twice-idempotence test: running `recompute_all` twice produces the same final ratings.
 
 Run `pytest scripts/phase0/` to confirm everything still passes.
+
+**Coverage policy: ≥80% line coverage** on `scripts/phase0/` ([CLAUDE.md](../../../CLAUDE.md) "Conventions for code", [CONTRIBUTING.md](../../../CONTRIBUTING.md) "Coverage policy"). The new `rating_<short>.py` module must hit ≥80% on its own, and the project-total coverage must not drop. Measure:
+
+```bash
+pytest --cov=scripts.phase0 --cov-report=term-missing scripts/phase0/
+```
+
+If real production lines are genuinely untestable (entry-point glue, hard `sys.exit` paths), exclude them with `# pragma: no cover` and a `# Why:` comment. Don't pad coverage with trivial assertions, don't delete tests to inflate the number, don't blanket-exclude code. Paste the `--cov-report=term` output into the PR description.
 
 ### 6. (Optional) Surface it in the leaderboard
 
@@ -74,10 +82,13 @@ If the user wants a UI tab toggle so viewers can switch between models on the le
 Before the user opens a PR to `main`, confirm:
 
 - [ ] `pytest scripts/phase0/` passes (existing 222 tests + the new ones).
+- [ ] **Coverage** ≥80% on the new module, and project-total coverage has not dropped. Paste `--cov-report=term` output into the PR.
 - [ ] `git diff` does NOT touch `_DATA_/`, `phase0.sqlite`, or anything tagged with `openskill_pl` in committed test fixtures.
 - [ ] `python3 scripts/phase0/generate_site.py` succeeds (no Python errors, even if the UI toggle isn't added).
 - [ ] PR description references the model name, summarises the algorithm + how it differs from OpenSkill PL, and notes any new pinned deps.
 - [ ] User did NOT run `scripts/deploy-site.sh`. Deploy is the maintainer's job ([`CLAUDE.md`](../../../CLAUDE.md) hard rule).
+- [ ] Commits are small and individually mergeable; user pulled `--rebase` before pushing if the session was long. ([`CONTRIBUTING.md`](../../../CONTRIBUTING.md) commit + pull cadence.)
+- [ ] User agrees the contribution is licensed under [AGPL-3.0](../../../LICENSE) (the project's license — applied automatically by submission).
 
 ## When NOT to use this skill
 

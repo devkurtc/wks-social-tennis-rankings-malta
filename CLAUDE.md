@@ -85,6 +85,7 @@ Code (parsers, rating engine, web app) will land in `scripts/`, `apps/web/`, `ap
 - **SQL migrations:** plain SQL files with a versioning scheme (TBD in Phase 1).
 - **Player names:** always normalized on insert (NFKC, straight quotes, collapsed whitespace). Original names retained in `player_aliases`. Rationale in PLAN.md §5.4.
 - **Audit:** every mutation goes through a helper that writes to `audit_log` in the same transaction (PLAN.md §5.5).
+- **Test coverage — minimum 80% line coverage on `scripts/phase0/` (Phase 0) and the equivalent app/worker modules in later phases.** New PRs must (a) hit ≥80% on any new module and (b) not lower the project-total coverage. The current baseline (locked in by T-P0.5-016) is ~80% across `generate_site.py` / `players.py` / `cli.py` / `eval_identity.py` / `db.py`. Measure with `pytest --cov=scripts.phase0 --cov-report=term-missing scripts/phase0/`. Untestable lines (e.g. `if __name__ == "__main__":` glue, hard `sys.exit` paths) can be excluded with `# pragma: no cover` and a `# Why:` comment. **Don't** game the metric by deleting tests, padding with trivial assertions, or marking real production code as `no cover`. The point is regression safety, not the number.
 
 ## Shipping user-visible changes
 
