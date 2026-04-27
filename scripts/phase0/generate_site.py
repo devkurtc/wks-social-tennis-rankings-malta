@@ -38,6 +38,12 @@ OUT_DIR = PROJECT_ROOT / "site"
 MODEL = "openskill_pl"
 
 
+LEADERBOARD_MODELS = [
+    {"key": "kc", "label": "KC Version", "model_name": "openskill_pl"},
+    {"key": "df", "label": "DF Version", "model_name": "df_glicko2_v1"},
+]
+
+
 def match_result(
     my_won: int, opp_won: int, my_games: int, opp_games: int
 ) -> tuple[str, str, str]:
@@ -258,6 +264,21 @@ footer { margin: 24px 0; color: var(--muted); font-size: 12px; max-width: 1100px
 
 /* --- Changelog page --- */
 .changelog { max-width: 760px; }
+.version-toggle {
+  display: flex; gap: 6px; margin-bottom: 12px;
+}
+.version-toggle .vtab {
+  padding: 5px 14px; border-radius: 4px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 13px; font-weight: 500;
+  transition: background 0.1s, color 0.1s;
+}
+.version-toggle .vtab:hover { color: var(--fg); }
+.version-toggle .vtab.active {
+  background: var(--accent); color: #0b1220; border-color: var(--accent);
+}
+.version-panel { display: none; }
+.version-panel.active { display: block; }
 .changelog .filters {
   display: flex; flex-wrap: wrap; gap: 6px;
   margin: 14px 0 18px 0;
@@ -815,8 +836,9 @@ def render_neighbours(neighbours: list[dict], me_pid: int) -> str:
             diff_cell = f'<span class="{cls}">{sign}{d:.2f}</span>'
         else:
             diff_cell = '<span class="muted">—</span>'
+        _tr_style = ' style="background:#22304a"' if is_me else ""
         rows.append(
-            f'<tr{" style=\"background:#22304a\"" if is_me else ""}>'
+            f'<tr{_tr_style}>'
             f'<td class="num">{rank}</td>'
             f'<td class="cls">{esc(e["captain_class"])}</td>'
             f'<td>{name_cell}</td>'
@@ -935,34 +957,22 @@ ORDER BY mu3s DESC
 """
 
 
-def build_index(conn: sqlite3.Connection) -> str:
-    rows = conn.execute(LEADERBOARD_SQL, (MODEL,)).fetchall()
-    rows = [r for r in rows if r[6] > 0]  # n_matches > 0
+def _build_leaderboard_body(
+    conn: sqlite3.Connection,
+    model_name: str,
+    decay_rank: dict,
+) -> tuple[list[str], set[str]]:
+    """Return (body_rows, club_slugs) for one model's leaderboard."""
+    rows = conn.execute(LEADERBOARD_SQL, (model_name,)).fetchall()
+    rows = [r for r in rows if r[6] > 0]
 
-    # Decay-365 challenger rank per gender. Sort each gender's pool by
-    # decay μ-3σ DESC and map player_id → rank within that gender. Players
-    # with NULL gender or missing decay row get None.
-    decay_ratings = {
-        row[0]: (row[1], row[2])
-        for row in conn.execute(
-            "SELECT player_id, mu, sigma FROM ratings "
-            "WHERE model_name = 'openskill_pl_decay365'"
-        ).fetchall()
-    }
-    decay_rank: dict[int, int] = {}
-    for gender_filter in ("M", "F"):
-        # Use the leaderboard output (already filtered to n>0) so the decay
-        # rank reflects the same population as the displayed rows.
-        candidates = [
-            (pid, decay_ratings[pid])
-            for (pid, _, gender, *_rest) in rows
-            if gender == gender_filter and pid in decay_ratings
-        ]
-        candidates.sort(key=lambda x: -(x[1][0] - 3 * x[1][1]))
-        for i, (pid, _) in enumerate(candidates, 1):
-            decay_rank[pid] = i
+    # Why: DF model uses Glicko-2 scale (r ≈ 1500, RD ≈ 30–350).
+    # Conservative estimate r - 3*RD has the same interpretation as μ-3σ
+    # for OpenSkill PL but on a different absolute scale.
+    is_glicko = model_name.startswith("df_")
 
     body_rows = []
+    club_slugs: set[str] = set()
     for rank, r in enumerate(rows, 1):
         (pid, name, gender, mu, sigma, mu3s, n, wins, gw, gl,
          last_played, captain_class, clubs) = r
@@ -971,16 +981,17 @@ def build_index(conn: sqlite3.Connection) -> str:
         gw_pct = f"{int(round(gw * 100 / (gw + gl)))}%" if (gw + gl) else ""
         cls = captain_class or ""
         clubs_str = clubs or ""
+        if clubs_str:
+            club_slugs.update(s for s in clubs_str.split(",") if s)
         d_rank = decay_rank.get(pid)
-        if d_rank is not None:
+        if is_glicko:
+            decay_cell = '<td class="num muted" data-sort="999999">—</td>'
+        elif d_rank is not None:
             decay_cell = (
-                f'<td class="num" data-sort="{d_rank}">'
-                f'{d_rank}</td>'
+                f'<td class="num" data-sort="{d_rank}">{d_rank}</td>'
             )
         else:
-            decay_cell = (
-                '<td class="num muted" data-sort="999999">—</td>'
-            )
+            decay_cell = '<td class="num muted" data-sort="999999">—</td>'
         body_rows.append(
             f'<tr data-gender="{esc(gender or "")}" data-class="{esc(cls)}" '
             f'data-clubs="{esc(clubs_str)}">'
@@ -1001,66 +1012,182 @@ def build_index(conn: sqlite3.Connection) -> str:
             f'<td class="muted">{esc(last_played or "")}</td>'
             f'</tr>'
         )
+    return body_rows, club_slugs
+
+
+def build_index(conn: sqlite3.Connection) -> str:
+    decay_ratings = {
+        row[0]: (row[1], row[2])
+        for row in conn.execute(
+            "SELECT player_id, mu, sigma FROM ratings "
+            "WHERE model_name = 'openskill_pl_decay365'"
+        ).fetchall()
+    }
+
+    # Decay rank computed from KC model population (unchanged behaviour).
+    kc_rows = conn.execute(LEADERBOARD_SQL, (MODEL,)).fetchall()
+    kc_rows = [r for r in kc_rows if r[6] > 0]
+    decay_rank: dict[int, int] = {}
+    for gender_filter in ("M", "F"):
+        candidates = [
+            (pid, decay_ratings[pid])
+            for (pid, _, gender, *_rest) in kc_rows
+            if gender == gender_filter and pid in decay_ratings
+        ]
+        candidates.sort(key=lambda x: -(x[1][0] - 3 * x[1][1]))
+        for i, (pid, _) in enumerate(candidates, 1):
+            decay_rank[pid] = i
+
+    all_club_slugs: set[str] = set()
+    panels_html = []
+    for cfg in LEADERBOARD_MODELS:
+        key = cfg["key"]
+        model_name = cfg["model_name"]
+        body_rows, club_slugs = _build_leaderboard_body(conn, model_name, decay_rank)
+        all_club_slugs.update(club_slugs)
+
+        if body_rows:
+            kc_note = (
+                ' &middot; μ-3σ = conservative skill estimate'
+                if model_name == MODEL
+                else ' &middot; r-3·RD = Glicko-2 conservative estimate (Glicko-2 scale, r ≈ 1500)'
+            )
+            table_html = f"""<p class="muted" style="font-size:13px;margin-bottom:8px">{cfg['label']}{kc_note}</p>
+  <div class="table-wrap">
+  <table class="leaderboard" id="table-{key}">
+    <thead>
+      <tr>
+        <th class="num">#</th>
+        <th>Class</th>
+        <th>Player</th>
+        <th>G</th>
+        <th class="num">&#956;</th>
+        <th class="num">&#963;</th>
+        <th class="num">&#956;-3&#963;</th>
+        <th class="num" title="Time-decay challenger rank (&#964;=365d, within same gender). KC Version only.">Decay&#35;</th>
+        <th class="num">n</th>
+        <th class="num">W-L</th>
+        <th class="num">win%</th>
+        <th class="num">games</th>
+        <th class="num">g%</th>
+        <th>Clubs</th>
+        <th>Last</th>
+      </tr>
+    </thead>
+    <tbody>
+      {''.join(body_rows)}
+    </tbody>
+  </table>
+  </div>"""
+        else:
+            table_html = (
+                f'<p class="muted" style="padding:32px 0;text-align:center">'
+                f'No {cfg["label"]} data yet — run '
+                f'<code>python3 -m scripts.phase0.cli recompute --model {model_name}</code>'
+                f'</p>'
+            )
+
+        first = "active" if key == "kc" else ""
+        panels_html.append(
+            f'<div class="version-panel {first}" id="panel-{key}">{table_html}</div>'
+        )
+
+    tab_buttons = "".join(
+        f'<button class="vtab {"active" if cfg["key"] == "kc" else ""}" '
+        f'data-key="{cfg["key"]}">{cfg["label"]}</button>'
+        for cfg in LEADERBOARD_MODELS
+    )
+
+    club_options = "".join(
+        f'<option value="{esc(c)}">{esc(c)}</option>'
+        for c in sorted(all_club_slugs)
+    )
 
     js = """
     <script>
-    function applyFilters() {
-      const g = document.getElementById('f-gender').value;
-      const q = document.getElementById('f-search').value.toLowerCase();
-      const cl = document.getElementById('f-club').value;
-      const rows = document.querySelectorAll('tbody tr');
-      let visible = 0;
-      rows.forEach((row) => {
-        const rg = row.dataset.gender;
-        const rclubs = row.dataset.clubs;
-        const txt = row.textContent.toLowerCase();
-        const okG = !g || rg === g;
-        const okC = !cl || (rclubs && rclubs.split(',').includes(cl));
-        const okQ = !q || txt.includes(q);
-        const show = okG && okC && okQ;
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
-      });
-      document.getElementById('count').textContent = visible + ' players';
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      ['f-gender','f-search','f-club'].forEach((id) => {
-        document.getElementById(id).addEventListener('input', applyFilters);
-      });
-      // Sort on header click
-      document.querySelectorAll('th').forEach((th, idx) => {
-        th.addEventListener('click', () => {
-          const tbody = document.querySelector('tbody');
-          const rows = Array.from(tbody.querySelectorAll('tr'));
-          const asc = th.dataset.sort !== 'asc';
-          th.dataset.sort = asc ? 'asc' : 'desc';
-          const numeric = th.classList.contains('num');
-          rows.sort((a,b) => {
-            const av = a.cells[idx].textContent.trim();
-            const bv = b.cells[idx].textContent.trim();
-            if (numeric) {
-              const an = parseFloat(av.replace(/[^0-9.\\-]/g,'')) || 0;
-              const bn = parseFloat(bv.replace(/[^0-9.\\-]/g,'')) || 0;
-              return asc ? an - bn : bn - an;
-            }
-            return asc ? av.localeCompare(bv) : bv.localeCompare(av);
-          });
-          rows.forEach(r => tbody.appendChild(r));
+    (function () {
+      var STORE_KEY = 'rallyrank-version';
+
+      function activePanel() {
+        return document.querySelector('.version-panel.active');
+      }
+
+      function applyFilters() {
+        var g  = document.getElementById('f-gender').value;
+        var q  = document.getElementById('f-search').value.toLowerCase();
+        var cl = document.getElementById('f-club').value;
+        var panel = activePanel();
+        if (!panel) return;
+        var rows = panel.querySelectorAll('tbody tr');
+        var visible = 0;
+        rows.forEach(function (row) {
+          var rg = row.dataset.gender;
+          var rclubs = row.dataset.clubs;
+          var txt = row.textContent.toLowerCase();
+          var okG = !g || rg === g;
+          var okC = !cl || (rclubs && rclubs.split(',').indexOf(cl) >= 0);
+          var okQ = !q || txt.indexOf(q) >= 0;
+          var show = okG && okC && okQ;
+          row.style.display = show ? '' : 'none';
+          if (show) visible++;
         });
+        document.getElementById('count').textContent = visible + ' players';
+      }
+
+      function wireSort(table) {
+        table.querySelectorAll('th').forEach(function (th, idx) {
+          th.addEventListener('click', function () {
+            var tbody = table.querySelector('tbody');
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            var asc = th.dataset.sort !== 'asc';
+            th.dataset.sort = asc ? 'asc' : 'desc';
+            var numeric = th.classList.contains('num');
+            rows.sort(function (a, b) {
+              var ac = a.cells[idx], bc = b.cells[idx];
+              var av = ac.dataset.sort !== undefined ? ac.dataset.sort : ac.textContent.trim();
+              var bv = bc.dataset.sort !== undefined ? bc.dataset.sort : bc.textContent.trim();
+              if (numeric) {
+                var an = parseFloat(String(av).replace(/[^0-9.\-]/g, '')) || 0;
+                var bn = parseFloat(String(bv).replace(/[^0-9.\-]/g, '')) || 0;
+                return asc ? an - bn : bn - an;
+              }
+              return asc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+            });
+            rows.forEach(function (r) { tbody.appendChild(r); });
+          });
+        });
+      }
+
+      function switchTo(key) {
+        document.querySelectorAll('.version-panel').forEach(function (p) {
+          p.classList.toggle('active', p.id === 'panel-' + key);
+        });
+        document.querySelectorAll('.vtab').forEach(function (b) {
+          b.classList.toggle('active', b.dataset.key === key);
+        });
+        try { localStorage.setItem(STORE_KEY, key); } catch(e) {}
+        applyFilters();
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        ['f-gender', 'f-search', 'f-club'].forEach(function (id) {
+          document.getElementById(id).addEventListener('input', applyFilters);
+        });
+
+        document.querySelectorAll('.vtab').forEach(function (btn) {
+          btn.addEventListener('click', function () { switchTo(btn.dataset.key); });
+        });
+
+        document.querySelectorAll('.leaderboard').forEach(wireSort);
+
+        // Restore last chosen tab
+        var stored;
+        try { stored = localStorage.getItem(STORE_KEY); } catch(e) {}
+        if (stored) { switchTo(stored); } else { applyFilters(); }
       });
-      applyFilters();
-    });
+    })();
     </script>
     """
-
-    # Collect club slugs for the filter
-    club_slugs = sorted({
-        s for r in rows if r[12]
-        for s in (r[12] or "").split(",") if s
-    })
-    club_options = "".join(
-        f'<option value="{esc(c)}">{esc(c)}</option>' for c in club_slugs
-    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -1074,7 +1201,7 @@ def build_index(conn: sqlite3.Connection) -> str:
 <body>
 <header>
   <h1>RallyRank — Doubles Leaderboard</h1>
-  <p>OpenSkill Plackett-Luce ratings &middot; class column = captain-assigned slot from most recent team tournament</p>
+  <p>Class column = captain-assigned slot from most recent team tournament &middot; click any column header to sort</p>
 </header>
 {render_nav("", "index")}
 <main>
@@ -1091,36 +1218,13 @@ def build_index(conn: sqlite3.Connection) -> str:
     </select>
     <span id="count" class="muted"></span>
   </div>
-  <div class="table-wrap">
-  <table class="leaderboard">
-    <thead>
-      <tr>
-        <th class="num">#</th>
-        <th>Class</th>
-        <th>Player</th>
-        <th>G</th>
-        <th class="num">μ</th>
-        <th class="num">σ</th>
-        <th class="num">μ-3σ</th>
-        <th class="num" title="Time-decay challenger rank (τ=365d, within same gender). Recency-weighted: old matches contribute exponentially less. See _ANALYSIS_/model_evaluation/SUMMARY.md for backtest results.">Decay #</th>
-        <th class="num">n</th>
-        <th class="num">W-L</th>
-        <th class="num">win%</th>
-        <th class="num">games</th>
-        <th class="num">g%</th>
-        <th>Clubs</th>
-        <th>Last</th>
-      </tr>
-    </thead>
-    <tbody>
-      {''.join(body_rows)}
-    </tbody>
-  </table>
+  <div class="version-toggle">
+    {tab_buttons}
   </div>
+  {''.join(panels_html)}
 </main>
 <footer>
-  Generated from {DB_PATH} &middot; click any player for trajectory and match history &middot;
-  click any column header to sort.
+  Generated from {DB_PATH} &middot; click any player for trajectory and match history.
 </footer>
 {js}
 </body>

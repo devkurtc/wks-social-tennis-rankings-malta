@@ -257,6 +257,28 @@ def cmd_rate(args: argparse.Namespace) -> int:
     return 0
 
 
+
+def cmd_recompute(args: argparse.Namespace) -> int:
+    import db
+    import rating
+    import rating_df
+
+    _MODELS = {
+        rating.CHAMPION_MODEL: lambda conn: rating.recompute_all(conn, model_name=args.model),
+        rating_df.DF_MODEL:    lambda conn: rating_df.recompute_all(conn, model_name=args.model),
+    }
+    if args.model not in _MODELS:
+        known = ", ".join(sorted(_MODELS))
+        print(f"recompute: unknown model {args.model!r}. Known: {known}", file=sys.stderr)
+        return 1
+    conn = db.init_db()
+    try:
+        n = _MODELS[args.model](conn)
+    finally:
+        conn.close()
+    print(f"Recomputed ratings over {n} matches (model={args.model}).")
+    return 0
+
 def cmd_history(args: argparse.Namespace) -> int:
     """Show the match-by-match rating trajectory for a single player."""
     import db
@@ -1298,6 +1320,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="Recompute OpenSkill ratings for all loaded matches.",
     )
     p_rate.set_defaults(func=cmd_rate)
+
+
+    p_recompute = sub.add_parser(
+        "recompute",
+        help=(
+            "Recompute ratings for a specific model. "
+            "Use --model to select which engine runs. "
+            "Defaults to the champion (openskill_pl)."
+        ),
+    )
+    p_recompute.add_argument(
+        "--model",
+        default="openskill_pl",
+        help=(
+            "Model to recompute. "
+            "openskill_pl (champion) or df_glicko2_v1 (DF challenger). "
+            "Default: openskill_pl."
+        ),
+    )
+    p_recompute.set_defaults(func=cmd_recompute)
 
     p_history = sub.add_parser(
         "history",
