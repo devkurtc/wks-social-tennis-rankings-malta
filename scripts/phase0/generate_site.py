@@ -25,6 +25,12 @@ import sqlite3
 import sys
 from pathlib import Path
 
+# Allow sibling-module imports whether this file is invoked as a script
+# (`python3 scripts/phase0/generate_site.py`) or as a module (`python3 -m
+# scripts.phase0.generate_site`). Same pattern as `repair_ghost_match_sides.py`.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from journey import compute_journey_data  # noqa: E402
+
 # Anchor to project root regardless of cwd (script lives at scripts/phase0/).
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DB_PATH = str(PROJECT_ROOT / "phase0.sqlite")
@@ -588,6 +594,83 @@ tr.match-row td.score, tr.match-row td.num { white-space: nowrap; }
 # without a query-string version, browsers may serve the old CSS even after a
 # fresh deploy. Recomputed automatically every time the CSS changes.
 CSS_VERSION = hashlib.sha1(CSS.encode("utf-8")).hexdigest()[:10]
+
+# Rating-journey assets (JS + CSS) live as plain files under
+# scripts/phase0/journey_assets/ and are copied verbatim into site/ during
+# build. Loaded into memory once at import time so the cache-busting
+# fingerprints stay stable across the build run.
+_JOURNEY_DIR = Path(__file__).resolve().parent / "journey_assets"
+JOURNEY_CSS = (_JOURNEY_DIR / "rating-journey.css").read_text(encoding="utf-8")
+JOURNEY_JS = (_JOURNEY_DIR / "rating-journey.js").read_text(encoding="utf-8")
+JOURNEY_CSS_VERSION = hashlib.sha1(JOURNEY_CSS.encode("utf-8")).hexdigest()[:10]
+JOURNEY_JS_VERSION = hashlib.sha1(JOURNEY_JS.encode("utf-8")).hexdigest()[:10]
+
+
+def render_journey_section_html() -> str:
+    """Static HTML skeleton for the rating-journey block.
+
+    All IDs are prefixed with `journey-` so they can't collide with anything
+    on the host page. The section is hydrated by rating-journey.js, which
+    reads its data from `window.RATING_DATA` (an inline blob emitted per
+    player page). If the JS doesn't run (no data, JS disabled), this
+    skeleton renders as a static-looking placeholder, not as a broken page.
+    """
+    return """
+  <section class="rating-journey-section">
+    <div class="journey-header">
+      <h2>Rating journey</h2>
+      <div class="journey-sub" id="journey-sub">Loading…</div>
+    </div>
+    <div class="journey-layout">
+      <div class="chart-panel">
+        <svg class="journey-chart" viewBox="0 0 900 460" id="journey-chart">
+          <defs>
+            <clipPath id="journey-past-clip">
+              <rect id="journey-past-clip-rect" x="0" y="0" width="0" height="460"/>
+            </clipPath>
+          </defs>
+          <text class="axis-title" x="14" y="20" transform="rotate(-90 14 20)">conservative rating (μ−3σ) →</text>
+          <g class="grid" id="journey-grid"></g>
+          <g class="axis" id="journey-x-axis"></g>
+          <g class="axis" id="journey-y-axis"></g>
+          <g id="journey-lines-ghost"></g>
+          <g id="journey-lines-active" clip-path="url(#journey-past-clip)"></g>
+          <line class="playhead" id="journey-playhead" x1="80" y1="20" x2="80" y2="410"/>
+          <g id="journey-dots"></g>
+          <g id="journey-labels"></g>
+          <g id="journey-popups"></g>
+        </svg>
+      </div>
+      <aside class="journey-aside">
+        <h3>Now showing</h3>
+        <div class="current-date" id="journey-current-date">—</div>
+        <div class="current-date-sub" id="journey-current-date-sub"></div>
+        <h3>Last match at this point</h3>
+        <div id="journey-match-panel-wrap">
+          <div class="match-panel empty">Drag the slider or press play to see matches.</div>
+        </div>
+        <h3>Live conservative scores</h3>
+        <ul class="ratings-list" id="journey-ratings-list"></ul>
+      </aside>
+    </div>
+    <div class="journey-controls">
+      <button id="journey-play-btn">▶ Play</button>
+      <button class="step-btn" id="journey-prev-btn" title="previous match">‹</button>
+      <button class="step-btn" id="journey-next-btn" title="next match">›</button>
+      <input type="range" id="journey-scrub" min="0" max="1000" value="0" step="1">
+      <select id="journey-speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span class="time" id="journey-time-display">—</span>
+    </div>
+    <div class="footnote">
+      Lines are this player + the 7 most-played-with neighbours. Drag the slider or press play to scrub through the full rating history. Conservative score = <code>μ − 3σ</code>; rises when uncertainty drops, falls when matches go badly. Click any chart line to scrub to a match.
+    </div>
+  </section>
+"""
 
 
 # --- Helpers -----------------------------------------------------------------
@@ -1814,6 +1897,26 @@ def build_player_page(
     ]
     traj = render_trajectory_svg(history)
 
+    # Rating-journey data. Returns None for players with no rating_history
+    # (merged-out, never rated, etc.) — caller emits the section markup
+    # without an inline blob, and the JS no-ops on missing data.
+    journey_data = compute_journey_data(conn, pid, MODEL)
+    if journey_data is not None:
+        journey_section = render_journey_section_html()
+        journey_blob = (
+            f'<script>window.RATING_DATA = '
+            f'{json.dumps(journey_data, separators=(",", ":"))};</script>\n'
+            f'<script src="../rating-journey.js?v={JOURNEY_JS_VERSION}" defer></script>'
+        )
+        journey_link = (
+            f'<link rel="stylesheet" '
+            f'href="../rating-journey.css?v={JOURNEY_CSS_VERSION}">'
+        )
+    else:
+        journey_section = ""
+        journey_blob = ""
+        journey_link = ""
+
     # Peers section: 3 above + me + 3 below in the appropriate gender bucket.
     peers_html = ""
     if neighbours_by_gender:
@@ -2235,6 +2338,7 @@ def build_player_page(
 <meta name="theme-color" content="#0f1115">
 <title>{esc(name)} — RallyRank</title>
 <link rel="stylesheet" href="../styles.css?v={CSS_VERSION}">
+{journey_link}
 </head>
 <body>
 {render_nav("../", "")}
@@ -2248,6 +2352,8 @@ def build_player_page(
       </div>
     </div>
   </div>
+
+  {journey_section}
 
   {rating_block}
 
@@ -2315,6 +2421,7 @@ def build_player_page(
   }});
 }})();
 </script>
+{journey_blob}
 </body>
 </html>
 """
@@ -4606,6 +4713,8 @@ def main() -> int:
 
     OUT_DIR.mkdir(exist_ok=True)
     write(OUT_DIR / "styles.css", CSS)
+    write(OUT_DIR / "rating-journey.css", JOURNEY_CSS)
+    write(OUT_DIR / "rating-journey.js", JOURNEY_JS)
     # Tell GitHub Pages not to run Jekyll — it would otherwise hide files that
     # start with `_` and may rewrite paths. The site is fully pre-rendered.
     write(OUT_DIR / ".nojekyll", "")
