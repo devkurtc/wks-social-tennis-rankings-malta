@@ -31,12 +31,15 @@ PROJECT_ROOT = SCRIPT_DIR.parent.parent
 DB_PATH = PROJECT_ROOT / "phase0.sqlite"
 ALIASES_PATH = SCRIPT_DIR / "manual_aliases.json"
 DISTINCT_PATH = SCRIPT_DIR / "known_distinct.json"
+DEFER_PATH = SCRIPT_DIR / "defer.json"
 
 # Make `import players` and `import db` work regardless of cwd.
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import pending_changes  # noqa: E402
 import players  # noqa: E402
+import reprocess  # noqa: E402
 
 # Single write lock for the JSON files — reads are lock-free.
 _FILE_LOCK = threading.Lock()
@@ -47,20 +50,75 @@ _FILE_LOCK = threading.Lock()
 
 def _fetch_suggestions(threshold: float = 0.85) -> list[dict]:
     """Return current pending fuzzy suggestions (filtering out already-decided
-    pairs). Re-queried on each page load so verdicts disappear immediately
-    after they're recorded."""
+    pairs and active defers). Re-queried on each page load so verdicts
+    disappear immediately after they're recorded."""
     conn = sqlite3.connect(str(DB_PATH))
     try:
         kd = players.load_known_distinct(str(DISTINCT_PATH))
+        deferred = players.load_active_defers(str(DEFER_PATH))
         return players.suggest_fuzzy_matches(
             conn,
             threshold=threshold,
             same_gender_only=True,
             min_matches=1,
             known_distinct=kd,
+            deferred=deferred,
         )
     finally:
         conn.close()
+
+
+def _fetch_recent_merges(limit: int = 30) -> list[dict]:
+    """Return the N most-recent `player.merged` events that haven't been
+    reversed by a later `player.unmerged` on the same loser. Each entry
+    carries the audit_log id so the de-merge button can target it.
+    """
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        # Most-recent merge per loser. Filter out any loser that has a later
+        # `player.unmerged` event (already reversed) using a NOT EXISTS.
+        rows = conn.execute(
+            """
+            SELECT al.id, al.entity_id AS loser_id, al.ts,
+                   al.before_jsonb, al.after_jsonb,
+                   p.canonical_name AS loser_name,
+                   pw.id AS winner_id, pw.canonical_name AS winner_name
+            FROM audit_log al
+            JOIN players p ON p.id = al.entity_id
+            LEFT JOIN players pw ON pw.id = json_extract(al.after_jsonb,
+                '$.merged_into_id')
+            WHERE al.action = 'player.merged' AND al.entity_type = 'players'
+              AND p.merged_into_id IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1 FROM audit_log al2
+                WHERE al2.action = 'player.unmerged'
+                  AND al2.entity_id = al.entity_id
+                  AND al2.ts > al.ts
+              )
+            ORDER BY al.ts DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    finally:
+        conn.close()
+    out = []
+    for (audit_id, loser_id, ts, _bjson, ajson, loser_name,
+         winner_id, winner_name) in rows:
+        try:
+            after = json.loads(ajson or "{}")
+        except json.JSONDecodeError:
+            after = {}
+        out.append({
+            "audit_id": audit_id,
+            "ts": ts,
+            "loser_id": loser_id,
+            "loser_name": loser_name,
+            "winner_id": winner_id,
+            "winner_name": winner_name,
+            "reason": after.get("reason", ""),
+        })
+    return out
 
 
 def _fetch_player_mini(pid: int) -> dict:
@@ -311,12 +369,25 @@ dialog button.primary { background: var(--accent); color: var(--bg); border-colo
 
 <div class="controls">
   <span class="stat">Pending: <span id="count-pending">…</span></span>
-  <span class="stat">Same this session: <span id="count-same">0</span></span>
-  <span class="stat">Different this session: <span id="count-distinct">0</span></span>
+  <span class="stat">Merges: <span id="count-same">0</span></span>
+  <span class="stat">Distinct: <span id="count-distinct">0</span></span>
+  <span class="stat">Don't-know: <span id="count-defer">0</span></span>
+  <span class="stat">De-merges: <span id="count-unmerge">0</span></span>
+  <span class="stat" id="reprocess-stat" style="background:rgba(78,161,255,0.15);">
+    Unprocessed: <span id="count-pending-changes">0</span>
+  </span>
+  <button id="reprocess-btn" disabled style="padding:6px 12px; background:var(--accent); border:none; color:#0b1220; border-radius:6px; cursor:pointer; font-weight:600;" title="Run apply-aliases → rate → generate-site (locally; deploy is a separate button)">↻ Reprocess (0)</button>
+  <button id="reprocess-deploy-btn" disabled style="padding:6px 12px; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:6px; cursor:pointer;" title="Reprocess AND force-push site/ to gh-pages">↻ + Deploy</button>
   <button id="refresh-btn" style="margin-left:auto; padding:6px 12px; background:var(--card); border:1px solid var(--border); color:var(--fg); border-radius:6px; cursor:pointer;">Refresh queue</button>
 </div>
 
 <div id="queue"><p class="empty">Loading…</p></div>
+
+<h2 style="font-size:16px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin:32px 0 8px 0;">
+  Recent merges
+  <span style="text-transform:none; font-weight:normal; font-size:12px;">— click De-merge to reverse a past merge that was wrong</span>
+</h2>
+<div id="recent-merges"><p class="empty">Loading…</p></div>
 
 <div class="toast" id="toast"></div>
 
@@ -346,7 +417,7 @@ dialog button.primary { background: var(--accent); color: var(--bg); border-colo
 
 <script>
 let queue = [];
-let counts = {same: 0, distinct: 0};
+let counts = {same: 0, distinct: 0, defer: 0, unmerge: 0};
 let activePair = null; // for dialogs
 
 function classifyConf(c) {
@@ -398,9 +469,10 @@ function renderPair(p, idx) {
       </div>
     </div>
     <div class="actions">
-      <button class="same" onclick="openSameDialog(${idx})">✓ Same person</button>
-      <button class="different" onclick="openDistinctDialog(${idx})">✗ Different people</button>
-      <button class="defer" onclick="deferPair(${idx})">↷ Defer</button>
+      <button class="same" onclick="openSameDialog(${idx})" title="Same person — record a merge">✓ Merge</button>
+      <button class="different" onclick="openDistinctDialog(${idx})" title="Different people — they should not be merged">✗ Different</button>
+      <button class="defer" onclick="dontKnowPair(${idx})" title="Don't know yet — defer 14 days">? Don't know</button>
+      <button class="defer" onclick="skipPair(${idx})" title="Hide for this session only — re-appears on refresh">↷ Skip</button>
     </div>
   </div>`;
 }
@@ -475,11 +547,138 @@ function toast(msg, isError) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-function deferPair(idx) {
-  // Just hide locally — verdict NOT recorded; will reappear on next refresh.
+function skipPair(idx) {
+  // No persistence — pair will re-appear on next refresh. Useful for "I'll
+  // think about this one but don't lock it in".
   const el = document.querySelector(`.pair[data-idx="${idx}"]`);
   el.classList.add('removing');
   setTimeout(() => el.remove(), 400);
+}
+
+async function dontKnowPair(idx) {
+  // "Don't know" — write a deferral that lasts 14 days.
+  const p = queue[idx];
+  try {
+    const r = await fetch('/api/defer', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({a_name: p.a.name, b_name: p.b.name, days: 14}),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'unknown error');
+    counts.defer++;
+    document.getElementById('count-defer').textContent = counts.defer;
+    toast(`Deferred 14 days: ${p.a.name} ↔ ${p.b.name}`);
+    const el = document.querySelector(`.pair[data-idx="${idx}"]`);
+    el.classList.add('removing');
+    setTimeout(() => {
+      el.remove();
+      queue = queue.filter((_, i) => i !== idx);
+      document.getElementById('count-pending').textContent = queue.length;
+    }, 400);
+    refreshPendingChanges();
+  } catch (e) {
+    toast('Failed: ' + e.message, true);
+  }
+}
+
+// ---- Recent merges + de-merge ----
+async function loadRecentMerges() {
+  const el = document.getElementById('recent-merges');
+  try {
+    const r = await fetch('/api/recent_merges');
+    const merges = await r.json();
+    if (!merges.length) {
+      el.innerHTML = '<p class="empty">No active merges to show.</p>';
+      return;
+    }
+    el.innerHTML = merges.map(m => `
+      <div class="pair" data-audit-id="${m.audit_id}">
+        <div class="pair-head">
+          <span style="font-size:11px; color:var(--muted);">audit #${m.audit_id} · ${escHtml(m.ts || '')}</span>
+        </div>
+        <div class="players">
+          <div class="player">
+            <div class="name">Loser · ${escHtml(m.loser_name)}</div>
+            <div class="meta">id #${m.loser_id}</div>
+          </div>
+          <div class="player">
+            <div class="name">Winner · ${escHtml(m.winner_name || 'unknown')}</div>
+            <div class="meta">id #${m.winner_id || '?'} · reason: ${escHtml(m.reason || '—')}</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="different" onclick="unmergePair(${m.audit_id}, ${JSON.stringify(m.loser_name)}, ${JSON.stringify(m.winner_name || '')})">↺ De-merge (was wrong)</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    el.innerHTML = '<p class="empty">Failed to load: ' + escHtml(e.message) + '</p>';
+  }
+}
+
+async function unmergePair(auditId, loserName, winnerName) {
+  if (!confirm(`De-merge: split "${loserName}" back out of "${winnerName}"?\n\nThis will:\n  • restore merged_into_id = NULL\n  • redirect match_sides back to the loser (per audit snapshot)\n  • record the pair as known-distinct\n  • require re-rating before the leaderboard reflects the split`)) return;
+  try {
+    const r = await fetch('/api/unmerge', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({audit_id: auditId, reason: 'wrong merge — operator review'}),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'unknown error');
+    counts.unmerge++;
+    document.getElementById('count-unmerge').textContent = counts.unmerge;
+    toast(`De-merged: ${data.loser_name} ← ${data.winner_name} (sides redirected: ${data.match_sides_redirected}${data.legacy ? ', legacy entry — match_sides not snapshotted' : ''})`);
+    loadRecentMerges();
+    refreshPendingChanges();
+  } catch (e) {
+    toast('Failed: ' + e.message, true);
+  }
+}
+
+// ---- Pending-change counter + Reprocess buttons ----
+async function refreshPendingChanges() {
+  try {
+    const r = await fetch('/api/pending_changes');
+    const summary = await r.json();
+    const n = summary.count || 0;
+    document.getElementById('count-pending-changes').textContent = n;
+    document.getElementById('reprocess-btn').textContent = `↻ Reprocess (${n})`;
+    document.getElementById('reprocess-btn').disabled = (n === 0);
+    document.getElementById('reprocess-deploy-btn').disabled = (n === 0);
+  } catch (e) {
+    /* non-critical */
+  }
+}
+
+async function runReprocess(includeDeploy) {
+  const btn = document.getElementById(includeDeploy ? 'reprocess-deploy-btn' : 'reprocess-btn');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Running…';
+  try {
+    const r = await fetch('/api/reprocess', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({include_deploy: !!includeDeploy}),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'unknown error');
+    if (data.ok) {
+      toast(`Reprocess OK${includeDeploy ? ' + deployed' : ''}`);
+    } else {
+      toast(`Reprocess stopped at: ${data.stopped_at}`, true);
+    }
+    refreshPendingChanges();
+    loadQueue();
+    loadRecentMerges();
+  } catch (e) {
+    toast('Reprocess failed: ' + e.message, true);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+    refreshPendingChanges();
+  }
 }
 
 // ---- Same-person dialog ----
@@ -583,8 +782,19 @@ async function submitDistinct() {
   }
 }
 
-document.getElementById('refresh-btn').onclick = loadQueue;
+document.getElementById('refresh-btn').onclick = () => {
+  loadQueue();
+  loadRecentMerges();
+  refreshPendingChanges();
+};
+document.getElementById('reprocess-btn').onclick = () => runReprocess(false);
+document.getElementById('reprocess-deploy-btn').onclick = () => runReprocess(true);
 loadQueue();
+loadRecentMerges();
+refreshPendingChanges();
+// Refresh the pending-changes counter periodically so other agents/tabs
+// pushing verdicts are reflected without a full reload.
+setInterval(refreshPendingChanges, 15000);
 </script>
 </body>
 </html>
@@ -630,6 +840,16 @@ class ReviewHandler(BaseHTTPRequestHandler):
             try:
                 suggestions = _fetch_suggestions()
                 return self._send_json(200, suggestions)
+            except Exception as e:
+                return self._send_json(500, {"error": str(e)})
+        if path == "/api/recent_merges":
+            try:
+                return self._send_json(200, _fetch_recent_merges())
+            except Exception as e:
+                return self._send_json(500, {"error": str(e)})
+        if path == "/api/pending_changes":
+            try:
+                return self._send_json(200, pending_changes.summary())
             except Exception as e:
                 return self._send_json(500, {"error": str(e)})
         if path.startswith("/api/player/"):
@@ -694,6 +914,10 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 added = players.record_same_person(
                     str(ALIASES_PATH), winner, loser, reason=reason
                 )
+                pending_changes.record(
+                    "merge", winner, loser,
+                    extra={"reason": reason, "added": added},
+                )
             return self._send_json(200, {"added": added, "winner": winner, "loser": loser})
 
         if path == "/api/distinct":
@@ -706,7 +930,84 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 added = players.record_distinct(
                     str(DISTINCT_PATH), a, b, reason=reason
                 )
+                pending_changes.record(
+                    "distinct", a, b,
+                    extra={"reason": reason, "added": added},
+                )
             return self._send_json(200, {"added": added, "a": a, "b": b})
+
+        if path == "/api/defer":
+            # "Don't know" — defer the pair for N days. Re-deferring refreshes
+            # the timestamp.
+            a = body.get("a_name", "").strip()
+            b = body.get("b_name", "").strip()
+            days = int(body.get("days", 14))
+            reason = body.get("reason", "").strip() or "Don't know — deferred via review UI"
+            if not a or not b:
+                return self._send_json(400, {"error": "a_name and b_name required"})
+            with _FILE_LOCK:
+                changed = players.record_defer(
+                    str(DEFER_PATH), a, b, days=days, reason=reason,
+                )
+                pending_changes.record(
+                    "defer", a, b,
+                    extra={"reason": reason, "days": days},
+                )
+            return self._send_json(200, {"deferred": changed, "a": a, "b": b, "days": days})
+
+        if path == "/api/unmerge":
+            # De-merge a past merge by audit_log id.
+            try:
+                audit_id = int(body.get("audit_id"))
+            except (TypeError, ValueError):
+                return self._send_json(400, {"error": "audit_id (int) required"})
+            reason = body.get("reason", "").strip() or "De-merged via review UI"
+            try:
+                conn = sqlite3.connect(str(DB_PATH))
+                conn.execute("PRAGMA foreign_keys = ON;")
+                try:
+                    result = players.unmerge_player(
+                        conn, audit_id, reason=reason,
+                    )
+                finally:
+                    conn.close()
+            except ValueError as e:
+                return self._send_json(409, {"error": str(e)})
+            with _FILE_LOCK:
+                # Also persist the verdict — different people now (since we
+                # decided they shouldn't have been merged in the first place).
+                players.record_distinct(
+                    str(DISTINCT_PATH),
+                    result["loser_name"], result["winner_name"],
+                    reason=f"de-merge: {reason}",
+                )
+                pending_changes.record(
+                    "unmerge",
+                    result["loser_name"], result["winner_name"],
+                    extra={
+                        "audit_id": audit_id,
+                        "reason": reason,
+                        "match_sides_redirected": result["match_sides_redirected"],
+                        "legacy": result["legacy"],
+                    },
+                )
+            return self._send_json(200, result)
+
+        if path == "/api/reprocess":
+            include_deploy = bool(body.get("include_deploy", False))
+            try:
+                result = reprocess.run(
+                    aliases_path=str(ALIASES_PATH),
+                    include_deploy=include_deploy,
+                )
+            except Exception as e:
+                return self._send_json(500, {"error": str(e)})
+            if result["ok"]:
+                pending_changes.archive(
+                    reason=("reprocess (with deploy)"
+                            if include_deploy else "reprocess (local only)"),
+                )
+            return self._send_json(200, result)
 
         return self._send_json(404, {"error": "not found"})
 

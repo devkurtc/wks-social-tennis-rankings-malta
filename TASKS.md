@@ -112,7 +112,8 @@ Use these to follow protocol consistently — mostly to avoid drift between TASK
 
 | State | Tasks |
 |---|---|
-| `in-progress` | T-P0.5-018 (4-verdict identity triage UI + de-merge + manual reprocess button) |
+| `in-progress` | **T-P0.5-020 (data-integrity P0: match/tournament dedup — 13% of all matches duplicated, contaminating every rating; fix in flight 2026-04-27)**; **T-P0.5-022 (tied-match display labels across 12+ sites — surfaced same day)** |
+| `up next — bugs surfaced 2026-04-27` | T-P0.5-021 (KURT CARABOTT P341 → Kurt Carabott P240 case-only merge — blocked on T-P0.5-020) |
 | `decision pending` | T-P0.5-011 (promote `openskill_pl_decay365` to `CHAMPION_MODEL` or keep vanilla — backtest data already in hand) |
 | `up next — site / data hygiene` | T-P0.5-012 (μ-Nσ display-metric tuning); T-P0.5-013 (gh-pages orphan-player-file cleanup); T-P0.5-019 (auto-reprocess daemon, deferred until pair volume justifies it); T-P1-016 (`team_tournament` Final-sheet parser bug); T-P1-018 (v2 rating model: resolve captain-bias + no-team-assignment doubts); T-P1-022 (multi-club separation in site nav) |
 | `up next — pre-launch gates` | T-P1-019 (draft trust + legality ADRs 002-006); T-P1-020 (public-launch checklist — privacy notice, takedown channel, robots.txt) |
@@ -771,7 +772,7 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
 
 ### T-P0.5-018 — 4-verdict identity-triage UI (Merge / De-merge / Don't know / Skip) + manual reprocess button
 
-- **Status:** `in-progress` (2026-04-27)
+- **Status:** `done` (2026-04-27)
 - **Phase:** 0.5
 - **Goal:** Give the human reviewer a screen that walks every pending fuzzy pair one-by-one and lets them apply one of four verdicts that the system learns from. The current `cli.py review-server` has 3 verdicts (Same / Different / Defer) and no de-merge action; this task extends it to 4 verdicts plus an explicit de-merge flow plus a manual "Reprocess pending changes" button.
 - **What it covers:**
@@ -813,6 +814,88 @@ Tasks closed: T-P0-001 ✓ T-P0-002 ✓ T-P0-003 ✓ T-P0-004 ✓ T-P0-005 ✓ T
   - [ ] `launchd` plist installed under `~/Library/LaunchAgents/com.rallyrank.reprocess.plist`
   - [ ] On pipeline failure: archive `pending_changes.jsonl` to `pending_changes.failed.<ts>.jsonl` so a re-run starts clean; surface error somewhere visible (logfile + optional notification)
   - [ ] Two consecutive failures pause the daemon (require manual `launchctl kickstart` to resume)
+
+### T-P0.5-020 — Match/tournament dedup bug (data-integrity P0)
+
+- **Status:** `done` (2026-04-27)
+- **Phase:** 0.5
+- **Goal:** Eliminate duplicate `tournaments` and `matches` rows that have been silently inflating every player's rating computation by ~13%, then prevent future duplication at the parser layer.
+- **Surfaced by:** real-data check during the rating-journey mockup work (2026-04-27). 4,898 active matches but only 4,281 distinct match signatures (by date + player composition) → **617 duplicate matches** (~13%). Same pattern in `rating_history`: 19,212 rows for `openskill_pl` across 4,803 distinct match_ids. Sample dup pair: matches 11773 and 12108 — same date, same teams, same scores, both `superseded_by_run_id IS NULL`, but DIFFERENT `tournament_id` values (105 vs 109). Same tournament name "SAN MICHEL TEAM TOURNAMENT 2025".
+- **Root cause** (per investigation 2026-04-27): every parser does an unconditional `INSERT INTO tournaments` with no get-or-create. The `source_files` reuse logic catches re-loads of the same physical file (filename + sha256) but **misses two-different-files-with-same-content** (e.g. scraper saved the same tournament under a renamed file). The `cli.py` dispatch table compounds this — `("san michel results", _tt.parse)` and `("san michel team tournament", _ttl.parse)` route the same logical tournament to different parsers based on filename, producing two source_files → two tournaments → two sets of matches. `_iter_active_matches` (rating.py:384-397) does no dedup either — every active match flows through.
+- **Why this matters:** every rating in the system is computed against ~13% inflated match counts. σ has been over-shrunk; conservative scores (μ−3σ) are inflated. The leaderboard is wrong. Backtest accuracy numbers are wrong. Any captain looking at a player's career W/L count is seeing inflated numbers. **Fix this before any further rating-engine work.**
+- **Fix plan (3 components):**
+  1. **SQL remediation.** Identify duplicate tournaments by `(club_id, name, year)`, keep the lowest `id`, supersede all matches belonging to higher-id duplicates by setting `superseded_by_run_id = (SELECT MAX(id) FROM ingestion_runs)`. Dry-run first (count only). Verify ~617 matches affected. Then run, then `cli.py rate` to wipe and recompute `rating_history` from clean active matches.
+  2. **Parser code fix — get-or-create.** In every parser's `parse()` function (`scripts/phase0/parsers/team_tournament.py:723–728`, `team_tournament_legacy.py:649–654`, `sports_experience_2025.py:651–656`, plus any others found by `grep -rn "INSERT INTO tournaments" scripts/phase0/parsers/`), replace the bare INSERT with a SELECT-then-INSERT-if-missing pattern keyed on `(club_id, name, year)`. Preserve each parser's column list verbatim — they vary.
+  3. **`source_files` sha256-only fallback.** Currently keys on (filename, sha256). Add a sha256-only fallback so a renamed-but-identical file reuses the existing source_files row. Catches the scraper-rename case before any tournament row is created.
+- **Acceptance criteria:**
+  - [ ] Dry-run SQL report: count of matches that would be superseded per duplicate tournament group (sanity-check ~617 total)
+  - [ ] After SQL UPDATE: `SELECT COUNT(*) FROM matches WHERE superseded_by_run_id IS NULL` ≈ 4,281 (= distinct signatures)
+  - [ ] `cli.py rate` re-run produces clean `rating_history` (no more duplicate match_id processing)
+  - [ ] Leaderboard regenerated; spot-check a few players' match counts vs reality (e.g. Kurt Carabott P240 should drop from "51" to fewer)
+  - [ ] Get-or-create implemented in every parser (`grep -rn "INSERT INTO tournaments"` shows only get-or-create patterns)
+  - [ ] sha256-only fallback in source_files dedup
+  - [ ] Smoke test: re-ingest one file twice, confirm no new tournament row
+  - [ ] Existing pytest suites still pass
+  - [ ] Audit log entry recording the SQL remediation for traceability
+- **Out of scope:** Postgres `UNIQUE(club_id, name, year)` constraint (Phase 1 migration concern, see T-P1-012 which already mentions tournament dedup); a content-hash check that catches semantically-identical-but-not-byte-identical files (a different sha256 because metadata changed) — needs Phase 1 fingerprinting design.
+- **References:** investigation report 2026-04-27 (in conversation); `scripts/phase0/rating.py:_iter_active_matches`; `scripts/phase0/cli.py` dispatch table lines 47-101; `scripts/phase0/schema.sql` (tournaments, source_files, ingestion_runs tables); PLAN.md §5.3.1 (idempotent re-process semantics); related: T-P1-012 (Phase-1 dedup follow-up).
+
+### T-P0.5-021 — Identity merge: `KURT CARABOTT` (P341) → `Kurt Carabott` (P240)
+
+- **Status:** `todo` (blocked by T-P0.5-020 — supersede the duplicate match first so the merge target is clean)
+- **Phase:** 0.5
+- **Goal:** Merge case-only identity duplicate that the T-P0.5-014 typo auto-merger missed.
+- **Surfaced by:** rating-journey mockup data extraction (2026-04-27). Player 240 (`Kurt Carabott`) and player 341 (`KURT CARABOTT`) are the same person. P341 has 2 matches, both on 2025-06-04 in The Joe Carabott Memorial Team Tournament — these 2 are themselves a Bug T-P0.5-020 duplicate pair (matches 10702 + 11535). After T-P0.5-020 supersedes one, P341 will still have 1 active match referencing it.
+- **Why missed by T-P0.5-014:** the typo auto-merger thresholds didn't catch case-only difference. Investigation: confirm whether `cli.py merge-case-duplicates` exists and whether re-running it would catch this; if not, why.
+- **Fix plan:**
+  1. Run `cli.py merge-case-duplicates` (or equivalent). If it catches P341→P240, accept and re-rate.
+  2. If not caught: add a `manual_aliases.json` entry for P341→P240, run `cli.py apply-manual-aliases`, re-rate, verify P341 is marked `merged_into_id = 240` in `players` table.
+  3. Investigate why automated tooling missed it — case-only dedup should be the easiest possible match. Either tighten the typo-merger threshold for case-only differences or add an explicit case-folding pre-pass.
+- **Acceptance criteria:**
+  - [ ] T-P0.5-020 fix already applied (the duplicate match superseded)
+  - [ ] P341 marked `merged_into_id = 240`
+  - [ ] All `match_sides` rows referencing P341 updated to reference P240 (via the existing merge machinery)
+  - [ ] Audit log entry for the merge
+  - [ ] Investigation note: why didn't the auto-merger catch it? Either fix the threshold or document why this case is intentionally manual.
+  - [ ] Spot-check: scan `players` for any other obvious case-only duplicates (e.g. `LIKE` queries comparing `LOWER(canonical_name)`); flag for batch review.
+- **References:** T-P0.5-014 (identity-resolution overhaul), T-P0.5-017 (eval harness), `scripts/phase0/players.py` (merge machinery), `manual_aliases.json`.
+
+### T-P0.5-022 — Tied-match display labels across site + CLI
+
+- **Status:** `in-progress` (2026-04-27)
+- **Phase:** 0.5
+- **Goal:** Stop misrepresenting team-tournament rubbers that split sets 1-1 and resolve on games-tiebreak as Side-A losses across every UI surface.
+- **Surfaced by:** rating-journey mockup data extraction (2026-04-27). 5 of Kurt Carabott's last 17 matches (29%) had `match_sides.won = 0` for both sides — sets split, games-won fraction broke the tie. The rating engine handles this correctly (`universal_score(games)` at `rating.py:333`); display layer falls into the `else` branch and treats Side B as winner regardless. System-wide: hundreds of matches affected (exact count: `SELECT COUNT(*) FROM matches m JOIN match_sides sa ON sa.match_id=m.id AND sa.side='A' JOIN match_sides sb ON sb.match_id=m.id AND sb.side='B' WHERE m.superseded_by_run_id IS NULL AND sa.won=0 AND sb.won=0;`).
+- **Decided convention:** **"W (g)" / "L (g)"** for the games-tiebreak case (full label "Won (games)" / "Lost (games)"). Keep `win`/`loss` CSS class binary so sort/streak/yearly-summary logic doesn't change shape. Side with more games gets W (g); side with fewer gets L (g). True 0/0 ties (equal sets AND equal games) are rare; treat as draw or tie-break-on-additional-criterion to be defined when one is found.
+- **Sites to fix (12+ identified by survey 2026-04-27):**
+  1. `scripts/phase0/generate_site.py:1219-1223` — `compute_form` (form badge)
+  2. `scripts/phase0/generate_site.py:1235-1236` — `compute_streaks` (W/L streak counter)
+  3. `scripts/phase0/generate_site.py:1262-1265` — `compute_yearly_summary` (yearly W/L bucket)
+  4. `scripts/phase0/generate_site.py:1446-1448` — `compute_match_impacts` (per-side `won` flag stored in impacts dict)
+  5. `scripts/phase0/generate_site.py:1590-1593` — `render_match_impact_block` / `_card()` (W/L badge in expandable row)
+  6. `scripts/phase0/generate_site.py:1786-1787` — `build_player_page` match-row result label
+  7. `scripts/phase0/generate_site.py:1862-1863, 1874-1881` — `build_player_page` impact-row assembly (especially `opp_won_bool = not my_won_bool` which is wrong even apart from ties)
+  8. `scripts/phase0/generate_site.py:2719-2727, 2736-2741` — `build_matches_page` score bolding + winner-side bolding
+  9. `scripts/phase0/generate_site.py:2969-2970, 2987-2995` — `build_disagreements_page` `actual_a` ground-truth verdict + score bolding (this contaminates model-calibration metrics)
+  10. `scripts/phase0/cli.py:366` — `cmd_history` terminal "W"/"L"
+  11. `scripts/phase0/cli.py:1126` — `_print_rank_table` (`losses = n - wins`). Decide: leave as-is (tied-as-loss in W-L column is a documented compromise; rating math is right) OR add `draws` column.
+- **Implementation:** add a small helper at the top of `generate_site.py`:
+  ```python
+  def match_result(my_won, opp_won, my_games, opp_games) -> tuple[str, str, str]:
+      """(cls, label, label_long) — cls stays binary 'win'/'loss'; label adds '(g)' for games-tiebreak."""
+  ```
+  Call it from every site listed. Keep CSS classes `win`/`loss` unchanged (no DOM/style breakage).
+- **Acceptance criteria:**
+  - [ ] Helper function added with docstring + unit tests in `test_generate_site.py`
+  - [ ] All 9 sites in `generate_site.py` updated to use it
+  - [ ] Both CLI sites updated
+  - [ ] `compute_match_impacts` correctly assigns `won=True` to the games-winner's side, `won=False` to the other side, in tied matches
+  - [ ] `build_disagreements_page`'s `actual_a` reflects games-winner direction for tied matches (model-accuracy numbers may shift slightly after this fix — that's correct, the prior numbers were measured against a wrong ground truth)
+  - [ ] Specific test: pick match 10677 (Kurt+Karl 1-1 sets, 11-10 games vs Trevor+Jean) — verify Kurt's player page shows "W (g)" not "L"
+  - [ ] Existing pytest suites still pass (some tests may need updating where they assert old labels for tied matches — flag these)
+  - [ ] Site regenerated; no visual regressions on a sample of non-tied matches
+- **Out of scope:** changing the `match_sides.won` schema (current 0/0 representation is fine, the bug is purely in the display layer); deciding what "W (g)" looks like visually beyond the parenthetical (could add a tooltip explaining the games-tiebreak — a polish PR).
+- **References:** survey report 2026-04-27 (in conversation); PLAN.md §5.2 (rating model — confirms ties are mathematically valid; no display convention had been established); `scripts/phase0/rating.py:333` `universal_score()` (canonical ground truth for how the engine treats ties).
 
 Tasks below are intentionally sketchy until Phase 0 lands and we know what concrete shape Phase 1 takes. Don't expand to acceptance-criteria detail before Phase 0's retrospective informs them.
 

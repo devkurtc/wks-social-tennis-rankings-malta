@@ -183,6 +183,20 @@ def merge_player_into(
             # Already merged — idempotent no-op
             return
 
+        # Snapshot the (match_id, side, slot) triples the loser owned BEFORE
+        # we redirect them. `unmerge_player` reads this to reverse cleanly.
+        loser_sides_rows = conn.execute(
+            "SELECT match_id, side, "
+            "  CASE WHEN player1_id = ? THEN 'p1' ELSE 'p2' END AS slot "
+            "FROM match_sides "
+            "WHERE player1_id = ? OR player2_id = ?",
+            (loser_id, loser_id, loser_id),
+        ).fetchall()
+        match_sides_snapshot = [
+            {"match_id": mid, "side": sd, "slot": slot}
+            for (mid, sd, slot) in loser_sides_rows
+        ]
+
         # Redirect match_sides references
         conn.execute(
             "UPDATE match_sides SET player1_id = ? WHERE player1_id = ?",
@@ -229,7 +243,11 @@ def merge_player_into(
             (
                 "player.merged",
                 loser_id,
-                json.dumps({"id": loser_id, "canonical_name": loser_row[1]}),
+                json.dumps({
+                    "id": loser_id,
+                    "canonical_name": loser_row[1],
+                    "match_sides": match_sides_snapshot,
+                }),
                 json.dumps(
                     {
                         "merged_into_id": winner_id,
@@ -893,6 +911,7 @@ def suggest_fuzzy_matches(
     same_gender_only: bool = True,
     min_matches: int = 1,
     known_distinct: set[frozenset[str]] | None = None,
+    deferred: set[frozenset[str]] | None = None,
 ) -> list[dict]:
     """Surface plausible same-person pairs that automated rules missed.
 
@@ -967,13 +986,16 @@ def suggest_fuzzy_matches(
 
     suggestions: list[dict] = []
     known_distinct = known_distinct or set()
+    deferred = deferred or set()
     n_players = len(players_list)
     for i in range(n_players):
         a = players_list[i]
         for j in range(i + 1, n_players):
             b = players_list[j]
-            # Filter pairs a human has already ruled "different people".
-            if frozenset({a["name"], b["name"]}) in known_distinct:
+            pair_key = frozenset({a["name"], b["name"]})
+            # Filter pairs a human has already ruled "different people"
+            # OR temporarily deferred via "don't know".
+            if pair_key in known_distinct or pair_key in deferred:
                 continue
             # Cheap prefilters
             if abs(len(a["_key"]) - len(b["_key"])) > 8:
@@ -1074,3 +1096,203 @@ def apply_manual_aliases(
         })
 
     return applied, warnings
+
+
+# ---- Defer ("Don't know") + de-merge helpers (T-P0.5-018) ----
+
+
+def _atomic_write_json(path: str, data) -> None:
+    """Tmpfile + rename. Avoids truncating the JSON if the process dies
+    mid-write."""
+    import json as _json
+    import os as _os
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(_json.dumps(data, indent=2, ensure_ascii=False))
+        f.write("\n")
+    _os.replace(tmp, path)
+
+
+def load_active_defers(path: str, *, now_iso: str | None = None) -> set[frozenset[str]]:
+    """Load 'don't know — revisit later' deferrals from JSON.
+
+    Pairs whose `revisit_after` is in the future are returned as frozensets
+    (order-insensitive). Expired deferrals are filtered out so they re-surface
+    in the queue automatically. Missing file → empty set.
+    """
+    import json as _json
+    import os as _os
+    from datetime import datetime as _dt, timezone as _tz
+
+    if not _os.path.exists(path):
+        return set()
+    with open(path, "r", encoding="utf-8") as f:
+        data = _json.loads(f.read())
+    if now_iso is None:
+        now_iso = _dt.now(_tz.utc).isoformat(timespec="seconds")
+    out: set[frozenset[str]] = set()
+    for entry in data.get("pairs", []) or []:
+        a, b = entry.get("a"), entry.get("b")
+        revisit_after = entry.get("revisit_after", "")
+        if a and b and revisit_after > now_iso:
+            out.add(frozenset({a, b}))
+    return out
+
+
+def record_defer(
+    path: str,
+    a_name: str,
+    b_name: str,
+    *,
+    days: int = 14,
+    reason: str = "",
+) -> bool:
+    """Record a 'don't know' verdict — defer the pair for `days` days.
+
+    Re-deferring an existing pair refreshes the timestamp rather than
+    appending a duplicate. Returns True if anything changed."""
+    import json as _json
+    import os as _os
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+
+    if _os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            data = _json.loads(f.read())
+    else:
+        data = {"pairs": []}
+    pairs = data.setdefault("pairs", [])
+
+    target = frozenset({a_name, b_name})
+    now = _dt.now(_tz.utc)
+    revisit = (now + _td(days=days)).isoformat(timespec="seconds")
+
+    for existing in pairs:
+        if frozenset({existing.get("a", ""), existing.get("b", "")}) == target:
+            existing["revisit_after"] = revisit
+            if reason:
+                existing["reason"] = reason
+            existing["deferred_at"] = now.isoformat(timespec="seconds")
+            _atomic_write_json(path, data)
+            return True
+
+    pairs.append({
+        "a": a_name,
+        "b": b_name,
+        "reason": reason or "Deferred for review",
+        "deferred_at": now.isoformat(timespec="seconds"),
+        "revisit_after": revisit,
+    })
+    _atomic_write_json(path, data)
+    return True
+
+
+def unmerge_player(
+    conn: sqlite3.Connection,
+    audit_log_id: int,
+    *,
+    reason: str = "manual de-merge via review UI",
+) -> dict:
+    """Reverse a single `player.merged` audit entry.
+
+    Restores `merged_into_id = NULL` and redirects each match_side back to
+    the loser using the snapshot in `before_jsonb.match_sides`. Audit
+    entries written before the snapshot field was added are flagged
+    `legacy: True` — those clear merged_into_id but leave match_sides on
+    the winner. Writes a new `player.unmerged` audit entry.
+    """
+    import json as _json
+
+    row = conn.execute(
+        "SELECT entity_id, before_jsonb, after_jsonb FROM audit_log "
+        "WHERE id = ? AND action = 'player.merged' AND entity_type = 'players'",
+        (audit_log_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"no player.merged audit entry with id={audit_log_id}")
+    loser_id, before_json, after_json = row
+    before = _json.loads(before_json or "{}")
+    after = _json.loads(after_json or "{}")
+    winner_id = after.get("merged_into_id")
+    if winner_id is None:
+        raise ValueError(
+            f"audit entry id={audit_log_id} has no merged_into_id in after_jsonb"
+        )
+
+    sides = before.get("match_sides", [])
+    legacy = "match_sides" not in before
+
+    with conn:
+        cur_row = conn.execute(
+            "SELECT merged_into_id, canonical_name FROM players WHERE id = ?",
+            (loser_id,),
+        ).fetchone()
+        if cur_row is None:
+            raise ValueError(f"loser id={loser_id} no longer in players table")
+        cur_merged_into, loser_name = cur_row
+        if cur_merged_into != winner_id:
+            raise ValueError(
+                f"loser id={loser_id} is currently merged into "
+                f"{cur_merged_into}, not {winner_id} as recorded in audit "
+                f"entry {audit_log_id}; refusing to unmerge"
+            )
+
+        redirected = 0
+        for entry in sides:
+            mid = entry.get("match_id")
+            sd = entry.get("side")
+            slot = entry.get("slot")
+            if not (mid and sd and slot in ("p1", "p2")):
+                continue
+            col = "player1_id" if slot == "p1" else "player2_id"
+            cur = conn.execute(
+                f"UPDATE match_sides SET {col} = ? "
+                f"WHERE match_id = ? AND side = ? AND {col} = ?",
+                (loser_id, mid, sd, winner_id),
+            )
+            redirected += cur.rowcount
+
+        conn.execute(
+            "UPDATE players SET merged_into_id = NULL WHERE id = ?",
+            (loser_id,),
+        )
+        conn.execute("DELETE FROM ratings WHERE player_id = ?", (loser_id,))
+        conn.execute("DELETE FROM rating_history WHERE player_id = ?", (loser_id,))
+        conn.execute("DELETE FROM ratings WHERE player_id = ?", (winner_id,))
+        conn.execute("DELETE FROM rating_history WHERE player_id = ?", (winner_id,))
+
+        winner_name = (after.get("winner_canonical_name")
+                       or conn.execute(
+                           "SELECT canonical_name FROM players WHERE id = ?",
+                           (winner_id,),
+                       ).fetchone()[0])
+
+        conn.execute(
+            """
+            INSERT INTO audit_log (action, entity_type, entity_id, before_jsonb, after_jsonb)
+            VALUES (?, 'players', ?, ?, ?)
+            """,
+            (
+                "player.unmerged",
+                loser_id,
+                _json.dumps({
+                    "merged_into_id": winner_id,
+                    "winner_canonical_name": winner_name,
+                    "merge_audit_id": audit_log_id,
+                }),
+                _json.dumps({
+                    "merged_into_id": None,
+                    "match_sides_redirected": redirected,
+                    "legacy": legacy,
+                    "reason": reason,
+                }),
+            ),
+        )
+
+    return {
+        "loser_id": loser_id,
+        "loser_name": loser_name,
+        "winner_id": winner_id,
+        "winner_name": winner_name,
+        "match_sides_redirected": redirected,
+        "legacy": legacy,
+    }
