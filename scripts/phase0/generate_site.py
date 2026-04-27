@@ -4410,6 +4410,63 @@ def build_how_it_works_page(conn: sqlite3.Connection) -> str:
   </section>
 
   <section>
+    <h2>Two leaderboards: KC Version vs DF Version</h2>
+    <p>The leaderboard has a tab toggle between <strong>KC Version</strong> and <strong>DF Version</strong>. Both rank the same 696 players using the same 4,062 matches — the source data is <em>identical</em>. What differs is the <em>algorithm</em> reading those matches.</p>
+
+    <h3 style="margin-top:18px;font-size:14px;">If you don't do maths</h3>
+    <p>Think of it like two referees watching the same game and writing down "skill marks" for each player. They see the same plays, but they keep score on different sheets:</p>
+    <ul>
+      <li><strong>KC's referee (OpenSkill)</strong> uses a 0-to-50ish scale. After each match they nudge the four players' marks up or down a tiny amount based on whether the result was expected (small nudge) or surprising (big nudge), and how lopsided the games were.</li>
+      <li><strong>DF's referee (Glicko-2)</strong> uses a 0-to-3000ish scale (chess uses the same scale). They do the same idea — nudge marks up or down — but the maths underneath is shaped differently. Each player carries a "reliability" number that shrinks the more they play.</li>
+    </ul>
+    <p>Both referees agree on the <em>question</em> — "given everyone's history, how should this match shift things?" — and both arrive at <em>roughly</em> the same ranking. But the maths they use is different, so the answers won't be identical. That's the point.</p>
+    <p><strong>So why have both?</strong> A rating system is a model of reality, and every model has blind spots. Running two side-by-side is a built-in BS detector. If KC says you're player #5 and DF says you're player #50, that's a flag worth a closer look — usually a small data quirk (very few matches, weird tournament format) that one model handles better than the other. Where they agree, you can trust the answer. Where they disagree, dig in.</p>
+
+    <details style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;">
+      <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--accent);">If you do maths — the technical comparison</summary>
+
+      <div style="margin-top:12px;">
+        <p>Both algorithms are <strong>Bayesian rating systems</strong>: each player has a prior distribution over their "true skill", and every match is a likelihood observation that updates the posterior. They differ in <em>which</em> prior, <em>which</em> likelihood, and how doubles is handled.</p>
+
+        <h4 style="font-size:13px;margin-top:14px;">Shared scaffolding</h4>
+        <ul>
+          <li><strong>Score function.</strong> Both consume <code>S = games_won / (games_won + games_lost)</code> ∈ [0, 1] — the "universal score" from PLAN.md §5.2. Replaces the cruder binary win/loss with a continuous outcome that captures match dominance. Walkovers are clamped to S = 0.90 / 0.10 (the win was real; the play wasn't).</li>
+          <li><strong>Conservative rank.</strong> Both display "μ − 3σ" (KC) or "r − 3·RD" (DF) — the lower 99% bound of the player's posterior. New players sit near the floor and rise as uncertainty shrinks.</li>
+          <li><strong>Source iterator.</strong> Both call <code>rating._iter_active_matches(conn)</code> in chronological order. Same 4,062 matches, same filter (<code>superseded_by_run_id IS NULL</code>), same order.</li>
+        </ul>
+
+        <h4 style="font-size:13px;margin-top:14px;">KC — OpenSkill Plackett-Luce</h4>
+        <ul>
+          <li><strong>Prior:</strong> each player has skill θ ~ 𝒩(μ, σ²). Default μ = 25, σ = 25/3.</li>
+          <li><strong>Likelihood:</strong> a Plackett-Luce ranking model — P(team A finishes ahead of team B) ∝ exp(strength<sub>A</sub>) / (exp(strength<sub>A</sub>) + exp(strength<sub>B</sub>)) — where each team's strength is derived from its players' θ.</li>
+          <li><strong>Update:</strong> approximate Bayesian inference produces closed-form (μ, σ) updates per player after each match. Bigger upset = larger μ shift. Higher prior σ = larger update step.</li>
+          <li><strong>Doubles:</strong> native multi-agent — Plackett-Luce treats each team as the sum of its players' skills, and the per-player update is split fairly across the team.</li>
+          <li><strong>On top of OpenSkill's base move</strong>, the production engine layers <em>four multipliers</em>: game volume, division K, time decay (τ = 365 d), partner-share weighting. See "What changes a rating" above.</li>
+        </ul>
+
+        <h4 style="font-size:13px;margin-top:14px;">DF — Glicko-2 (doubles-adapted)</h4>
+        <ul>
+          <li><strong>Prior:</strong> each player has rating r ~ 𝒩(r̂, RD²) and a volatility σ tracking rating reliability over time. Default r = 1500, RD = 350, σ = 0.06.</li>
+          <li><strong>Likelihood:</strong> logistic — E[score against opponent] = 1 / (1 + exp(−g(RD<sub>opp</sub>)·(r − r<sub>opp</sub>) / 400·ln 10)), where <span style="white-space:nowrap;">g(RD) = 1 / √(1 + 3·RD² / π²)</span> dampens the update for opponents with high uncertainty.</li>
+          <li><strong>Update:</strong> Glickman's 2012 paper — closed-form updates to (r, RD, σ) per match. r shifts toward the observed outcome scaled by g(RD<sub>opp</sub>); RD shrinks; σ adjusts based on whether recent results were surprising.</li>
+          <li><strong>Doubles:</strong> the opponent <em>team</em> is collapsed to a single virtual entity — r<sub>team</sub> = average of partner r's, RD<sub>team</sub> = √((RD<sub>p1</sub>² + RD<sub>p2</sub>²) / 2) (RMS-combined). The focal player updates against this virtual opponent. Approximation, not native — but well-behaved in practice.</li>
+          <li><strong>Time handling:</strong> RD inflates between rating periods (volatility-driven), no separate decay multiplier.</li>
+        </ul>
+
+        <h4 style="font-size:13px;margin-top:14px;">Where they will disagree</h4>
+        <ul>
+          <li><strong>Players with very few matches.</strong> KC's μ−3σ pushes new players toward the floor more aggressively than DF's r−3·RD; rapid risers may rank lower under KC for longer.</li>
+          <li><strong>Players with long inactive gaps.</strong> KC has explicit time-decay multiplier τ = 365 d (older matches contribute less). DF's volatility-driven RD inflation grows uncertainty during gaps but doesn't down-weight old results — so a comeback player's rank can lag in DF until a few new matches recalibrate.</li>
+          <li><strong>Lopsided pairs.</strong> KC's partner-share multiplier credits the stronger partner with more of the team's update. DF's symmetric doubles aggregation splits credit equally. A clearly dominant player paired with a weaker partner may rank slightly higher under KC.</li>
+          <li><strong>Strong wins by underdogs.</strong> Plackett-Luce's exponential and Glicko-2's logistic disagree most sharply at the tails — surprise upsets shift ratings differently in the two models.</li>
+        </ul>
+
+        <p style="margin-top:14px;">If a specific player ranks 50+ places apart between the two leaderboards, that's the most useful signal the dual-model architecture produces. It usually points at one of the divergence cases above — worth a closer look at their match history before trusting either rank as gospel.</p>
+      </div>
+    </details>
+  </section>
+
+  <section>
     <h2>Captain's say sits on top</h2>
     <p>For tournaments where captains pre-assign players to A/B/C/D teams, the leaderboard groups by that captain choice <em>first</em>, then ranks by μ − 3σ <em>within</em> the group. Math knows numbers; captains know things math can't see (chemistry, injury, attitude). Both views are visible — the default respects captains, and a "raw" sort shows pure math.</p>
   </section>
